@@ -1,14 +1,4 @@
 import sbt.{Def, _}
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
-
-//noinspection TypeAnnotation. This actyally loads, but then compiler seems to die when being run
-object OModules {
-
-  case class OModule(org: String, module: String, version: String, config: Option[Configuration] = None) {
-    def jvm: ModuleID                    = org %% module % version
-    def js: Def.Initialize[sbt.ModuleID] = Def.setting(org %%% module % version)
-  }
-}
 
 object Libs {
 
@@ -106,51 +96,51 @@ object Libs {
 
   val all: Seq[ModuleID] = testing ++ cats ++ fs2 ++ monocle ++ standard ++ tapir ++ sttpClient ++ scribe ++ circe ++ http4s ++ doobie
 }
-
-object LibsX {
-
-  import Version._
-  import OModules.OModule
-
-  lazy val cats             = Def.setting("org.typelevel" %%% "cats-core" % Version.cats)
-  lazy val catsEffect       = Def.setting("org.typelevel" %%% "cats-effect" % Version.catsEffect)
-  lazy val lCatsCollections = Def.setting("org.typelevel" %%% "cats-collections-core" % Version.cats)
-  lazy val monocle          = Def.setting("dev.optics" %%% "monocle-core" % Version.monocle)
-  lazy val lPPrint          = Def.setting("com.lihaoyi" %%% "pprint" % Version.pprint)
-  lazy val lScribe          = Def.setting("com.outr" %%% "scribe" % Version.scribe)
-  lazy val lMunit           = Def.setting("org.scalameta" %%% "munit" % Version.munit % Test)
-  lazy val lScodecBits      = Def.setting("org.scodec" %%% "scodec-bits" % Version.scodecBits)
-  lazy val lMunitCats       = Def.setting("org.typelevel" %%% "munit-cats-effect-3" % Version.munitCats % Test)
-  lazy val defaultLibs      = Seq(cats, catsEffect, lCatsCollections, monocle, lPPrint, lScribe, lMunit, lMunitCats)
-  //
 //
-//  val lScalaTags    = Def.setting("com.lihaoyi" %%% "scalatags" % scalaTagsV)
-//  val lScalaCss     = Def.setting("com.github.japgolly.scalacss" %%% "core" % scalaCssV)
-//  val lScalaTagsCss = Def.setting("com.github.japgolly.scalacss" %%% "ext-scalatags" % scalaCssV)
+//object LibsX {
 //
-  lazy val lCirceCore       = Def.setting("io.circe" %%% "circe-core" % Version.circe)
-  lazy val lCirceGeneric    = Def.setting("io.circe" %%% "circe-generic" % Version.circe)
-  lazy val lCircePointer    = Def.setting("io.circe" %%% "circe-pointer" % Version.circe)
-  lazy val lCirceParser     = Def.setting("io.circe" %%% "circe-parser" % Version.circe)
-  lazy val lCirceYaml       = Def.setting("io.circe" %%% "circe-yaml" % Version.circe)
-  lazy val lCirceRefined    = Def.setting("io.circe" %%% "circe-refined" % Version.circe)
-  lazy val lCirceExtra      = Def.setting("io.circe" %%% "circe-extras" % Version.circe)
-  lazy val lCirceNumbers    = Def.setting("io.circe" %%% "circe-numbers" % Version.circe)
-
-  lazy val circeStdLibs = Seq(lCirceCore, lCirceGeneric, lCirceParser, lCircePointer, lCirceNumbers)
-  lazy val stdLibs      = defaultLibs ++ circeStdLibs
-
-  //  lazy val catsRetru: Def.setting = Def.setting("com.github.cb372", "cats-retry", Version.catsRetry)
-  //  val fs2: Def.setting            = Def.setting("co.fs2", "fs2-core", Version.fs2) // fs-io is not xplatform, to JS at least.
-  // val lCirceScodec: Def.setting     = Def.setting("io.circe", "circe-scodec", circeVersion) // There
-  // val lScodecCore = OModule("org.scodec", "scodec-core", scodecV)
-  //  val lScodecBits = OModule("org.scodec" , "scodec-bits" , scodecBitsV) // Use this in more places
-  //  val lScodecCats = OModule("org.scodec" , "scodec-cats" , scodecCatsV)
-
-//  val lSquants = OModule("org.typelevel" %%% "squants" % squantsV)
-//  val lChimney = OModule("io.scalaland" %%% "chimney" % chimneyV)
-  //   val lScalaJavaTime     = OModule("io.github.cquiroz" %%% "scala-java-time" % scalaJavaTime)
-  //   val lScalaJavaTimeTZDB = OModule("io.github.cquiroz" %%% "scala-java-time-tzdb" % scalaJavaTime)
+//  import Version._
+//  import OModules.OModule
 //
-
-}
+//  lazy val cats             = Def.setting("org.typelevel" %%% "cats-core" % Version.cats)
+//  lazy val catsEffect       = Def.setting("org.typelevel" %%% "cats-effect" % Version.catsEffect)
+//  lazy val lCatsCollections = Def.setting("org.typelevel" %%% "cats-collections-core" % Version.cats)
+//  lazy val monocle          = Def.setting("dev.optics" %%% "monocle-core" % Version.monocle)
+//  lazy val lPPrint          = Def.setting("com.lihaoyi" %%% "pprint" % Version.pprint)
+//  lazy val lScribe          = Def.setting("com.outr" %%% "scribe" % Version.scribe)
+//  lazy val lMunit           = Def.setting("org.scalameta" %%% "munit" % Version.munit % Test)
+//  lazy val lScodecBits      = Def.setting("org.scodec" %%% "scodec-bits" % Version.scodecBits)
+//  lazy val lMunitCats       = Def.setting("org.typelevel" %%% "munit-cats-effect-3" % Version.munitCats % Test)
+//  lazy val defaultLibs      = Seq(cats, catsEffect, lCatsCollections, monocle, lPPrint, lScribe, lMunit, lMunitCats)
+//  //
+////
+////  val lScalaTags    = Def.setting("com.lihaoyi" %%% "scalatags" % scalaTagsV)
+////  val lScalaCss     = Def.setting("com.github.japgolly.scalacss" %%% "core" % scalaCssV)
+////  val lScalaTagsCss = Def.setting("com.github.japgolly.scalacss" %%% "ext-scalatags" % scalaCssV)
+////
+//  lazy val lCirceCore       = Def.setting("io.circe" %%% "circe-core" % Version.circe)
+//  lazy val lCirceGeneric    = Def.setting("io.circe" %%% "circe-generic" % Version.circe)
+//  lazy val lCircePointer    = Def.setting("io.circe" %%% "circe-pointer" % Version.circe)
+//  lazy val lCirceParser     = Def.setting("io.circe" %%% "circe-parser" % Version.circe)
+//  lazy val lCirceYaml       = Def.setting("io.circe" %%% "circe-yaml" % Version.circe)
+//  lazy val lCirceRefined    = Def.setting("io.circe" %%% "circe-refined" % Version.circe)
+//  lazy val lCirceExtra      = Def.setting("io.circe" %%% "circe-extras" % Version.circe)
+//  lazy val lCirceNumbers    = Def.setting("io.circe" %%% "circe-numbers" % Version.circe)
+//
+//  lazy val circeStdLibs = Seq(lCirceCore, lCirceGeneric, lCirceParser, lCircePointer, lCirceNumbers)
+//  lazy val stdLibs      = defaultLibs ++ circeStdLibs
+//
+//  //  lazy val catsRetru: Def.setting = Def.setting("com.github.cb372", "cats-retry", Version.catsRetry)
+//  //  val fs2: Def.setting            = Def.setting("co.fs2", "fs2-core", Version.fs2) // fs-io is not xplatform, to JS at least.
+//  // val lCirceScodec: Def.setting     = Def.setting("io.circe", "circe-scodec", circeVersion) // There
+//  // val lScodecCore = OModule("org.scodec", "scodec-core", scodecV)
+//  //  val lScodecBits = OModule("org.scodec" , "scodec-bits" , scodecBitsV) // Use this in more places
+//  //  val lScodecCats = OModule("org.scodec" , "scodec-cats" , scodecCatsV)
+//
+////  val lSquants = OModule("org.typelevel" %%% "squants" % squantsV)
+////  val lChimney = OModule("io.scalaland" %%% "chimney" % chimneyV)
+//  //   val lScalaJavaTime     = OModule("io.github.cquiroz" %%% "scala-java-time" % scalaJavaTime)
+//  //   val lScalaJavaTimeTZDB = OModule("io.github.cquiroz" %%% "scala-java-time-tzdb" % scalaJavaTime)
+////
+//
+//}
