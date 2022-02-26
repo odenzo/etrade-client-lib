@@ -1,8 +1,7 @@
 package com.odenzo.etrade.models.responses
 
-import com.odenzo.etrade.client.models.responses
 import com.odenzo.etrade.models.Account
-import io.circe.generic.codec.DerivedAsObjectCodec.deriveCodec
+
 import io.circe.{Decoder, HCursor, Json}
 
 case class ListAccountsRs(accounts: List[Account])

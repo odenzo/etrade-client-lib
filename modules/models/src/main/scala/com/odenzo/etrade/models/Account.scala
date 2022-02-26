@@ -1,9 +1,10 @@
 package com.odenzo.etrade.models
 
-import io.circe.generic.AutoDerivation
-import io.circe._
+import io.circe.generic.*
+import io.circe.*
 
-case class AccountListResponse(Account: Vector[Json]) extends AutoDerivation
+/** FIXME once calls working */
+case class AccountListResponse(Account: Vector[Json]) derives Codec.AsObject
 
 case class Account(
     accountId: String,
@@ -16,4 +17,4 @@ case class Account(
     accountStatus: String,   // ACTIVE/CLOSED
     closedDate: Long
     //   instNo: Option[Int]      //
-) extends AutoDerivation
+) derives Codec.AsObject

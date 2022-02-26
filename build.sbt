@@ -34,24 +34,32 @@ lazy val models = project
   .withId("models")
   .dependsOn(common)
   .settings(name := "models")
-  .settings(Compile / scalacOptions += "-Ymacro-annotations")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
 lazy val client = project
   .in(file("modules/client"))
   .withId("client")
-  .dependsOn(common, models)
+  .dependsOn(common, models, oauth)
   .settings(name := "client")
-  .settings(Compile / scalacOptions += "-Ymacro-annotations")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
 lazy val oauth = project
   .in(file("modules/oauth"))
   .withId("oauth")
-  .dependsOn(common, models, client)
+  .dependsOn(common, models)
   .settings(name := "oauth-callback-server")
-  .settings(Compile / scalacOptions += "-Ymacro-annotations")
+  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
+  .settings(libraryDependencies ++= Libs.scaffeine)
+  .settings(libraryDependencies ++= Libs.testing)
+
+lazy val example = project
+  .in(file("modules/example"))
+  .withId("example")
+  .dependsOn(common, models, oauth)
+  .settings(name := "example-usage")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
+
+addCommandAlias("ci-test", "+clean;+test -- -DCI=true")

@@ -32,11 +32,7 @@ case class Position(
     quoteDetails: OUrl,
     product: ETProduct,
     quick: Quick
-)
-
-object Position {
-  implicit val codec: Codec.AsObject[Position] = deriveCodec[Position]
-}
+) derives Codec.AsObject
 
 //
 //case class Position(

@@ -1,20 +1,13 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.base.CirceUtils
-import com.odenzo.etrade.client.models.Computed
-import com.odenzo.etrade.models.{Cash, Computed}
+import com.odenzo.etrade.models.*
+import io.circe.*
+import io.circe.Codec.*
 import io.circe.Decoder.Result
-import io.circe._
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
+import io.circe.generic.semiauto.*
 
-case class AccountBalanceRs(BalanceResponse: AccountBalances) derives
-
-object AccountBalanceRs {
-  private implicit val config: Configuration      = Configuration.default
-  implicit val decoder: Decoder[AccountBalanceRs] = deriveConfiguredDecoder[AccountBalanceRs]
-
-}
+case class AccountBalanceRs(balanceResponse: AccountBalances) derives Codec.AsObject
 
 case class AccountBalances(
     accountId: String,
@@ -24,13 +17,13 @@ case class AccountBalances(
     quoteMode: Int,
     dayTraderStatus: String,
     accountMode: String,
-    Cash: Cash,
-    Computed: Computed
+    cash: Cash,
+    computed: Computed
 )
 
 object AccountBalances {
 
-  implicit val config: Configuration             = CirceUtils.customMemberConfig(Map("cash" -> "Cash", "computed" -> "Computed"))
-  implicit val decoder: Decoder[AccountBalances] = deriveConfiguredDecoder[AccountBalances]
+  def rename                                   = Map("cash" -> "Cash", "computed" -> "Computed")
+  given codec: Codec.AsObject[AccountBalances] = CirceUtils.renamingCodec(deriveCodec[AccountBalances], rename)
 
 }

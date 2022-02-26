@@ -1,9 +1,11 @@
 package com.odenzo.etrade.models
 
 import com.odenzo.base.CirceUtils
-import io.circe._
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto.deriveConfiguredCodec
+import com.odenzo.etrade.models.responses.AccountBalances
+import io.circe.*
+import io.circe.Codec
+import io.circe.generic.AutoDerivation
+import io.circe.generic.semiauto.deriveCodec
 
 case class Computed(
     cashAvailableForInvestment: BigDecimal,
@@ -21,12 +23,13 @@ case class Computed(
     dtCashBuyingPower: BigDecimal,
     shortAdjustBalance: BigDecimal,
     accountBalance: BigDecimal,
-    OpenCalls: OpenCalls,
-    RealTimeValues: RealTimeValues
+    openCalls: OpenCalls,          // TODO: Normalize and Map to openCalls field name
+    realTimeValues: RealTimeValues // TODO: realTimeValues field name
 )
 
 object Computed {
 
-  implicit val config: Configuration             = CirceUtils.customMemberConfig(Map("openCalls" -> "OpenCalls", "realTimeValues" -> "RealTimeValues"))
-  implicit val decoder: Codec.AsObject[Computed] = deriveConfiguredCodec[Computed]
+  def rename                     = Map("openCalls" -> "OpenCalls", "realTimeValue" -> "RealTimeValues")
+  given Codec.AsObject[Computed] = CirceUtils.renamingCodec(deriveCodec[Computed], rename)
+
 }

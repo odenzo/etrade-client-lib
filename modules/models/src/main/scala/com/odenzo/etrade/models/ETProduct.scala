@@ -5,10 +5,10 @@ import io.circe.generic.AutoDerivation
 import io.circe.generic.semiauto.deriveCodec
 
 // Difference between ProductId?
-case class ETProduct(symbol: String, securityType: String) extends AutoDerivation
+case class ETProduct(symbol: String, securityType: String)
 
 object ETProduct {
-  implicit val codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
+  val codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
 }
 case class Product2(
     symbol: String,
@@ -18,8 +18,4 @@ case class Product2(
     expiryDay: Int,
     strikePrice: BigDecimal,
     productId: ProductId
-)
-
-object Product2 {
-  implicit val codec: Codec.AsObject[Product2] = deriveCodec[Product2]
-}
+) derives Codec.AsObject

@@ -14,9 +14,11 @@ trait ScribeHelpers {
     select(filters: _*).include(level >= minLevel)
   }
 
-  /** Helper to filter out messages in the packages given below the given level
+  /**
+    * Helper to filter out messages in the packages given below the given level
     *
-    * @return a FilterBuilder kindof LogModifier filter that can be used with .withModifier()
+    * @return
+    *   a FilterBuilder kindof LogModifier filter that can be used with .withModifier()
     */
   def setLevelOnPackages(packages: List[String], atOrAboveLevel: Level, priority: Priority = Priority.Normal): FilterBuilder = {
     val ps: List[Filter] = packages.map(p => packageName.startsWith(p))
@@ -29,17 +31,18 @@ trait ScribeHelpers {
   }
 }
 
-/** Scribe can be a sf4j implementer -- but can't pipe log loback for its file based config.
-  * For simple stuff thats a pain since I am not putting in a log control API.
+/**
+  * Scribe can be a sf4j implementer -- but can't pipe log loback for its file based config. For simple stuff thats a pain since I am not
+  * putting in a log control API.
   */
 object ScribeConfig extends ScribeHelpers {
 
-  def testConfig() = {
+  def testConfig(): Logger = {
     // Reset and turn all the com.odenzo.utils.logging levels to Debug for noisy ness
     import scribe.format._
     resetAllToLevel(Level.Debug) // filter in logback
     // See FormatBlock
-    val myFormatter: Formatter = formatter"SMOKER  [$timeStamp] $levelPaddedRight $position - $message$newLine"
+    val myFormatter: Formatter = formatter"SMOKER  [$timeStamp] $levelPaddedRight $position - $messages$newLine"
     val strict                 = Formatter.strict
 
     Logger.root.clearHandlers().withHandler(formatter = myFormatter).replace()

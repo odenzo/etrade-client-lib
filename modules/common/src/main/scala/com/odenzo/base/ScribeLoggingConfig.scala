@@ -1,23 +1,23 @@
 package com.odenzo.base
 
-import scribe.{Level, Logger, Priority}
-import scribe.filter._
+import scribe.*
+import scribe.filter.*
 
-/**  Scribe has run-time configuration.
-  *  This is designed to control when developing the codec library and also when using.
-  *  This is my experiment and learning on how to control
-  *  The default config fvor scribe is INFO
-  *  See com.odenzo.ripple.bincodec package information for usage.
+/**
+  * Scribe has run-time configuration. This is designed to control when developing the codec library and also when using. This is my
+  * experiment and learning on how to control The default config fvor scribe is INFO See com.odenzo.ripple.bincodec package information for
+  * usage.
   */
 object ScribeLoggingConfig extends Logger {
 
-  /** Helper to filter out messages in the packages given below the given level
-    * I am not sure this works with the global scribe object or not.
-    * Usage:
+  /**
+    * Helper to filter out messages in the packages given below the given level I am not sure this works with the global scribe object or
+    * not. Usage:
     * {{{
     *   scribe.
     * }}}
-    * @return a filter that can be used with .withModifier()
+    * @return
+    *   a filter that can be used with .withModifier()
     */
   def excludePackageSelction(packages: List[String], atOrAboveLevel: Level, priority: Priority): FilterBuilder = {
     val ps: List[Filter] = packages.map(p => packageName.startsWith(p))
@@ -43,8 +43,8 @@ object ScribeLoggingConfig extends Logger {
     ScribeLoggingConfig.addModifiers(List(p), Level.Warn) // TODO: This really adding, check alter
   }
 
-  /** Set logging level of all com.odenzo.bincodec.* packages to the level (via filter)
-    *  Default is for INFO level
+  /**
+    * Set logging level of all com.odenzo.bincodec.* packages to the level (via filter) Default is for INFO level
     */
   def setBinCodecLogging(l: Level): Unit = mutePackage("com.odenzo.bincodec", l)
 }

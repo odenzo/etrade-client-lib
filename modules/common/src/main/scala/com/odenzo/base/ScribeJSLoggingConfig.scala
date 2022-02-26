@@ -1,24 +1,24 @@
 package com.odenzo.base
 
+import scribe.filter.*
 import scribe.{Level, Logger, Priority}
-import scribe.filter._
 
 /**
- * Scribe has run-time configuration. This is designed to control when developing the codec library and also when using. This is my
- * experiment and learning on how to control The default config fvor scribe is INFO See com.odenzo.ripple.bincodec package information for
- * usage.
- */
+  * Scribe has run-time configuration. This is designed to control when developing the codec library and also when using. This is my
+  * experiment and learning on how to control The default config fvor scribe is INFO See com.odenzo.ripple.bincodec package information for
+  * usage.
+  */
 object ScribeJSLoggingConfig extends Logger {
 
   /**
-   * Helper to filter out messages in the packages given below the given level I am not sure this works with the global scribe object or
-   * not. Usage:
-   * {{{
-   *   scribe.
-   * }}}
-   * @return
-   *   a filter that can be used with .withModifier()
-   */
+    * Helper to filter out messages in the packages given below the given level I am not sure this works with the global scribe object or
+    * not. Usage:
+    * {{{
+    *   scribe.
+    * }}}
+    * @return
+    *   a filter that can be used with .withModifier()
+    */
   def excludePackageSelction(packages: List[String], atOrAboveLevel: Level, priority: Priority): FilterBuilder = {
     val ps: List[Filter] = packages.map(p => packageName.startsWith(p))
     val fb               = select(ps: _*).exclude(level < atOrAboveLevel).includeUnselected.copy(priority = priority)
@@ -48,10 +48,10 @@ object ScribeJSLoggingConfig extends Logger {
   /** Set logging level of all com.odenzo.bincodec.* packages to the level (via filter) Default is for INFO level */
   def setBinCodecLogging(l: Level): Unit = mutePackage("com.odenzo.bincodec", l)
 
-  import scribe.format._
+  import scribe.format.*
 
   def init(l: Level) = {
-    val myFormatter: Formatter = formatter"$time $levelColoredPaddedRight [$fileName:$line] - ${white(message)}$newLine"
+    val myFormatter: Formatter = formatter"$time $levelColoredPaddedRight [$fileName:$line] - ${white(messages)}$newLine"
     Logger.root.clearHandlers().withHandler(formatter = myFormatter).clearModifiers().withMinimumLevel(l).replace()
   }
 }

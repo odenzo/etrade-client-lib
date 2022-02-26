@@ -1,10 +1,9 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.base.CirceUtils
-import com.odenzo.etrade.models.Transaction
-import io.circe._
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
+import com.odenzo.etrade.models.*
+import io.circe.*
+import io.circe.generic.semiauto.deriveCodec
 
 case class ListTransactionsRs(
     next: Option[String] = None,
@@ -16,11 +15,6 @@ case class ListTransactionsRs(
     transaction: Vector[Transaction] // Capilized in actual JSON
 )
 
-object ListTransactionsRs {
-
-  implicit val config: Configuration = CirceUtils.customMemberConfig(Map("transaction" -> "Transaction"))
-
-  implicit val enc: Encoder.AsObject[ListTransactionsRs] = deriveConfiguredEncoder[ListTransactionsRs]
-  implicit val dec: Decoder[ListTransactionsRs]          = deriveConfiguredDecoder[ListTransactionsRs].at("TransactionListResponse")
-
-}
+object ListTransactionsRs:
+  val rename                                      = Map("transaction" -> "Transaction")
+  given codec: Codec.AsObject[ListTransactionsRs] = CirceUtils.renamingCodec(deriveCodec[ListTransactionsRs], rename)
