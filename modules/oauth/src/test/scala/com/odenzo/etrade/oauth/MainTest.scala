@@ -35,29 +35,40 @@ class MainTest extends munit.CatsEffectSuite {
     val oauth = OAuth(config)
     scribe.info(s"Running Main Test with Config ${oprint(config)}")
 
+    // Bit goofy as I work through the details to package up into OAuth itself
+
     oauth.cacheR.use {
       cache =>
-        val workerFN: IO[Unit] = waitForLoginAndProcess(id)
+        val user = for {
+          userId  <- IO(UUID.randomUUID())
+          session <- initialLogin(oauth, requestToken(oauth))
+          // Enrich session by fetching access token here
+          _       <- cache.put(userId, session)
+        } yield userId
+
+      // Seperated out because this is really all we want to require other than OAuthConfig
 
     }
 
-    scribe.info(s"About to Start the OAUTH HTTP SERVER")
   }
 
-  /** Noisy prog to fetch the request token */
-  def requestToken(config: OAuthConfig)(using c: Client[IO]) =
+  /** Noisy prog to fetch the request token. Good place to experiment with creating a Client[IO] automatically if one is not suppled. */
+  def requestToken(config: OAuthConfig)(using c: Client[IO]): IO[Token] =
     Authentication.requestToken(config.baseUrl, uri"oob", config.consumer)
       .flatTap(token => IO(scribe.info(s"Got  RequestToken: $token")))
 
-  def initialLogin(oauth: OAuth, requestToken: Token): IO[OAuthSessionData] = Deferred[IO, OAuthSessionData].flatMap {
+  /**
+    * This will start the WebServer, open a browser and wait for user to succesfully login. This is a fibre blocking operation that has a 5
+    * minute timeout. The resulting login data is returned in a partially filled OAuthSessionData. (After this login we no longer need the
+    * webserver, but to still need to get a access token for regular use)
+    */
+  def initialLogin(oauth: OAuth, requestToken: IO[Token]): IO[OAuthSessionData] = Deferred[IO, OAuthSessionData].flatMap {
     (returnedData: Deferred[IO, OAuthSessionData]) =>
       oauth.serverR(returnedData).use {
         server =>
           for {
-            _       <- IO(scribe.info(s"Running Server and Redirecting Browder"))
-            rqtoken <- OAuthClient.simpleClient.use {
-                         requestToken
-                       }
+            _       <- IO(scribe.info(s"Running Server and Redirecting Browser"))
+            rqtoken <- OAuthClient.simpleClient.use { requestToken }
             _       <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, rqtoken)
             login   <- returnedData.get.timeout(5.minutes) // SemVar -- will "block" fiber until callback done.
           } yield login
