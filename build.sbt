@@ -19,7 +19,7 @@ ThisBuild / scalacOptions ++= Scala3Settings.settings
 lazy val root = project
   .in(file("."))
   .withId("etrade")
-  .aggregate(common, models, client)
+  .aggregate(common, models, client, oauth)
   .settings(name := "etrade", doc / aggregate := false)
 
 lazy val common = project
@@ -28,30 +28,39 @@ lazy val common = project
   .settings(name := "common")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
+  .settings(libraryDependencies ++= Libs.scaffeine) // SOmething is mkaing scribe logging config not work in oauth
 
 lazy val models = project
   .in(file("modules/models"))
   .withId("models")
   .dependsOn(common)
   .settings(name := "models")
-  .settings(Compile / scalacOptions += "-Ymacro-annotations")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
 lazy val client = project
   .in(file("modules/client"))
   .withId("client")
-  .dependsOn(common, models)
+  .dependsOn(common, models, oauth)
   .settings(name := "client")
-  .settings(Compile / scalacOptions += "-Ymacro-annotations")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
 lazy val oauth = project
   .in(file("modules/oauth"))
   .withId("oauth")
-  .dependsOn(common, models, client)
+  .dependsOn(common, models)
   .settings(name := "oauth-callback-server")
-  .settings(Compile / scalacOptions += "-Ymacro-annotations")
+  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
+  .settings(libraryDependencies ++= Libs.scaffeine)
+  .settings(libraryDependencies ++= Libs.testing)
+
+lazy val example = project
+  .in(file("modules/example"))
+  .withId("example")
+  .dependsOn(common, models, oauth)
+  .settings(name := "example-usage")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
+
+addCommandAlias("ci-test", "+clean;+test -- -DCI=true")
