@@ -1,6 +1,6 @@
 package com.odenzo.etrade.oauth
 
-import cats.effect.{IO, Resource}
+import cats.effect.{Deferred, IO, Resource}
 import com.github.blemale.scaffeine
 import com.odenzo.base.OPrint.oprint
 import com.odenzo.base.ScribeConfig
@@ -32,42 +32,38 @@ class MainTest extends munit.CatsEffectSuite {
     val secret   = scala.sys.env("ETRADE_SANDBOX_SECRET")
     val config   = OAuthConfig(url, Consumer(key, secret), callback, uri"https://us.etrade.com/e/t/etws/authorize")
 
+    val oauth = OAuth(config)
     scribe.info(s"Running Main Test with Config ${oprint(config)}")
 
-    val oauth = OAuth(config)
-    val id    = UUID.randomUUID()
     oauth.cacheR.use {
       cache =>
-
-        val appToken = OAuthClient.simpleClient.use {
-          (c: Client[IO]) =>
-            given Client[IO] = c
-
-            Authentication.requestToken(config.baseUrl, uri"oob", config.consumer)
-              .flatTap(token => IO(scribe.info(s"Got  RequestToken: $token")))
-        }
-
-        /** Defining this her to close on the cache. */
-        def waitForLoginAndProcess(id: UUID) = IO.delay {
-          val myCache = cache
-          scribe.warn(s"User Logged In and I am using Cache $myCache")
-        } *> IO.sleep(10.minutes) *> IO(scribe.info("Everything should close down now"))
-
         val workerFN: IO[Unit] = waitForLoginAndProcess(id)
 
-        // Start the server running in the foreground forever
-        scribe.info(s"About to Start the OAUTH HTTP SERVER")
-        oauth.serverR(workerFN, cache).use {
-          server =>
-            val kickoff = for {
-              _     <- IO(scribe.info(s"Running Server and Redirecting Browder"))
-              token <- appToken
-              _     <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, token)
-            } yield ()
-            kickoff *> IO.never // This is the point we join really
-        }
     }
+
+    scribe.info(s"About to Start the OAUTH HTTP SERVER")
   }
+
+  /** Noisy prog to fetch the request token */
+  def requestToken(config: OAuthConfig)(using c: Client[IO]) =
+    Authentication.requestToken(config.baseUrl, uri"oob", config.consumer)
+      .flatTap(token => IO(scribe.info(s"Got  RequestToken: $token")))
+
+  def initialLogin(oauth: OAuth, requestToken: Token): IO[OAuthSessionData] = Deferred[IO, OAuthSessionData].flatMap {
+    (returnedData: Deferred[IO, OAuthSessionData]) =>
+      oauth.serverR(returnedData).use {
+        server =>
+          for {
+            _       <- IO(scribe.info(s"Running Server and Redirecting Browder"))
+            rqtoken <- OAuthClient.simpleClient.use {
+                         requestToken
+                       }
+            _       <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, rqtoken)
+            login   <- returnedData.get.timeout(5.minutes) // SemVar -- will "block" fiber until callback done.
+          } yield login
+      }
+  }
+
 }
 
 object Data {}

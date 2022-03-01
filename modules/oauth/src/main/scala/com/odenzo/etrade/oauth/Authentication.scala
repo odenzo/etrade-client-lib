@@ -37,6 +37,22 @@ object Authentication extends OAuthUtils {
         case other               => throw Throwable("Programming Error - Bad Types")
       }
 
+  /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
+  def signRq(rq: Request[IO], session: OAuthSessionData, oauthConsumerKeys: OAuthConsumerKeys): IO[Request[IO]] = {
+    val pConsumer = ProtocolParameter.Consumer(oauthConsumerKeys.oauthConsumerKey, oauthConsumerKeys.consumerSecret)
+    val pToken    = session.accessToken.map(t => ProtocolParameter.Token(t.value, t.secret))
+
+    oauth1.signRequest[IO](
+      req = rq,
+      consumer = pConsumer,
+      token = pToken,
+      realm = None,
+      signatureMethod = ProtocolParameter.SignatureMethod(),
+      timestampGenerator = ts,
+      nonceGenerator = nonce
+    )
+  }
+
   /**
     * Step 1 Get a RequestToken for new login, this is short-lived, 5 minutes. Note that the HTTP Server for the real callback should be
     * running already.
@@ -51,7 +67,6 @@ object Authentication extends OAuthUtils {
       callback = ProtocolParameter.Callback(callback.toString).some,        // For etrade this is always 'oob' not the real callback
       token = Option.empty[ProtocolParameter.Token],
       realm = Option.empty[Realm],
-      // signatureMethod = HmacSha1, // HmacSha256
       timestampGenerator = ts,
       verifier = Option.empty[Verifier],
       nonceGenerator = nonce
@@ -71,36 +86,6 @@ object Authentication extends OAuthUtils {
       .flatTap(rq => IO(scribe.info(s"Initial Call to Get Request Token\n: ${dumpRequest(rq)}")))
       .flatMap(rq => client.run(rq).use(handleResponse))
   }
-
-  /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
-  def signRq(rq: Request[IO], session: OAuthSessionData, oauthConsumerKeys: OAuthConsumerKeys): IO[Request[IO]] = {
-    val pConsumer = ProtocolParameter.Consumer(oauthConsumerKeys.oauthConsumerKey, oauthConsumerKeys.consumerSecret)
-    val pToken    = session.accessToken.map(t => ProtocolParameter.Token(t.value, t.secret))
-
-    oauth1.signRequest[IO](
-      req = rq,
-      consumer = pConsumer,
-      token = pToken,
-      realm = None,
-      signatureMethod = ProtocolParameter.SignatureMethod(),
-      timestampGenerator = ts,
-      nonceGenerator = nonce
-    )
-  }
-
-//  /**
-//    * Starts the manual login process, including creating a session entry with the request token. This is not stored in the session cache,
-//    * the client caller must handle that.
-//    */
-//  def initiateLogin(config: OAuthConfig, sessionId: UUID)(implicit client: Client[IO]): IO[(Uri, OAuthSessionData)] = {
-//    for {
-//      rqToken <- requestToken(config.baseUrl, config.callbackUrl, config.consumer)
-//      _        = scribe.info(s"Request Token: ${rqToken}")
-//      redirect = config.baseUrl / "v1" / authUrl.withQueryParam("key", config.consumer.key).withQueryParam("token", rqToken.value)
-//      session  = com.odenzo.etrade.oauth.OAuthSessionData(None, None, user, rqToken, config)
-//
-//    } yield (redirect, session)
-//  }
 
   /**
     * When doing on oauthcallback this is not needed, token returned directly is access token. Note, this is a special signing to get the
