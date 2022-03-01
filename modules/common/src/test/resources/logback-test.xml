@@ -1,0 +1,21 @@
+<configuration reload="true" >
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+			SLF4J	%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+
+	<logger name="com.http4s.blaze" lebel="INFO" />
+
+	<logger name="com.mkyong" level="debug" additivity="false">
+		<appender-ref ref="CONSOLE"/>
+	</logger>
+
+	<root level="debug">
+		<appender-ref ref="CONSOLE"/>
+	</root>
+
+</configuration>

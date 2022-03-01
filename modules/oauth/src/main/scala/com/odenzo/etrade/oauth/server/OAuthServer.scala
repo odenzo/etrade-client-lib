@@ -36,7 +36,9 @@ object OAuthServer {
         scribe.info(s"version called")
         Ok("v1.0")
 
+      /** This was defined when I asked for the keys, but can't find URL on etrade side to confirm it. */
       case GET -> Root / "etrade" / "oauth_callback" :? OAuthVerifierQPM(verifier) +& OAuthTokenQPM(auth_token) =>
+        scribe.info(s"etrade/oauth_callback called")
         BlazeClientBuilder[IO].resource.use {
           client =>
             given Client[IO] = client

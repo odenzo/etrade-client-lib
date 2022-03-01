@@ -20,4 +20,14 @@ trait OAuthUtils {
   /** Raises an error (Throwable for now) no matter what with description of response */
   def responseToThrowable(res: Response[IO], msg: String) =
     (Throwable(s"${res.status} - $msg  $res"))
+
+  def dumpRequest(rq: Request[IO]): String = {
+    val auth: String = rq.headers.headers.map(raw => s"Header: ${raw.name} ${raw.value}").mkString("\t", "\n", "\n")
+    s"REQUEST Headers:\n $auth \nStandard: $rq"
+  }
+
+  def dumpResponse(rs: Response[IO]): String = {
+    val auth: String = rs.headers.headers.map(raw => s"Header: ${raw.name} ${raw.value}").mkString("\t", "\n", "\n")
+    s"RESPONSE Headers:\n $auth \nStandard: $rs"
+  }
 }

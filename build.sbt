@@ -28,6 +28,7 @@ lazy val common = project
   .settings(name := "common")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
+  .settings(libraryDependencies ++= Libs.scaffeine) // SOmething is mkaing scribe logging config not work in oauth
 
 lazy val models = project
   .in(file("modules/models"))

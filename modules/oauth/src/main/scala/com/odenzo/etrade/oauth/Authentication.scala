@@ -7,6 +7,7 @@ import cats.effect.{Fiber, FiberIO, IO}
 import cats.implicits.*
 import com.odenzo.base.OPrint.oprint
 import com.odenzo.etrade.oauth.config.OAuthConsumerKeys
+import com.odenzo.etrade.oauth.utils.OAuthUtils
 import org.http4s.*
 import org.http4s.CacheDirective.public
 import org.http4s.client.oauth1.ProtocolParameter.*
@@ -19,7 +20,7 @@ import java.util.UUID
 import scala.util.chaining.scalaUtilChainingOps
 
 /** Manages the e-trade oauth callback and manul pasting authentication. */
-object Authentication {
+object Authentication extends OAuthUtils {
 
   private val nonce: IO[Nonce]  = IO.delay(Nonce(UUID.randomUUID().toString))
   private val ts: IO[Timestamp] = IO.delay(Timestamp(Instant.now().getEpochSecond.toString))
@@ -42,6 +43,7 @@ object Authentication {
     */
   def requestToken(baseUri: Uri, callback: Uri, consumer: Consumer)(using client: Client[IO]): IO[Token] = {
     scribe.info(s"Getting Request Token $baseUri aith Callback $callback")
+
     val rqTokenUrl: Request[IO]   = Request[IO](uri = baseUri / "oauth" / "request_token")
     val signedRq: IO[Request[IO]] = oauth1.signRequest[IO](
       req = rqTokenUrl,
@@ -54,17 +56,20 @@ object Authentication {
       verifier = Option.empty[Verifier],
       nonceGenerator = nonce
     )
-    signedRq
 
     def handleResponse(rs: Response[IO]): IO[Token] =
       scribe.info(s"Call REsponse: $rs")
       for {
         form  <- rs.as[UrlForm]
+        _      = dumpResponse(rs)
         _     <- IO.raiseWhen(form.getFirst("oauth_callback_confirmed").isEmpty)(Throwable(s"No oauth_callback_confirmed"))
         token <- extractToken(form)
+
       } yield token
 
-    signedRq.flatTap(rq => IO(scribe.info(s"Initial Call to Get Request Token\n: $rq"))).flatMap(rq => client.run(rq).use(handleResponse))
+    signedRq
+      .flatTap(rq => IO(scribe.info(s"Initial Call to Get Request Token\n: ${dumpRequest(rq)}")))
+      .flatMap(rq => client.run(rq).use(handleResponse))
   }
 
   /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
