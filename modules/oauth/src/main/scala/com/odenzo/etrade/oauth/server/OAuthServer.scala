@@ -44,21 +44,15 @@ object OAuthServer {
             // the client will be acquired and shut down
             // automatically each time the `IO` is run.
             for {
-              _           <- IO(scribe.warn(s"Got the etrade login oauth callback: $verifier $auth_token"))
-              id          <- IO(UUID.randomUUID())
-              session      = OAuthSessionData(accessToken = None, verifier = verifier.some, id, reqToken = Token("huh", auth_token), config)
-              accessToken <- Authentication.getAccessToken(verifier, auth_token, session)
-              access       = session.copy(accessToken = accessToken.some)
-              _            = scribe.info(s"Returned Access Token: ${accessToken}")
-              // sessionKey     <- IO(UUID.randomUUID())
-              // authedSession   = .focus(_.accessToken).replace(accessToken.some).focus(_.verifier).replace(verifier.some)
-              // _              <- cache.put(sessionKey, authedSession)
-              done        <- Ok(s"Verifier: $verifier and Auth Token: $auth_token  $accessToken ....")
-              _           <- IO.sleep(5.minutes) *> IO(scribe.info(s"Done Pretending to do callback work")) //
+              _      <- IO(scribe.warn(s"Got the etrade login oauth callback: $verifier $auth_token"))
+              id     <- IO(UUID.randomUUID())
+              session = OAuthSessionData(accessToken = None, verifier = verifier.some, id, reqToken = Token("huh", auth_token), config)
+
               // OAuthCallback
               // .fullPage(verifyer, auth_token))
-//            stopServer   = IO.sleep(2.seconds).unsafeRunAsync(asyncShutdown)(IORuntime.global)
-            } yield done
+              //  stopServer = IO.sleep(2.seconds).unsafeRunAsync(asyncShutdown)(IORuntime.global)
+              res <- Ok("Thanks")
+            } yield res
         }
     }
 

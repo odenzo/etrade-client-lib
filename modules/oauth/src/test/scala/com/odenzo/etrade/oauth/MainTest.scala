@@ -3,6 +3,7 @@ package com.odenzo.etrade.oauth
 import cats.effect.{IO, Resource}
 import com.github.blemale.scaffeine
 import com.odenzo.base.OPrint.oprint
+import com.odenzo.base.{ScribeConfig, ScribeLoggingConfig}
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
 import com.odenzo.etrade.oauth.config.OAuthConfig
@@ -19,13 +20,16 @@ import scala.concurrent.duration.*
 import java.util.UUID
 
 class MainTest extends munit.CatsEffectSuite {
-
+  override val munitTimeout = Duration(10, "minutes")
   test("Main") {
     val url: Uri = uri"https://api.etrade.com/"
-    val callback = uri"http://localhost:5555" // or 8888
+    val callback = uri"http://localhost:5555/etrade/oauth_callback" // or 8888
     val key      = scala.sys.env("ETRADE_SANDBOX_KEY")
     val secret   = scala.sys.env("ETRADE_SANDBOX_SECRET")
     val config   = OAuthConfig(url, Consumer(key, secret), callback, uri"https://us.etrade.com/e/t/etws/authorize")
+
+    // val callbackUrl = http://localhost:5555
+    ScribeLoggingConfig.setupRoot()
 
     scribe.info(s"Running Main Test with Config ${oprint(config)}")
 
@@ -44,6 +48,7 @@ class MainTest extends munit.CatsEffectSuite {
           (c: Client[IO]) =>
             given Client[IO] = c
             Authentication.requestToken(config.baseUrl, uri"oob", config.consumer)
+              .flatTap(token => IO(scribe.info(s"Got  RequestToken: $token")))
         }
 
         // Start the server running in the foreground forever
@@ -60,25 +65,4 @@ class MainTest extends munit.CatsEffectSuite {
   }
 }
 
-object Data {
-
-  val singleAccount = """ {
-                              "AccountListResponse" : {
-                                "Accounts" : {
-                                  "Account" : [
-                                    {
-                                      "accountId" : "61737052",
-                                      "accountIdKey" : "cwrsjbzCmJsrSi0X2T4gyA",
-                                      "accountMode" : "CASH",
-                                      "accountDesc" : "Individual Brokerage",
-                                      "accountName" : " ",
-                                      "accountType" : "INDIVIDUAL",
-                                      "institutionType" : "BROKERAGE",
-                                      "accountStatus" : "ACTIVE",
-                                      "closedDate" : 0
-                                    }
-                                  ]
-                                }
-                              }
-                            }"""
-}
+object Data {}

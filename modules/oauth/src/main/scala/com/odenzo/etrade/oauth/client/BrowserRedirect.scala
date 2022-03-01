@@ -17,7 +17,9 @@ import os.CommandResult
 object BrowserRedirect {
 
   def openLoginBrowser(uri: Uri): IO[CommandResult] = IO {
-    os.proc("open", "-a", "Microsoft Edge", uri.renderString).call()
+    val urlTxt = uri.renderString
+    scribe.info(s"Opening Brower to: $urlTxt")
+    os.proc("open", "-a", "Microsoft Edge", urlTxt).call()
   }
 
   def redirectToETradeAuthorizationPage(url: Uri, appConsumerKeys: Consumer, appToken: Token): IO[CommandResult] = {

@@ -19,7 +19,7 @@ ThisBuild / scalacOptions ++= Scala3Settings.settings
 lazy val root = project
   .in(file("."))
   .withId("etrade")
-  .aggregate(common, models, client)
+  .aggregate(common, models, client, oauth)
   .settings(name := "etrade", doc / aggregate := false)
 
 lazy val common = project

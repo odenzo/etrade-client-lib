@@ -41,12 +41,12 @@ object Authentication {
     * running already.
     */
   def requestToken(baseUri: Uri, callback: Uri, consumer: Consumer)(using client: Client[IO]): IO[Token] = {
-    scribe.info(s"Getting Request Token $baseUri")
+    scribe.info(s"Getting Request Token $baseUri aith Callback $callback")
     val rqTokenUrl: Request[IO]   = Request[IO](uri = baseUri / "oauth" / "request_token")
     val signedRq: IO[Request[IO]] = oauth1.signRequest[IO](
       req = rqTokenUrl,
       consumer = ProtocolParameter.Consumer(consumer.key, consumer.secret), // Application Consumer
-      callback = ProtocolParameter.Callback("oob").some,                    // For etrade this is always 'oob' not the real callback
+      callback = ProtocolParameter.Callback(callback.toString).some,        // For etrade this is always 'oob' not the real callback
       token = Option.empty[ProtocolParameter.Token],
       realm = Option.empty[Realm],
       // signatureMethod = HmacSha1, // HmacSha256
@@ -54,9 +54,9 @@ object Authentication {
       verifier = Option.empty[Verifier],
       nonceGenerator = nonce
     )
-    signedRq.flatTap(rq => IO(scribe.info(s"Initial Call to Get Request Token\n: $rq")))
+    signedRq
 
-    def handleResponse(rs: Response[IO]) =
+    def handleResponse(rs: Response[IO]): IO[Token] =
       scribe.info(s"Call REsponse: $rs")
       for {
         form  <- rs.as[UrlForm]
@@ -64,7 +64,7 @@ object Authentication {
         token <- extractToken(form)
       } yield token
 
-    signedRq.flatMap(rq => client.run(rq).use(handleResponse))
+    signedRq.flatTap(rq => IO(scribe.info(s"Initial Call to Get Request Token\n: $rq"))).flatMap(rq => client.run(rq).use(handleResponse))
   }
 
   /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
@@ -140,4 +140,14 @@ object Authentication {
 //    rq.flatMap(rq => client.run(rq).use(handleResponse))
 //  }
 
+  def pileofwork() = {
+//  accessToken <- Authentication.getAccessToken(verifier, auth_token, session)
+//  access       = session.copy(accessToken = accessToken.some)
+//  _            = scribe.info(s"Returned Access Token: ${accessToken}")
+//  // sessionKey     <- IO(UUID.randomUUID())
+//  // authedSession   = .focus(_.accessToken).replace(accessToken.some).focus(_.verifier).replace(verifier.some)
+//  // _              <- cache.put(sessionKey, authedSession)
+//  done        <- Ok(s"Verifier: $verifier and Auth Token: $auth_token  $accessToken ....")
+//  _           <- IO.sleep(5.minutes) *> IO(scribe.info(s"Done Pretending to do callback work")) //
+  }
 }

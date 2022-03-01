@@ -20,7 +20,7 @@ trait ScribeHelpers {
     * @return
     *   a FilterBuilder kindof LogModifier filter that can be used with .withModifier()
     */
-  def setLevelOnPackages(packages: List[String], atOrAboveLevel: Level, priority: Priority = Priority.Normal): FilterBuilder = {
+  def setLevelOnPackages(packages: List[String], atOrAboveLevel: Level, priority: Priority = Priority.High): FilterBuilder = {
     val ps: List[Filter] = packages.map(p => packageName.startsWith(p))
     select(ps: _*).include(level >= atOrAboveLevel).exclude(level < atOrAboveLevel).priority(priority)
   }
@@ -40,18 +40,17 @@ object ScribeConfig extends ScribeHelpers {
   def testConfig(): Logger = {
     // Reset and turn all the com.odenzo.utils.logging levels to Debug for noisy ness
     import scribe.format._
-    resetAllToLevel(Level.Debug) // filter in logback
+    resetAllToLevel(Level.Info) // filter in logback
     // See FormatBlock
-    val myFormatter: Formatter = formatter"SMOKER  [$timeStamp] $levelPaddedRight $position - $messages$newLine"
+    val myFormatter: Formatter = formatter"SMOKER  [$timeStamp] $levelPaddedRight $position \n--   $messages$newLine"
     val strict                 = Formatter.strict
-
+    val filter: Logger         = mutePackages(noisyHttp)
     Logger.root.clearHandlers().withHandler(formatter = myFormatter).replace()
-    mutePackages(noisyHttp)
+
   }
 
-  def mutePackages(packages: List[String]) = {
-    val packagesToMute = List("org.http4s.blazecore", "org.http4s.blaze", "org.http4s.client", "com.datastax.oss.driver")
-    val filter         = setLevelOnPackages(packages, Level.Info)
+  def mutePackages(packages: List[String]): Logger = {
+    val filter = setLevelOnPackages(packages, Level.Info)
     applyFilter(filter)
 
     // applyFilter(excludePackageSelction(List("org.http4s.client.middlware")))
