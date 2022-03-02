@@ -46,16 +46,20 @@ class OAuth(val config: OAuthConfig) {
       .withHttpApp(Router("/" -> routes).orNotFound)
       .resource
 
-  def serverScopedR(rqToken: Token, answerD: Deferred[IO, OAuthSessionData]): Resource[IO, Server] =
+  // To run, flatmap then, not sure if have to drain the sstream. map to toggle signat
+  def serverScopedR(rqToken: Token, answerD: Deferred[IO, OAuthSessionData]): IO[(fs2.Stream[IO, ExitCode], SignallingRef[IO, Boolean])] =
     val routes: HttpRoutes[IO]                       = OAuthServer.routes(config = config, rqToken, answerD)
     val killSwitchIO: IO[SignallingRef[IO, Boolean]] = SignallingRef[IO, Boolean](false)
     val exitCode                                     = Ref[IO].of(ExitCode.Success)
-
-    val serverR = BlazeServerBuilder[IO]
-      .bindHttp(port, host)
-      .withoutSsl
-      .withHttpApp(Router("/" -> routes).orNotFound)
-      .serveWhile(killSwitch, exitWith = exitCode)
+    for {
+      killer   <- SignallingRef[IO, Boolean](false)
+      exitcode <- Ref[IO].of(ExitCode.Success)
+      server    = BlazeServerBuilder[IO]
+                    .bindHttp(port, host)
+                    .withoutSsl
+                    .withHttpApp(Router("/" -> routes).orNotFound)
+                    .serveWhile(killer, exitWith = exitcode)
+    } yield (server, killer)
 
   val requestTokenProg: IO[Token] = OAuthClient.debugClient.use {
     client => Authentication.requestToken(config.oauthUrl, uri"oob", config.consumer)(using client: Client[IO])
