@@ -23,7 +23,7 @@ object ScribeConfig extends Logger {
   def setupRoot(initialLevel: Level = Level.Debug, onlyWarnings: List[String] = List("com.odenzo.foo")): Logger = {
     scribe.warn(s"Setting ALL Logging to $initialLevel and muting ${oprint(onlyWarnings)}")
 
-    val myFormatter: Formatter = formatter"->>  [$timeStamp] $levelPaddedRight $position $newLine--   $messages$newLine"
+    val myFormatter: Formatter = formatter"->>  [$dateFull] $levelPaddedRight $threadName $position $newLine--   $messages$newLine"
 
     val filters: FilterBuilder =
       val levelFilter: LevelFilter = scribe.filter.level.<(Level.Warn)

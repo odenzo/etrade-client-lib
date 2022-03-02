@@ -1,15 +1,25 @@
 package com.odenzo.etrade.oauth
 
-import cats.effect.{Deferred, IO, Resource}
+import cats.*
+import cats.data.*
+import cats.syntax.all.*
+import cats.effect.*
+import cats.effect.syntax.all.*
 import com.github.blemale.scaffeine
+import com.odenzo.etrade.oauth.client.{BrowserRedirect, OAuthClient}
 import com.odenzo.etrade.oauth.config.OAuthConfig
 import com.odenzo.etrade.oauth.server.OAuthServer
-import org.http4s.Uri
-import org.http4s.server.Server
+import fs2.concurrent.SignallingRef
+import org.http4s.{HttpRoutes, Uri}
 import org.http4s.Uri.*
-
-import java.util.UUID
+import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.client.Client
+import org.http4s.client.oauth1.Token
+import org.http4s.server.{Router, Server}
 import org.http4s.syntax.literals.uri
+
+import scala.concurrent.duration.*
+import java.util.UUID
 
 /**
   * Main class to instanciate the system for a login, or multiple logins to a partocular host with app consumer keys. This should turn into
@@ -17,15 +27,57 @@ import org.http4s.syntax.literals.uri
   */
 class OAuth(val config: OAuthConfig) {
 
+  private val host: String = config.callbackUrl.host.getOrElse(RegName("localhhost")).value
+  private val port: Int    = config.callbackUrl.port.getOrElse(5555)
+
+  // val killSwitch                    = fs2.concurrent.Signal[IO, Boolean]
+  val killSwitch: IO[SignallingRef[IO, Boolean]] = SignallingRef[IO, Boolean](false)
+  def login(): IO[OAuthSessionData]              = this.fullLogin
+
+  // All the rest will be package private
+
   val cacheR: Resource[IO, scaffeine.Cache[UUID, OAuthSessionData]] = OAuthCache.create
 
-  def serverR(returned: Deferred[IO, OAuthSessionData]): Resource[IO, Server] =
-    val defaultHost: Host = uri"http://localhost/".host.get
-    OAuthServer.createServer(
-      host = config.callbackUrl.host.getOrElse(defaultHost).value, // FIXME
-      port = config.callbackUrl.port.getOrElse(5555),
-      config = config,
-      returned
-    )
+  def serverR(rqToken: Token, answerD: Deferred[IO, OAuthSessionData]): Resource[IO, Server] =
+    val routes: HttpRoutes[IO] = OAuthServer.routes(config = config, rqToken, answerD)
+    BlazeServerBuilder[IO]
+      .bindHttp(port, host)
+      .withoutSsl
+      .withHttpApp(Router("/" -> routes).orNotFound)
+      .resource
+
+  def serverScopedR(rqToken: Token, answerD: Deferred[IO, OAuthSessionData]): Resource[IO, Server] =
+    val routes: HttpRoutes[IO]                       = OAuthServer.routes(config = config, rqToken, answerD)
+    val killSwitchIO: IO[SignallingRef[IO, Boolean]] = SignallingRef[IO, Boolean](false)
+    val exitCode                                     = Ref[IO].of(ExitCode.Success)
+
+    val serverR = BlazeServerBuilder[IO]
+      .bindHttp(port, host)
+      .withoutSsl
+      .withHttpApp(Router("/" -> routes).orNotFound)
+      .serveWhile(killSwitch, exitWith = exitCode)
+
+  val requestTokenProg: IO[Token] = OAuthClient.debugClient.use {
+    client => Authentication.requestToken(config.oauthUrl, uri"oob", config.consumer)(using client: Client[IO])
+  }
+
+  val browserLoginAndAccessToken: Token => IO[OAuthSessionData] = (rqToken: Token) => {
+    for {
+      returnData <- Deferred[IO, OAuthSessionData]
+      loggedIn   <- serverR(rqToken, returnData).use {
+                      (server: Server) =>
+                        for {
+                          _     <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, rqToken)
+                          login <- returnData.get.timeout(1.minute) // SemVar -- will "block" fiber until callback done.
+                          _     <- IO.sleep(2.seconds)
+                          _     <- IO(scribe.info(s"OK - We are all logged in... client and server and cache running: $login"))
+                        } yield login
+                    }
+    } yield loggedIn
+  }
+
+  // Ok - we are ready to run.
+  val fullLogin: IO[OAuthSessionData] = requestTokenProg.flatMap(token => browserLoginAndAccessToken(token))
+
   // Example Client Main See TestMain
 }
