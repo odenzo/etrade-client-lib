@@ -6,7 +6,7 @@ import cats.data.Validated.*
 import cats.effect.{Fiber, FiberIO, IO}
 import cats.implicits.*
 import com.odenzo.base.OPrint.oprint
-import com.odenzo.etrade.oauth.config.OAuthConsumerKeys
+import com.odenzo.etrade.oauth.config.{OAuthConfig, OAuthConsumerKeys}
 import com.odenzo.etrade.oauth.utils.OAuthUtils
 import org.http4s.*
 import org.http4s.CacheDirective.public
@@ -87,17 +87,15 @@ object Authentication extends OAuthUtils {
       .flatMap(rq => client.run(rq).use(handleResponse))
   }
 
-  /**
-    * When doing on oauthcallback this is not needed, token returned directly is access token. Note, this is a special signing to get the
-    * access token, which is then used to sign all "user" requests.
-    */
-  def getAccessToken(verifier: String, callbackToken: String, session: OAuthSessionData)(using client: Client[IO]): IO[Token] = {
-    val baseRq              = Request[IO](uri = session.config.baseUrl / "v1" / "oauth" / "access_token")
+  /** Callbacks gives us verifier and auth_token, this uses verifier to get access tokewn (with no auth_token used!?) */
+  def getAccessToken(verifier: String, rqToken: Token, authToken: String, config: OAuthConfig)(using client: Client[IO]): IO[Token] = {
+
+    val baseRq              = Request[IO](uri = config.baseUrl / "v1" / "oauth" / "access_token")
     val rq: IO[Request[IO]] = oauth1.signRequest[IO](
       req = baseRq,
-      consumer = ProtocolParameter.Consumer(session.config.consumer.key, session.config.consumer.secret),
+      consumer = ProtocolParameter.Consumer(config.consumer.key, config.consumer.secret),
       verifier = Verifier(verifier).some,
-      token = ProtocolParameter.Token(session.reqToken.value, session.reqToken.secret).some,
+      token = ProtocolParameter.Token(rqToken.value, rqToken.secret).some, // Says Consumer Request, but thinks its auth?
       callback = Option.empty[ProtocolParameter.Callback],
       timestampGenerator = ts,
       nonceGenerator = nonce,

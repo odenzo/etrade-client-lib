@@ -38,19 +38,25 @@ object OAuthServer {
       /** This was defined when I asked for the keys, but can't find URL on etrade side to confirm it. */
       case GET -> Root / "etrade" / "oauth_callback" :? OAuthVerifierQPM(verifier) +& OAuthTokenQPM(auth_token) =>
         scribe.info(s"etrade/oauth_callback called")
-        BlazeClientBuilder[IO].resource.use {
+        val session: IO[OAuthSessionData] = BlazeClientBuilder[IO].resource.use {
           client =>
             given Client[IO] = client
             for {
               _      <- IO(scribe.warn(s"Got the etrade login oauth callback: $verifier $auth_token"))
-              // _ <- Authentication.getAccessToken(verifier,)
               id     <- IO(UUID.randomUUID())
-              session = OAuthSessionData(accessToken = None, verifier = verifier.some, id, reqToken = Token("huh", auth_token), config)
-
-              _    = returns.complete(session)
-              res <- Ok("Thanks")
-            } yield res
+              session = OAuthSessionData(id = id, accessToken = None, authToken = auth_token, verifier, config)
+              // Careful about timing here, if we release the other thread it will close us donw before we can reply
+              // Muck...
+              _      <- IO(scribe.info("Have released the Deffered"))
+              res    <- Ok("Thanks")
+            } yield session
         }
+
+        // Race condition, as soon as we release returns we can be shutdown.
+        // This does the release and the Ok in parallel, obviously a hack but I am stumped
+        // (IO.sleep(5.seconds) >>
+        session.flatMap(s => returns.complete(s)) >> Ok("Completed Thanks")
+
     }
 
   /** A resource is created. */
