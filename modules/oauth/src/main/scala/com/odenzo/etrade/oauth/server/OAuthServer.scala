@@ -1,9 +1,10 @@
 package com.odenzo.etrade.oauth.server
 
 import cats.implicits.*
-import cats.effect.unsafe.IORuntime
+import cats.effect.unsafe.*
 import cats.effect.unsafe.IORuntime.global
-import cats.effect.{Deferred, IO, *}
+import cats.effect.*
+import cats.effect.implicits.*
 import com.github.blemale.scaffeine
 import com.github.blemale.scaffeine.Cache
 import com.odenzo.base.OPrint.oprint
@@ -24,7 +25,7 @@ class OAuthServer(underlying: Server)
 
 /** This has one job, when the user logs into the web browser then browser invokes the callback and we extract login information. */
 object OAuthServer {
-
+  import cats.effect.unsafe.implicits.global
   private object OptionalSyncQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Boolean]("sync")
   private object OAuthVerifierQPM              extends QueryParamDecoderMatcher[String]("oauth_verifier")
   private object OAuthTokenQPM                 extends QueryParamDecoderMatcher[String]("oauth_token")
@@ -47,6 +48,7 @@ object OAuthServer {
               session = OAuthSessionData(id = id, accessToken = None, authToken = auth_token, verifier, config)
               // Careful about timing here, if we release the other thread it will close us donw before we can reply
               // Muck...
+              _       = (IO.sleep(2.seconds) >> returns.complete(session)).unsafeRunAndForget()
               _      <- IO(scribe.info("Have released the Deffered"))
               res    <- Ok("Thanks")
             } yield session
@@ -55,7 +57,7 @@ object OAuthServer {
         // Race condition, as soon as we release returns we can be shutdown.
         // This does the release and the Ok in parallel, obviously a hack but I am stumped
         // (IO.sleep(5.seconds) >>
-        session.flatMap(s => returns.complete(s)) >> Ok("Completed Thanks")
+        Ok("Completed Thanks")
 
     }
 
