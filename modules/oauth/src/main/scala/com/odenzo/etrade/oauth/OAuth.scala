@@ -4,6 +4,7 @@ import cats.*
 import cats.data.*
 import cats.syntax.all.*
 import cats.effect.*
+import cats.effect.kernel.Outcome.{Canceled, Errored, Succeeded}
 import cats.effect.syntax.all.*
 import com.github.blemale.scaffeine
 import com.odenzo.etrade.oauth.client.{BrowserRedirect, OAuthClient}
@@ -66,18 +67,23 @@ class OAuth(val config: OAuthConfig) {
   }
 
   val browserLoginAndAccessToken: Token => IO[OAuthSessionData] = (rqToken: Token) => {
+    import cats.effect.unsafe.implicits.global // IORunTime
     for {
-      returnData <- Deferred[IO, OAuthSessionData]
-      loggedIn   <- serverR(rqToken, returnData).use {
-                      (server: Server) =>
-                        for {
-                          _     <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, rqToken)
-                          login <- returnData.get.timeout(1.minute) // SemVar -- will "block" fiber until callback done.
-                          _     <- IO.sleep(2.seconds)
-                          _     <- IO(scribe.info(s"OK - We are all logged in... client and server and cache running: $login"))
-                        } yield login
-                    }
-    } yield loggedIn
+      returnData      <- Deferred[IO, OAuthSessionData]
+      res             <- serverScopedR(rqToken, returnData)
+      (stream, killer) = res
+      _               <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, rqToken)
+      _                = stream.compile.last.unsafeRunAsyncOutcome {
+                           case Canceled()    => scribe.error("WebServer canceled !")
+                           case Errored(e)    => scribe.error("WebServer Error", e)
+                           case Succeeded(fa) => scribe.warn(s"WebServer Completed As Expected $fa")
+                         }
+      _               <- IO(scribe.info("Stared background"))
+      login           <- returnData.get.timeout(1.minute) // SemVar -- will "block" fiber until callback done.
+      _               <- IO.sleep(10.seconds) *> IO(scribe.info("Killing")) *> killer.update(_ => true)
+      _               <- IO(scribe.info(s"OK - We are all logged in... client and server and cache running: $login"))
+
+    } yield login
   }
 
   // Ok - we are ready to run.
