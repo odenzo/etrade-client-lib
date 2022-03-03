@@ -19,11 +19,11 @@ import java.util.UUID
   * to deal with it, since thats what the previous full system used for sessions. Should parameterize key and make a trait too
   */
 case class OAuthSessionData(
-    accessToken: Option[Token],
-    verifier: Option[String],
     id: UUID,
-    reqToken: Token,
-    config: OAuthConfig,
+    accessToken: Option[Token],
+    authToken: String,
+    verifier: String,    // Transient but I am lazy
+    config: OAuthConfig, // Just in case we have some different clients (sandbox / prod) using same system
     created: Instant = Instant.now()
 ) {
 

@@ -1,6 +1,7 @@
 package com.odenzo.etrade.oauth
 
 import cats.effect.{Deferred, IO, Resource}
+import cats.implicits.*
 import com.github.blemale.scaffeine
 import com.odenzo.base.OPrint.oprint
 import com.odenzo.base.ScribeConfig
@@ -21,49 +22,42 @@ import scala.concurrent.duration.*
 
 class MainTest extends munit.CatsEffectSuite {
 
-  override val munitTimeout = Duration(10, "minutes")
+  type WebCall[T] = Client[IO] ?=> T
+
+  override val munitTimeout: FiniteDuration = Duration(10, "minutes")
 
   ScribeConfig.setupRoot(onlyWarnings = List("org.http4s.blaze"), initialLevel = scribe.Level.Info)
 
   test("Main") {
-    val url: Uri = uri"https://api.etrade.com/"
-    val callback = uri"http://localhost:5555/etrade/oauth_callback" // or 8888
-    val key      = scala.sys.env("ETRADE_SANDBOX_KEY")
-    val secret   = scala.sys.env("ETRADE_SANDBOX_SECRET")
-    val config   = OAuthConfig(url, Consumer(key, secret), callback, uri"https://us.etrade.com/e/t/etws/authorize")
+    val useLive: Boolean = false
+    val url: Uri         = uri"https://api.etrade.com/"
+    val sb: Uri          = uri"https://apisb.etrade.com/"
+    val callbackUrl      = uri"http://localhost:5555/etrade/oauth_callback" // or 8888
+    val redirectUrl      = uri"https://us.etrade.com/e/t/etws/authorize"
+    // Consumer keys for SandBox and Live Environments
+
+    val sbKey    = scala.sys.env("ETRADE_SANDBOX_KEY")
+    val sbSecret = scala.sys.env("ETRADE_SANDBOX_SECRET")
+    val key      = scala.sys.env.getOrElse("ETRADE_LIVE_KEY", "NO ETRADE_LIVE_KEY")
+    val secret   = scala.sys.env.getOrElse("ETRADE_LIVE_SECRET", "NO ETRADE_LIVE_SECRET")
+
+    val config =
+      if useLive
+      then OAuthConfig(oauthUrl = url, apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
+      else OAuthConfig(oauthUrl = url, apiUrl = sb, consumer = Consumer(sbKey, sbSecret), callbackUrl, redirectUrl)
+
+    def clientWorker(login: OAuthSessionData): IO[Unit] = {
+      val loginId = login.id
+      for {
+        _ <- IO(scribe.info(s"Worker Running with Login ID $loginId needs to make its own client, and cache if wants"))
+        _ <- IO.sleep(1.minutes)
+        _ <- IO(scribe.info(s"Done Sleeping"))
+      } yield ()
+    }
 
     val oauth = OAuth(config)
     scribe.info(s"Running Main Test with Config ${oprint(config)}")
+    oauth.login().flatMap(clientWorker)
 
-    oauth.cacheR.use {
-      cache =>
-        val workerFN: IO[Unit] = waitForLoginAndProcess(id)
-
-    }
-
-    scribe.info(s"About to Start the OAUTH HTTP SERVER")
   }
-
-  /** Noisy prog to fetch the request token */
-  def requestToken(config: OAuthConfig)(using c: Client[IO]) =
-    Authentication.requestToken(config.baseUrl, uri"oob", config.consumer)
-      .flatTap(token => IO(scribe.info(s"Got  RequestToken: $token")))
-
-  def initialLogin(oauth: OAuth, requestToken: Token): IO[OAuthSessionData] = Deferred[IO, OAuthSessionData].flatMap {
-    (returnedData: Deferred[IO, OAuthSessionData]) =>
-      oauth.serverR(returnedData).use {
-        server =>
-          for {
-            _       <- IO(scribe.info(s"Running Server and Redirecting Browder"))
-            rqtoken <- OAuthClient.simpleClient.use {
-                         requestToken
-                       }
-            _       <- BrowserRedirect.redirectToETradeAuthorizationPage(config.redirectUrl, config.consumer, rqtoken)
-            login   <- returnedData.get.timeout(5.minutes) // SemVar -- will "block" fiber until callback done.
-          } yield login
-      }
-  }
-
 }
-
-object Data {}

@@ -4,9 +4,10 @@ import cats.*
 import cats.data.*
 import cats.data.Validated.*
 import cats.effect.{Fiber, FiberIO, IO}
-import cats.implicits.*
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
 import com.odenzo.base.OPrint.oprint
-import com.odenzo.etrade.oauth.config.OAuthConsumerKeys
+import com.odenzo.etrade.oauth.config.{OAuthConfig, OAuthConsumerKeys}
 import com.odenzo.etrade.oauth.utils.OAuthUtils
 import org.http4s.*
 import org.http4s.CacheDirective.public
@@ -25,17 +26,17 @@ object Authentication extends OAuthUtils {
   private val nonce: IO[Nonce]  = IO.delay(Nonce(UUID.randomUUID().toString))
   private val ts: IO[Timestamp] = IO.delay(Timestamp(Instant.now().getEpochSecond.toString))
 
+  // TODO: Loosing type info on list size, new tuples should work better?
   private def getFormVar(form: UrlForm, field: String*): ValidatedNec[String, List[String]] =
     field.toList.traverse { n => form.getFirst(n).fold(s"Form Var $n not found".invalidNec)(v => v.validNec) }
 
   /** Move to validation for better error message */
   private def extractToken(form: UrlForm): IO[Token] =
-    IO.fromEither(getFormVar(form, "oauth_token", "oauth_token_secret")
-      .leftMap(errmsg => Throwable(s"Extract Token Data Missing: ${errmsg.combine}")).toEither)
-      .map {
-        case List(token, secret) => Token(token, secret)
-        case other               => throw Throwable("Programming Error - Bad Types")
-      }
+    IO(getFormVar(form, "oauth_token", "oauth_token_secret")).flatMap {
+      case Valid(List(token, secret)) => Token(token, secret).pure
+      case Invalid(msg)               => IO.raiseError(Exception(s"Trouble Extract Auth Tokens: ${msg.toList.mkString("\n")}"))
+      case Valid(l: List[String])     => IO.raiseError(Exception(s"List size ${l.size} != 2 for parameters"))
+    }
 
   /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
   def signRq(rq: Request[IO], session: OAuthSessionData, oauthConsumerKeys: OAuthConsumerKeys): IO[Request[IO]] = {
@@ -67,9 +68,9 @@ object Authentication extends OAuthUtils {
       callback = ProtocolParameter.Callback(callback.toString).some,        // For etrade this is always 'oob' not the real callback
       token = Option.empty[ProtocolParameter.Token],
       realm = Option.empty[Realm],
-      timestampGenerator = ts,
       verifier = Option.empty[Verifier],
-      nonceGenerator = nonce
+      nonceGenerator = nonce,
+      timestampGenerator = ts
     )
 
     def handleResponse(rs: Response[IO]): IO[Token] =
@@ -87,26 +88,39 @@ object Authentication extends OAuthUtils {
       .flatMap(rq => client.run(rq).use(handleResponse))
   }
 
-  /**
-    * When doing on oauthcallback this is not needed, token returned directly is access token. Note, this is a special signing to get the
-    * access token, which is then used to sign all "user" requests.
-    */
-  def getAccessToken(verifier: String, callbackToken: String, session: OAuthSessionData)(using client: Client[IO]): IO[Token] = {
-    val baseRq              = Request[IO](uri = session.config.baseUrl / "v1" / "oauth" / "access_token")
+  /** Callbacks gives us verifier and auth_token, this uses verifier to get access tokewn (with no auth_token used!?) */
+  def getAccessToken(verifier: String, rqToken: Token, authToken: String, config: OAuthConfig)(using client: Client[IO]): IO[Token] = {
+
     val rq: IO[Request[IO]] = oauth1.signRequest[IO](
-      req = baseRq,
-      consumer = ProtocolParameter.Consumer(session.config.consumer.key, session.config.consumer.secret),
+      req = Request[IO](uri = config.oauthUrl / "oauth" / "access_token"), // apisb ?
+      consumer = ProtocolParameter.Consumer(config.consumer.key, config.consumer.secret),
       verifier = Verifier(verifier).some,
-      token = ProtocolParameter.Token(session.reqToken.value, session.reqToken.secret).some,
+      token = ProtocolParameter.Token(rqToken.value, rqToken.secret).some, // Says Consumer Request, but thinks its auth?
       callback = Option.empty[ProtocolParameter.Callback],
       timestampGenerator = ts,
       nonceGenerator = nonce,
       realm = Option.empty[Realm]
     )
 
-    def handleResponse(rs: Response[IO]): IO[Token] = rs.as[UrlForm].flatMap(extractToken)
+    def handleResponse(rs: Response[IO]): IO[Token] = {
+      scribe.info(s"Handling the Response")
+      rs.as[UrlForm].flatMap(extractToken)
+    }
 
-    rq.flatMap(rq => client.run(rq).use(handleResponse))
+    rq.flatMap {
+      (req: Request[IO]) =>
+        scribe.info(s"About to Run $req")
+        client.run(req).use(handleResponse)
+    }.redeem(
+      e => {
+        scribe.error("Error in getAccessToken", e)
+        throw e
+      },
+      ok => {
+        scribe.warn(s"Got Access Token: $ok")
+        ok
+      }
+    )
   }
 
 //  /**
