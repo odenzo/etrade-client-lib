@@ -39,6 +39,7 @@ object Authentication extends OAuthUtils {
     }
 
   /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
+  @deprecated
   def signRq(rq: Request[IO], session: OAuthSessionData, oauthConsumerKeys: OAuthConsumerKeys): IO[Request[IO]] = {
     val pConsumer = ProtocolParameter.Consumer(oauthConsumerKeys.oauthConsumerKey, oauthConsumerKeys.consumerSecret)
     val pToken    = session.accessToken.map(t => ProtocolParameter.Token(t.value, t.secret))
@@ -47,6 +48,19 @@ object Authentication extends OAuthUtils {
       req = rq,
       consumer = pConsumer,
       token = pToken,
+      realm = None,
+      signatureMethod = ProtocolParameter.SignatureMethod(),
+      timestampGenerator = ts,
+      nonceGenerator = nonce
+    )
+  }
+
+  def sign(rq: Request[IO], accessToken: Token, consumerKeys: Consumer): IO[Request[IO]] = {
+
+    oauth1.signRequest[IO](
+      req = rq,
+      consumer = ProtocolParameter.Consumer(consumerKeys.key, consumerKeys.secret),
+      token = ProtocolParameter.Token(accessToken.value, accessToken.secret).some,
       realm = None,
       signatureMethod = ProtocolParameter.SignatureMethod(),
       timestampGenerator = ts,

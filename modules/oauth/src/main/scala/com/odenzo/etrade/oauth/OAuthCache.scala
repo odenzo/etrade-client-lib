@@ -9,7 +9,7 @@ import com.github.blemale.scaffeine
 
 import java.util.UUID
 
-/** Decided to try scaffeine as a dedicated oauth session cache for independance */
+/** Decided to try scaffeine as a dedicated oauth session cache for independance. Actually isnt used by lib. */
 type UUIDCache = scaffeine.Cache[UUID, OAuthSessionData]
 
 object OAuthCache {

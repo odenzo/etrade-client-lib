@@ -3,9 +3,8 @@ package com.odenzo.etrade.oauth
 import cats.conversions.all.autoWidenFunctor
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
-
 import com.odenzo.etrade.oauth.config.OAuthConfig
-import org.http4s.Request
+import org.http4s.{Request, Uri}
 import org.http4s.Uri.*
 import org.http4s.client.oauth1.{Consumer, Token}
 import org.http4s.implicits.uri
@@ -33,4 +32,17 @@ case class OAuthSessionData(
 
 }
 
-object OAuthSessionData {}
+object OAuthSessionData {
+
+  // One use of context function. Kinda readble becauea using  make given in a function
+  // Let see exactly what kind of imports are needed.
+  // baseUri looks like a magic variable once imported :-)
+  // and baeUri(ctx) I may as well put in the OAuthSessionData().baseUri as a facade.
+  // TODO: So, we need to make a specific type for BaseUri and AccessToken I think.
+  type Contextual[T] = OAuthSessionData ?=> T
+
+  val baseUri: Contextual[Uri]               = summon[OAuthSessionData].config.apiUrl
+  val accessToken: Contextual[Option[Token]] = summon[OAuthSessionData].accessToken
+  // val authToken: Contextual[Option[Token]]   = summon[OAuthSessionData].authToken
+  // def token(ctx: OAuthSessionData): Contextual[Token] = ctx.accessToken.getOrElse(throw Throwable("Hissy Fit"))
+}
