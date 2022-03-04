@@ -7,6 +7,7 @@ import org.http4s.circe.middleware.JsonDebugErrorHandler
 import org.http4s.client.middleware.*
 import org.http4s.client.*
 
+/** Some generic BlazeClient builders, no real uue-case  or value added specific to OAuth. */
 object OAuthClient {
 
   val logAction: Some[String => IO[Unit]] = Some((s: String) => IO(scribe.info(s"RQRS: $s")))

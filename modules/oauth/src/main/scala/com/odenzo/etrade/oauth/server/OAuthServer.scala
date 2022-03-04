@@ -33,10 +33,11 @@ object OAuthServer {
   private object OAuthTokenQPM                 extends QueryParamDecoderMatcher[String]("oauth_token")
 
   /** A resource is created. */
-  def routes(config: OAuthConfig, rqToken: Token, sessionD: Deferred[IO, OAuthSessionData]): HttpRoutes[IO] =
-    HttpRoutes.of[IO] {
-      case GET -> Root / "etrade" / "oauth_callback" :? OAuthVerifierQPM(verifier) +& OAuthTokenQPM(auth_token) =>
-        OAuthClient.simpleClient.use {
+  def routes(config: OAuthConfig, rqToken: Token, sessionD: Deferred[IO, OAuthSessionData]): HttpRoutes[IO] = HttpRoutes.of[IO] {
+    case GET -> Root / "etrade" / "oauth_callback" :? OAuthVerifierQPM(verifier) +& OAuthTokenQPM(auth_token) =>
+      OAuthClient
+        .simpleClient
+        .use {
           scopedClient =>
             given Client[IO] = scopedClient
             for {
@@ -44,11 +45,11 @@ object OAuthServer {
               id     <- IO(UUID.randomUUID())
               access <- Authentication.getAccessToken(verifier, rqToken, auth_token, config)
               _       = IO(scribe.info(s"Got ACCESS Token $access"))
-              session = OAuthSessionData(id = id, accessToken = None, authToken = auth_token, verifier, config)
+              session = OAuthSessionData(id = id, accessToken = access.some, authToken = auth_token, verifier, config)
               _      <- sessionD.complete(session) // Still a timing issue
               res    <- Ok(s"OK - ${Instant.now()}")
             } yield res
         }
-    }
+  }
 
 }

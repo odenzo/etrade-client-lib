@@ -12,16 +12,17 @@ import os.CommandResult
 
 /**
   * Called from Initiate Login Authentication Action to open a browser to login to etrade. The login will result in a callback url on our
-  * web server being redirected to (a localhost). This should be customized for Linux and Windows based on env var.
+  * web server being redirected to (a localhost). This should be customized for Linux and Windows based on env var. TODO: Allow
+  * cutsomization of browser command via some format.
   */
 object BrowserRedirect {
-//https://us.etrade.com/e/t/etws/authorize?oauth_consumer_key=306e055f434a852ff3d28b8108c05f8b&oauth_token=rpotvi4McBrR4U7gpWMtvCqpXFpPQizl9anQ0nXZ5Cw%3D
   def openLoginBrowser(uri: Uri): IO[CommandResult] = IO {
     val urlTxt = uri.renderString
     scribe.info(s"Opening Brower to: $urlTxt")
     os.proc("open", "-a", "Safari", urlTxt).call()
   }
 
+  /** Constructs the e-trade specific (probably) query params onto the base URL. */
   def redirectToETradeAuthorizationPage(url: Uri, appConsumerKeys: Consumer, appToken: Token): IO[CommandResult] = {
     val dest = url
       .withQueryParam("key", appConsumerKeys.key)

@@ -3,11 +3,11 @@ package com.odenzo.etrade.oauth
 import cats.*
 import cats.data.*
 import cats.data.Validated.*
-import cats.effect.{Fiber, FiberIO, IO}
 import cats.effect.syntax.all.*
+import cats.effect.{Fiber, FiberIO, IO}
 import cats.syntax.all.*
 import com.odenzo.base.OPrint.oprint
-import com.odenzo.etrade.oauth.config.{OAuthConfig, OAuthConsumerKeys}
+import com.odenzo.etrade.oauth.config.OAuthConfig
 import com.odenzo.etrade.oauth.utils.OAuthUtils
 import org.http4s.*
 import org.http4s.CacheDirective.public
@@ -27,46 +27,26 @@ object Authentication extends OAuthUtils {
   private val ts: IO[Timestamp] = IO.delay(Timestamp(Instant.now().getEpochSecond.toString))
 
   // TODO: Loosing type info on list size, new tuples should work better?
-  private def getFormVar(form: UrlForm, field: String*): ValidatedNec[String, List[String]] =
-    field.toList.traverse { n => form.getFirst(n).fold(s"Form Var $n not found".invalidNec)(v => v.validNec) }
+  private def getFormVar(form: UrlForm, field: String*): ValidatedNec[String, List[String]] = field
+    .toList
+    .traverse { n => form.getFirst(n).fold(s"Form Var $n not found".invalidNec)(v => v.validNec) }
 
   /** Move to validation for better error message */
-  private def extractToken(form: UrlForm): IO[Token] =
-    IO(getFormVar(form, "oauth_token", "oauth_token_secret")).flatMap {
-      case Valid(List(token, secret)) => Token(token, secret).pure
-      case Invalid(msg)               => IO.raiseError(Exception(s"Trouble Extract Auth Tokens: ${msg.toList.mkString("\n")}"))
-      case Valid(l: List[String])     => IO.raiseError(Exception(s"List size ${l.size} != 2 for parameters"))
-    }
-
-  /** General signing of a request, e.g. getAccounts (maybe for oauth too) */
-  @deprecated
-  def signRq(rq: Request[IO], session: OAuthSessionData, oauthConsumerKeys: OAuthConsumerKeys): IO[Request[IO]] = {
-    val pConsumer = ProtocolParameter.Consumer(oauthConsumerKeys.oauthConsumerKey, oauthConsumerKeys.consumerSecret)
-    val pToken    = session.accessToken.map(t => ProtocolParameter.Token(t.value, t.secret))
-
-    oauth1.signRequest[IO](
-      req = rq,
-      consumer = pConsumer,
-      token = pToken,
-      realm = None,
-      signatureMethod = ProtocolParameter.SignatureMethod(),
-      timestampGenerator = ts,
-      nonceGenerator = nonce
-    )
+  private def extractToken(form: UrlForm): IO[Token] = IO(getFormVar(form, "oauth_token", "oauth_token_secret")).flatMap {
+    case Valid(List(token, secret)) => Token(token, secret).pure
+    case Invalid(msg)               => IO.raiseError(Exception(s"Trouble Extract Auth Tokens: ${msg.toList.mkString("\n")}"))
+    case Valid(l: List[String])     => IO.raiseError(Exception(s"List size ${l.size} != 2 for parameters"))
   }
 
-  def sign(rq: Request[IO], accessToken: Token, consumerKeys: Consumer): IO[Request[IO]] = {
-
-    oauth1.signRequest[IO](
-      req = rq,
-      consumer = ProtocolParameter.Consumer(consumerKeys.key, consumerKeys.secret),
-      token = ProtocolParameter.Token(accessToken.value, accessToken.secret).some,
-      realm = None,
-      signatureMethod = ProtocolParameter.SignatureMethod(),
-      timestampGenerator = ts,
-      nonceGenerator = nonce
-    )
-  }
+  def sign(rq: Request[IO], accessToken: Token, consumerKeys: Consumer): IO[Request[IO]] = oauth1.signRequest[IO](
+    req = rq,
+    consumer = ProtocolParameter.Consumer(consumerKeys.key, consumerKeys.secret),
+    token = ProtocolParameter.Token(accessToken.value, accessToken.secret).some,
+    realm = None,
+    signatureMethod = ProtocolParameter.SignatureMethod(),
+    timestampGenerator = ts,
+    nonceGenerator = nonce
+  )
 
   /**
     * Step 1 Get a RequestToken for new login, this is short-lived, 5 minutes. Note that the HTTP Server for the real callback should be
@@ -74,7 +54,6 @@ object Authentication extends OAuthUtils {
     */
   def requestToken(baseUri: Uri, callback: Uri, consumer: Consumer)(using client: Client[IO]): IO[Token] = {
     scribe.info(s"Getting Request Token $baseUri aith Callback $callback")
-
     val rqTokenUrl: Request[IO]   = Request[IO](uri = baseUri / "oauth" / "request_token")
     val signedRq: IO[Request[IO]] = oauth1.signRequest[IO](
       req = rqTokenUrl,
@@ -88,13 +67,11 @@ object Authentication extends OAuthUtils {
     )
 
     def handleResponse(rs: Response[IO]): IO[Token] =
-      scribe.info(s"Call REsponse: $rs")
       for {
         form  <- rs.as[UrlForm]
         _      = dumpResponse(rs)
         _     <- IO.raiseWhen(form.getFirst("oauth_callback_confirmed").isEmpty)(Throwable(s"No oauth_callback_confirmed"))
         token <- extractToken(form)
-
       } yield token
 
     signedRq
@@ -122,19 +99,20 @@ object Authentication extends OAuthUtils {
     }
 
     rq.flatMap {
-      (req: Request[IO]) =>
-        scribe.info(s"About to Run $req")
-        client.run(req).use(handleResponse)
-    }.redeem(
-      e => {
-        scribe.error("Error in getAccessToken", e)
-        throw e
-      },
-      ok => {
-        scribe.warn(s"Got Access Token: $ok")
-        ok
+        (req: Request[IO]) =>
+          scribe.info(s"About to Run $req")
+          client.run(req).use(handleResponse)
       }
-    )
+      .redeem(
+        e => {
+          scribe.error("Error in getAccessToken", e)
+          throw e
+        },
+        ok => {
+          scribe.warn(s"Got Access Token: $ok")
+          ok
+        }
+      )
   }
 
 //  /**

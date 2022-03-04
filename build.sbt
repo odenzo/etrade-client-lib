@@ -8,7 +8,7 @@ ThisBuild / scalaVersion              := "3.1.1"
 ThisBuild / organization              := "com.odenzo"
 ThisBuild / dependencyAllowPreRelease := true
 
-root / Compile / mainClass := Some("Main")
+root / Compile / mainClass := Some("com.odenzo.etrade.Main")
 Test / fork                := true
 Test / parallelExecution   := false
 Test / logBuffered         := false
@@ -61,6 +61,7 @@ lazy val example = project
   .dependsOn(common, models, oauth, client)
   .settings(name := "example-usage")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.circe ++ Libs.catsExtra ++ Libs.fs2)
+  .settings(libraryDependencies ++= Libs.logback) // Add a concrete implementation
   .settings(libraryDependencies ++= Libs.testing)
 
 addCommandAlias("ci-test", "+clean;+test -- -DCI=true")

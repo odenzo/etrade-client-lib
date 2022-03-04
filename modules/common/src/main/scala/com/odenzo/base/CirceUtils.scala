@@ -8,13 +8,14 @@ import scala.deriving.Mirror
 
 trait CirceUtils {
 
-  val unCaptialize: String => String = s =>
-    if s == null then null
-    else
-      s.headOption match {
-        case Some(v) if v.isUpper => s.drop(1).prepended(v.toLower)
-        case _                    => s
-      }
+  val unCaptialize: String => String =
+    s =>
+      if s == null then null
+      else
+        s.headOption match {
+          case Some(v) if v.isUpper => s.drop(1).prepended(v.toLower)
+          case _                    => s
+        }
 
   val capitalize: String => String = (s: String) => s.capitalize
 
@@ -27,22 +28,30 @@ trait CirceUtils {
   }
 
   /** Applies fn to all keys in the Json which should be a JsonObject */
-  def transformKeys(fn: String => String)(obj: Json): Json =
-    obj.mapObject { o => JsonObject.fromIterable(o.toIterable.map((k, v) => fn(k) -> v)) }
+  def transformKeys(fn: String => String)(obj: Json): Json = obj.mapObject { o =>
+    JsonObject.fromIterable(o.toIterable.map((k, v) => fn(k) -> v))
+  }
 
-  def prepareKeys(fn: String => String)(cursor: ACursor): ACursor =
-    cursor.withFocus(transformKeys(fn))
+  def prepareKeys(fn: String => String)(cursor: ACursor): ACursor = cursor.withFocus(transformKeys(fn))
 
-  def encoderTransformKey(fn: String => String)(obj: JsonObject): JsonObject =
-    transformKeys(fn)
-      .compose(Json.fromJsonObject)
-      .andThen(json => json.asObject.get)
-      .apply(obj)
+  def encoderTransformKey(fn: String => String)(obj: JsonObject): JsonObject = transformKeys(fn)
+    .compose(Json.fromJsonObject)
+    .andThen(json => json.asObject.get)
+    .apply(obj)
 
-  def renamingCodec[T](codec: Codec.AsObject[T], rename: Map[String, String]): Codec.AsObject[T] =
-    Codec.AsObject.from(
+  def renamingCodec[T](codec: Codec.AsObject[T], rename: Map[String, String]): Codec.AsObject[T] = Codec
+    .AsObject
+    .from(
       codec.prepare(prepareKeys(mapKeys(reverse(rename)))),
       codec.mapJsonObject(encoderTransformKey(mapKeys(rename)))
+    )
+
+  /** Converts all case class fieldss to Upper-Case Json Field Names */
+  def capitalizeCodec[T](codec: Codec.AsObject[T]): Codec.AsObject[T] = Codec
+    .AsObject
+    .from(
+      decodeA = codec.prepare(prepareKeys(unCaptialize)),
+      encodeA = codec.mapJsonObject(encoderTransformKey(capitalize))
     )
 }
 

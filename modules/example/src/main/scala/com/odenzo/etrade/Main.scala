@@ -1,12 +1,14 @@
 package com.odenzo.etrade
 
+import cats.*
+import cats.data.ValidatedNec
 import cats.effect.*
 import cats.effect.syntax.all.*
-
 import cats.syntax.all.*
 import com.github.blemale.scaffeine
 import com.odenzo.base.OPrint.oprint
 import com.odenzo.base.ScribeConfig
+import com.odenzo.etrade.client.engine.ETradeClient
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
 import com.odenzo.etrade.oauth.*
@@ -26,7 +28,7 @@ object Main extends IOApp:
 
   ScribeConfig.setupRoot(onlyWarnings = List("org.http4s.blaze"), initialLevel = scribe.Level.Info)
 
-  def createConfig(args: List[String]) = IO {
+  def createConfig(args: List[String]): IO[OAuthConfig] = IO {
     val useLive: Boolean = false
     val url: Uri         = uri"https://api.etrade.com/"
     val sb: Uri          = uri"https://apisb.etrade.com/"
@@ -52,12 +54,20 @@ object Main extends IOApp:
 
   // Note: You could also just wrap this up in a Resource you can use, but constructing the resource would
   // require human intervention to login in the browser.
-
+  // TODO: Throw a little bit omore of this in framework.
   def run(args: List[String]): IO[ExitCode] =
     for {
       _      <- IO(scribe.info("Running..."))
       config <- createConfig(args)
       oauth   = OAuth(config)
       login  <- oauth.login() // Undecided what to do with this.
-      res    <- OAuthClient.debugClient.use { (c: Client[IO]) => BusinessMain.run()(using c, login) }
+      res    <- OAuthClient                  .debugClient                  .use { (c: Client[IO]) =>
+                    IO.fromEither(ETradeClient
+                        .validated(login, c)
+                        .leftMap(errs => Throwable(errs.foldLeft("Trouble with ETradeCLient")(_ + ":" + _)))
+                        .toEither)
+                      .flatMap(eclient => BusinessMain.run()(using eclient))
+
+                  }
     } yield res
+end Main
