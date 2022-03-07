@@ -8,7 +8,7 @@ import cats.syntax.all.*
 import com.github.blemale.scaffeine
 import com.odenzo.base.OPrint.oprint
 import com.odenzo.base.ScribeConfig
-import com.odenzo.etrade.client.engine.ETradeClient
+import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
 import com.odenzo.etrade.oauth.*
@@ -29,17 +29,18 @@ object Main extends IOApp:
   ScribeConfig.setupRoot(onlyWarnings = List("org.http4s.blaze"), initialLevel = scribe.Level.Info)
 
   def createConfig(args: List[String]): IO[OAuthConfig] = IO {
-    val useLive: Boolean = false
+    val useLive: Boolean = true
     val url: Uri         = uri"https://api.etrade.com/"
     val sb: Uri          = uri"https://apisb.etrade.com/"
     val callbackUrl      = uri"http://localhost:5555/etrade/oauth_callback" // or 8888
     val redirectUrl      = uri"https://us.etrade.com/e/t/etws/authorize"
     // Consumer keys for SandBox and Live Environments
 
+    // Crash the program if the environment doesn't have both sets of keys :-( (error in IO context)
     val sbKey    = scala.sys.env("ETRADE_SANDBOX_KEY")
     val sbSecret = scala.sys.env("ETRADE_SANDBOX_SECRET")
-    val key      = scala.sys.env.getOrElse("ETRADE_LIVE_KEY", "NO ETRADE_LIVE_KEY")
-    val secret   = scala.sys.env.getOrElse("ETRADE_LIVE_SECRET", "NO ETRADE_LIVE_SECRET")
+    val key      = scala.sys.env("ETRADE_LIVE_KEY")
+    val secret   = scala.sys.env("ETRADE_LIVE_SECRET")
 
     if useLive
     then OAuthConfig(oauthUrl = url, apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
@@ -57,17 +58,11 @@ object Main extends IOApp:
   // TODO: Throw a little bit omore of this in framework.
   def run(args: List[String]): IO[ExitCode] =
     for {
-      _      <- IO(scribe.info("Running..."))
-      config <- createConfig(args)
-      oauth   = OAuth(config)
-      login  <- oauth.login() // Undecided what to do with this.
-      res    <- OAuthClient                  .debugClient                  .use { (c: Client[IO]) =>
-                    IO.fromEither(ETradeClient
-                        .validated(login, c)
-                        .leftMap(errs => Throwable(errs.foldLeft("Trouble with ETradeCLient")(_ + ":" + _)))
-                        .toEither)
-                      .flatMap(eclient => BusinessMain.run()(using eclient))
-
-                  }
+      _       <- IO(scribe.info("Running..."))
+      config  <- createConfig(args)
+      rqConfig = ETradeContext(config.apiUrl)
+      oauth    = OAuth(config)
+      login   <- oauth.login() // Undecided what to do with this.
+      res     <- OAuthClient.signingClient(login).use(cio => BusinessMain.run(ETradeClient(rqConfig, cio)))
     } yield res
 end Main

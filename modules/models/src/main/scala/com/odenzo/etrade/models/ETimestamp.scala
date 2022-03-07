@@ -20,6 +20,6 @@ object ETimestamp:
 
   // Coode Model an ETimestamp(c: Option[Instant]
   given codec: Codec[ETimestamp] = Codec.from(
-    decodeLong.map(tick => ETimestamp(Instant.ofEpochMilli(tick))),
-    encodeLong.contramap[ETimestamp]((ts: ETimestamp) => ts.click.toEpochMilli)
+    decodeLong.map(tick => ETimestamp(Instant.ofEpochSecond(tick))),
+    encodeLong.contramap[ETimestamp]((ts: ETimestamp) => ts.click.getEpochSecond)
   )

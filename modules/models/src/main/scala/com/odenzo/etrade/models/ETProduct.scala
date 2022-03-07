@@ -1,14 +1,19 @@
 package com.odenzo.etrade.models
 
-import io.circe.Codec
+import io.circe.{Codec, JsonObject}
 import io.circe.generic.AutoDerivation
 import io.circe.generic.semiauto.deriveCodec
+import io.circe.pointer.Pointer.Relative.Result.Json
 
-// Difference between ProductId?
-case class ETProduct(symbol: String, securityType: String)
+/**
+  * TODO: Codec dillema, if this is empty structure want to lift it. Maybe every symbol has a securityType I think. ETProduct[T] and
+  * T[String] memebers, or an Scala 3 enume for ETProduct with ETNoProduct.type and ETProduct enums
+  */
+case class ETProduct(symbol: Option[String], securityType: Option[String])
 
 object ETProduct {
   val codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
+
 }
 case class Product2(
     symbol: String,
