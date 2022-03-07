@@ -2,9 +2,11 @@ package com.odenzo.etrade.client.engine
 
 import cats.effect.*
 import cats.effect.syntax.all.*
+import com.odenzo.etrade.client.api.AccountsApi.standardCall
 import com.odenzo.etrade.models.responses.AccountBalanceRs
 import io.circe.*
 import org.http4s.*
+import org.http4s.client.Client
 import org.http4s.headers.*
 import org.http4s.client.dsl.io.*
 import org.typelevel.ci.CIString

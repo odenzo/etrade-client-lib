@@ -24,10 +24,12 @@ import org.http4s.syntax.all.{*, given}
 import java.util.UUID
 import scala.concurrent.duration.*
 
+/** Simulates a main app using the E-Trade Client Lib */
 object Main extends IOApp:
 
   ScribeConfig.setupRoot(onlyWarnings = List("org.http4s.blaze"), initialLevel = scribe.Level.Info)
 
+  /** Creates an OAuthConfig necessary to initializing and using the E-Trade OAuth login and request signing */
   def createConfig(args: List[String]): IO[OAuthConfig] = IO {
     val useLive: Boolean = true
     val url: Uri         = uri"https://api.etrade.com/"
@@ -53,16 +55,13 @@ object Main extends IOApp:
   // At midnight EST we loose the session, and cannot recover an access token, must manually login the oauth
   // so there is no real choice but to die.
 
-  // Note: You could also just wrap this up in a Resource you can use, but constructing the resource would
-  // require human intervention to login in the browser.
-  // TODO: Throw a little bit omore of this in framework.
   def run(args: List[String]): IO[ExitCode] =
     for {
       _       <- IO(scribe.info("Running..."))
       config  <- createConfig(args)
-      rqConfig = ETradeContext(config.apiUrl)
+      rqConfig = ETradeContext(config.apiUrl) // ETradeContext has context functions to aid in helping Request Creation
       oauth    = OAuth(config)
-      login   <- oauth.login() // Undecided what to do with this.
+      login   <- oauth.login()                // Undecided what to do with this currently this forces manual login by opening web browser
       res     <- OAuthClient.signingClient(login).use(cio => BusinessMain.run(ETradeClient(rqConfig, cio)))
     } yield res
 end Main

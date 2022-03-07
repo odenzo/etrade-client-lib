@@ -1,16 +1,16 @@
 package com.odenzo.etrade
-import cats.effect.*
-import cats.effect.syntax.all.*
 import cats.*
 import cats.data.*
+import cats.effect.*
+import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import com.odenzo.base.IOU
 import com.odenzo.base.OPrint.oprint
-import com.odenzo.etrade.client.api.AccountsApi
+import com.odenzo.etrade.client.api.{AccountsApi, MarketApi}
 import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
 import com.odenzo.etrade.client.services.Services
-import com.odenzo.etrade.models.Account
-import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs, TransactionListResponse, TransactionListRs}
+import com.odenzo.etrade.models.*
+import com.odenzo.etrade.models.responses.*
 import com.odenzo.etrade.oauth.OAuthSessionData
 import io.circe.Decoder.Result
 import io.circe.Json
@@ -27,13 +27,19 @@ object BusinessMain {
   val now: LocalDate                           = LocalDate.now() // Note this may be off by one due to timezone
   val minDate                                  = now.minusYears(2)
   scribe.warn(s"DATES: $minDate  <---> $now")
-  def run(eclient: ETradeClient): IO[ExitCode] = {
-    for {
-      account <- fetchRandomAccount(eclient)
-      _       <- callAccountPagingAPI(account.accountIdKey, eclient)
-    } yield ExitCode.Success
-
-  }
+  def run(eclient: ETradeClient): IO[ExitCode] = QuoteDetail
+    .values
+    .toList
+    .filterNot(_ == QuoteDetail.MF_DETAIL)
+    .traverse { detail =>
+      for {
+        account <- fetchRandomAccount(eclient)
+        res     <- eclient.fetchCF[QuoteRs](MarketApi.getEquityQuotesCF(NonEmptyChain("NET", "VWIGX"), details = detail, true))
+        _        = scribe.info(s" ${oprint(res)}")
+        // _       <- callAccountPagingAPI(account.accountIdKey, eclient)
+      } yield ExitCode.Success
+    }
+    .as(ExitCode.Success)
 
   /** Calls inidividual Account API, returning model. No Paging */
   def callAccountsAPIs(eclient: ETradeClient): IO[Account] = {
@@ -76,36 +82,5 @@ object BusinessMain {
       txns <- Services.listTransactionsApp(accountIdKey, minDate.some, now.some, 45)
       _     = scribe.info(s"Txns APP Results: ${oprint(txns)}")
     } yield ()
-//  def downloadAllTxn()(using client: Client[IO], login: OAuthSessionData): IO[Unit] = {
-//
-//    val accountKey: IO[String] = for {
-//      _            <- IO(scribe.info(s"Have Access Token Etc and now doing some work..."))
-//      accounts     <- AccountsApi.listAccounts
-//      //  _            <- IO(scribe.info(s"Accounts ${oprint(accounts)}"))
-//      accountIdKey <- accounts.accounts.headOption.map(_.accountIdKey) pipe IOU.required("accountIdKey")
-//      //  _             = scribe.info(s"Account Key ID: $accountIdKey")
-//      _            <- getMonth(accountIdKey, LocalDate.of(2018, 11, 1))
-//    } yield accountIdKey
-//    accountKey.void
-//  }
 
-//  def getMonth(accountKey: String, start: LocalDate)(implicit s: ETradeSession, c: Client[IO]): IO[Unit] = {
-//
-//    val end = start.plusMonths(1)
-//    if (!start.isBefore(LocalDate.of(2019, 1, 1))) then IO.unit
-//    else
-//      for {
-//        txns <- AccountsApi.listTransactions(accountKey, start.some, end.some)
-//        _    <- CirceUtils.writeJson(txns, new java.io.File(s"txns_${start.toString}.json")).to[IO]
-//        _     = scribe.info(s"Start $start has More: ${needToPage(txns)}")
-//        _    <- getMonth(accountKey, end)
-//      } yield ()
-//  }
-
-//  def needToPage(json: Json): Boolean = {
-//    (json \\ "moreTransactions").headOption match {
-//      case None    => throw new Exception("moreTransactions field not found")
-//      case Some(h) => h.asBoolean.getOrElse(throw new Exception(s"Invalid JSON for Bool ${h.spaces4}"))
-//    }
-//  }
 }

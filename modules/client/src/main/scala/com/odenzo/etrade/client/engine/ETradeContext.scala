@@ -21,7 +21,7 @@ import java.util.UUID
   */
 
 type ETradeRequest[T] = ETradeContext ?=> T
-type ETradeCall       = ETradeRequest[Request[IO]]
+type ETradeCall       = ETradeRequest[IO[Request[IO]]]
 type ETradeService[T] = (ETradeContext, Client[IO]) ?=> IO[T]
 
 /**

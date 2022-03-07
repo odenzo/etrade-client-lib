@@ -35,7 +35,7 @@ object OAuthClient {
   def signingClient(oauthSesssion: OAuthSessionData): Resource[IO, Client[IO]] = {
     for {
       base   <- BlazeClientBuilder[IO].withRetries(1).withDefaultSslContext.resource
-      logged  = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
+      logged  = Logger(logHeaders = true, logBody = false, redactHeadersWhen = _ => false, logAction = logAction)(base)
       signing = OAuthStaticSigner(oauthSesssion)(logged)
     } yield signing
   }

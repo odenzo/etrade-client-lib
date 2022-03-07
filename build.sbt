@@ -15,6 +15,7 @@ Test / logBuffered         := false
 
 ThisBuild / scalacOptions := Seq("-release", "11")
 ThisBuild / scalacOptions ++= Scala3Settings.settings
+ThisBuild / scalacOptions ++= Seq("-Xmax-inlines", "512")
 
 lazy val root = project
   .in(file("."))

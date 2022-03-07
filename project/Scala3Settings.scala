@@ -3,9 +3,9 @@ object Scala3Settings {
   val settings = Seq(
     "-source",
     "3.1",
-    "-Xmax-inlines",
-    "100",
-    // "-rewrite",
+//    "-Xmax-inlines",
+//    "100",
+//    // "-rewrite",
     "-new-syntax",
     "-language:implicitConversions",
     "-deprecation",     // emit warning and location for usages of deprecated APIs

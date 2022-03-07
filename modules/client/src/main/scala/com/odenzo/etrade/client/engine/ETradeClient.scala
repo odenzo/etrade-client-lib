@@ -25,7 +25,7 @@ class ETradeClient(val config: ETradeContext, val c: Client[IO]) {
   given ETradeContext      = config
   given client: Client[IO] = c
 
-  def fetchCF[T: Decoder](rq: ETradeCall): IO[T] = run(rq)
+  def fetchCF[T: Decoder](rq: ETradeCall): IO[T] = rq.flatMap(r => run(r))
   def debugCF[T: Decoder](rq: ETradeCall): IO[T] = IO.raiseError(Throwable("NIMP"))
 
   // These are called if the context functions are resolved. Note that overloading  A ?=> B and B doens't work
@@ -41,6 +41,6 @@ class ETradeClient(val config: ETradeContext, val c: Client[IO]) {
     client.expectOr[T](rq)(rs => handleHttpErrors[T](rq, rs))
 
   def handleHttpErrors[T](rq: Request[IO], rs: Response[IO]): IO[Throwable] = {
-    IO(Throwable(s"Crude HTTP Error: ${rs.status}"))
+    rs.bodyText.compile.string.map(body => Throwable(s"Crude HTTP Error: ${rs.status} ${body}"))
   }
 }

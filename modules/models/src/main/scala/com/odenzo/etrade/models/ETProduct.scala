@@ -12,7 +12,7 @@ import io.circe.pointer.Pointer.Relative.Result.Json
 case class ETProduct(symbol: Option[String], securityType: Option[String])
 
 object ETProduct {
-  val codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
+  given codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
 
 }
 case class Product2(

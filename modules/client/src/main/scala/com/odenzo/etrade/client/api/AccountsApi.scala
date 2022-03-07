@@ -2,6 +2,8 @@ package com.odenzo.etrade.client.api
 
 import cats.data.{Chain, Kleisli}
 import cats.effect.{IO, Resource}
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
 import com.odenzo.etrade.client.api.AccountsApi.standardCall
 import com.odenzo.etrade.client.engine.{APIHelper, ETradeContext}
 import com.odenzo.etrade.models.Transaction
@@ -26,20 +28,21 @@ import java.time.LocalDate
 object AccountsApi extends APIHelper {
 
   def listAccountsCF: ETradeCall = {
-    Request[IO](GET, baseUri / "v1" / "accounts" / "list")
+    Request[IO](GET, baseUri / "v1" / "accounts" / "list").pure
   }
 
   def accountBalancesCF(
       accountIdKey: String,
       accountType: Option[String] = None,
       instType: String = "BROKERAGE"
-  ): ETradeCall = Request[IO](
-    GET,
-    (baseUri / "v1" / "accounts" / accountIdKey / "balance")
-      .withQueryParam("instType", instType)
-      .withQueryParam("realTimeNAV", true)
-      .withOptionQueryParam("accountType", accountType)
-  )
+  ): ETradeCall =
+    Request[IO](
+      GET,
+      (baseUri / "v1" / "accounts" / accountIdKey / "balance")
+        .withQueryParam("instType", instType)
+        .withQueryParam("realTimeNAV", true)
+        .withOptionQueryParam("accountType", accountType)
+    ).pure
 
   /**
     * This will automatically page through and accumulate the results. Start date is limited to 90 days in the past? This has paging yet to
@@ -68,8 +71,7 @@ object AccountsApi extends APIHelper {
         .withOptionQueryParam("endDate", endDate.map(_.format(MMddUUUU)))
         .withQueryParam("count", count.toString)
         .withOptionQueryParam("marker", marker)
-    ).addHeader(Accept(MediaType.application.json))
-
+    ).addHeader(Accept(MediaType.application.json)).pure
   }
 
   def viewPortfolioCF(
@@ -79,7 +81,7 @@ object AccountsApi extends APIHelper {
       totals: Boolean = true,
       count: Int = 50
   ): ETradeCall = {
-    Request[IO](GET, (baseUri / "v1" / accountIdKey / "portfolio").withQueryParam("count", count))
+    IO.pure(Request[IO](GET, (baseUri / "v1" / accountIdKey / "portfolio").withQueryParam("count", count)))
   }
 
 }
