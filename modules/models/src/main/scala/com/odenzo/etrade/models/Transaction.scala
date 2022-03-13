@@ -5,16 +5,17 @@ import io.circe.*
 case class Transaction(
     transactionId: String,
     accountId: String,
-    transactionDate: Long,
-    postDate: Long,
+    transactionDate: ETimestamp,
+    postDate: ETimestamp,
     amount: BigDecimal,
-    description: String,     // Possibly enum doable
-    transactionType: String, // e.g. Interest, Dividend
-    memo: String,            // "" if empty
+    description: String,
+    description2: Option[String],
+    transactionType: String,    // e.g. Interest, Dividend
+    memo: String,               // "" if empty, sometime \n\t\t
     imageFlag: Boolean,
-    instType: String,
+    instType: Option[String],
     storeId: Long,
-    detailsURI: String,
+    detailsURI: Option[String], // Have seen one of thee yet
     brokerage: Brokerage
 ) derives Codec.AsObject
 

@@ -1,61 +1,91 @@
-//package com.odenzo.etrade.client.api
-//
-//import cats.effect.IO
-//import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs}
-//import io.circe.*
-//import org.http4s.*
-//import org.http4s.Method.GET
-//import org.http4s.client.Client
-//
-//import java.time.LocalDate
-//
-//object AccountsApi extends APIHelper with UsingRestClient {
-//
-//  def accountBase(base: Uri): Uri = base / "v1" / "accounts"
-//
-//  def listAccounts(implicit session: ETradeSession, c: Client[IO]): IO[ListAccountsRs] = {
-//    val uri                     = Request[IO](GET, session.config.baseUri / "v1" / "accounts" / "list")
-//    val signed: IO[Request[IO]] = session.sign(uri)
-//    fetch[ListAccountsRs](signed)(ListAccountsRs.decoder, c)
-//  }
-//
-//  def accountBalances(
-//      accountIdKey: String,
-//      instType: String = "BROKERAGE"
-//  )(implicit session: ETradeSession, c: Client[IO]): IO[AccountBalanceRs] = {
-//
-//    val uri = (accountBase(session.config.baseUri) / accountIdKey / "balance")
-//      .withQueryParam("instType", instType)
-//      .withQueryParam("realTimeNAV", true)
-//
-//    val rq = Request[IO](GET, uri)
-//    fetch[AccountBalanceRs](session.sign(rq))
-//  }
-//
-//  /** This will automatically page through and accumulate the results */
-//  def listTransactions(accountIdKey: String, startDate: Option[LocalDate] = None, endDate: Option[LocalDate] = None)(
-//      implicit session: ETradeSession,
-//      c: Client[IO]
-//  ): IO[Json] = {
-//    // The request can return 204 with no content, apparently if no transactions in that range.
-//    scribe.info(s"Calling List Txn on Account $accountIdKey")
-//    val count = 50
-//    val uri   = (accountBase(session.config.baseUri) / accountIdKey / "transactions")
-//      .withOptionQueryParam("startDate", startDate.map(_.format(MMddUUUU)))
-//      .withOptionQueryParam("endDate", endDate.map(_.format(MMddUUUU)))
-//      .withQueryParam("count", count.toString)
-//
-//    val rq = Request[IO](GET, uri)
-//    fetch[Json](session.sign(rq))
-//  }
-//
-//  def viewPortfolio(accountIdKey: String, lots: Boolean = false, view: String = "QUICK")(
-//      implicit session: ETradeSession,
-//      c: Client[IO]
-//  ): IO[PortfolioRs] = {
-//    val uri = (accountBase(session.config.baseUri) / accountIdKey / "portfolio").withQueryParam("count", "200")
-//    val rq  = Request[IO](GET, uri)
-//    fetch[PortfolioRs](session.sign(rq))
-//  }
-//
-//}
+package com.odenzo.etrade.client.api
+
+import cats.data.{Chain, Kleisli}
+import cats.effect.{IO, Resource}
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
+import com.odenzo.etrade.client.api.AccountsApi.standardCall
+import com.odenzo.etrade.client.engine.{APIHelper, ETradeContext}
+import com.odenzo.etrade.models.Transaction
+import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs, TransactionListRs}
+import com.odenzo.etrade.oauth.OAuthSessionData
+import com.odenzo.etrade.oauth.OAuthSessionData.Contextual
+import io.circe.*
+import org.http4s.*
+import org.http4s.Method.GET
+import org.http4s.client.Client
+import org.http4s.Uri.*
+import org.http4s.headers.*
+
+import monocle.*
+import monocle.syntax.all.*
+import com.odenzo.etrade.client.engine.*
+import java.time.LocalDate
+
+/**
+  * The Requests will all have authentication added and the requets signed before invoking ## THIS IS DEFINATELY AN IMPLEMENTATION WORK IN
+  * PROGRESS
+  */
+object AccountsApi extends APIHelper {
+
+  def listAccountsCF: ETradeCall = {
+    Request[IO](GET, baseUri / "v1" / "accounts" / "list").pure
+  }
+
+  def accountBalancesCF(
+      accountIdKey: String,
+      accountType: Option[String] = None,
+      instType: String = "BROKERAGE"
+  ): ETradeCall =
+    // This suddently starts spitting out XML, so manual set the accept-type as applciation/jon
+    Request[IO](
+      GET,
+      (baseUri / "v1" / "accounts" / accountIdKey / "balance")
+        .withQueryParam("instType", instType)
+        .withQueryParam("realTimeNAV", true)
+        .withOptionQueryParam("accountType", accountType),
+      headers = acceptJsonHeaders
+    ).pure
+
+  /**
+    * This will automatically page through and accumulate the results. Start date is limited to 90 days in the past? This has paging yet to
+    * be implemented. Need to set an Accept Header on this for the media type (XML, JSON, Excel etc.) Hard coded to JSON for now.
+    * @param accountIdKey
+    *   Account
+    * @param startDate
+    *   Not more than three years in past.
+    * @param endDate
+    *   After start date, and future date non-sensical. I think this will be EST timezone in practice, need to experiment. Might changed to
+    *   EST zoned date. FromDa Having a paging FS2 stream somewhere, but first do a collect that sync returns one aggregated answer.
+    */
+  def listTransactionsCF(
+      accountIdKey: String,
+      startDate: Option[LocalDate] = None,
+      endDate: Option[LocalDate] = None,
+      count: Int = 50,
+      marker: Option[String] = None // TransactionId
+  ): ETradeCall = {
+    // The request can return 204 with no content, apparently if no transactions in that range.
+    scribe.info(s"Calling List Txn on Account $accountIdKey")
+    Request[IO](
+      GET,
+      (baseUri / "v1" / "accounts" / accountIdKey / "transactions")
+        .withOptionQueryParam("startDate", startDate.map(_.format(MMddUUUU)))
+        .withOptionQueryParam("endDate", endDate.map(_.format(MMddUUUU)))
+        .withQueryParam("count", count.toString)
+        .withOptionQueryParam("marker", marker)
+    ).addHeader(Accept(MediaType.application.json)).pure
+  }
+
+  def viewPortfolioCF(
+      accountIdKey: String,
+      lots: Boolean = false,
+      view: String = "COMPLETE",
+      totals: Boolean = true,
+      count: Int = 50,
+      marker: Option[String] = None // TransactionId
+  ): ETradeCall = {
+    IO.pure(Request[IO](GET, (baseUri / "v1" / accountIdKey / "portfolio").withQueryParam("count", count)))
+  }
+
+}

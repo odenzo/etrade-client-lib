@@ -31,7 +31,7 @@ case class Position(
     lotsDetails: OUrl,
     quoteDetails: OUrl,
     product: ETProduct,
-    quick: Quick
+    quick: QuickView
 ) derives Codec.AsObject
 
 //

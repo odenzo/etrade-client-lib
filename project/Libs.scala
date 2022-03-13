@@ -3,7 +3,7 @@ import sbt.{Def, _}
 object V {
 
   val blindSightLog      = "1.4.0"
-  val catsEffect         = "3.3.5"
+  val catsEffect         = "3.3.6"
   val catsMice           = "1.0.10"
   val catsRetry          = "3.1.0"
   val cats               = "2.7.0"
@@ -24,7 +24,7 @@ object V {
   val scodecBits         = "1.18"
   val scodecCats         = "1.0.0"
   val scodec             = "1.11.7"
-  val scribe             = "3.8.0"
+  val scribe             = "3.8.1"
   val squants            = "1.7.0"
   val sttpClient         = "3.4.1"
   val tapir              = "0.19.3"
@@ -36,11 +36,10 @@ object Libs {
 
   val scaffeine = Seq("com.github.blemale" %% "scaffeine" % V.scaffeine % "compile")
 
-  val testing =
-    Seq(
-      "org.scalameta" %% "munit"               % V.munit     % Test,
-      "org.typelevel" %% "munit-cats-effect-3" % V.munitCats % Test
-    )
+  val testing = Seq(
+    "org.scalameta" %% "munit"               % V.munit     % Test,
+    "org.typelevel" %% "munit-cats-effect-3" % V.munitCats % Test
+  )
 
   val cats = Seq(
     "org.typelevel" %% "cats-core"   % V.cats,
@@ -60,6 +59,10 @@ object Libs {
   val monocle = Seq(
     "dev.optics" %% "monocle-core"  % V.monocle,
     "dev.optics" %% "monocle-macro" % V.monocle
+  )
+
+  val logback = Seq(
+    "ch.qos.logback" % "logback-classic" % V.logback
   )
 
   /** Currently this is only for the binary serialization */
