@@ -12,5 +12,5 @@ case class Brokerage(
     paymentCurrency: String,
     fee: BigDecimal,
     displaySymbol: Option[String], // Again some quoted whitespace \n\t\t\t. Missing whenb project is empty ACH IN/Out
-    settlementDate: ETimestamp
+    settlementDate: EDatestamp     // Txn seem to have this in different ubit.
 ) derives Codec.AsObject

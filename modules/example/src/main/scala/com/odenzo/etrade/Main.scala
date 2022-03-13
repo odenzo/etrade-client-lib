@@ -8,6 +8,7 @@ import cats.syntax.all.*
 import com.github.blemale.scaffeine
 import com.odenzo.base.OPrint.oprint
 import com.odenzo.base.ScribeConfig
+import com.odenzo.etrade.TokenCache.CachedTokens
 import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
@@ -31,7 +32,7 @@ object Main extends IOApp:
 
   /** Creates an OAuthConfig necessary to initializing and using the E-Trade OAuth login and request signing */
   def createConfig(args: List[String]): IO[OAuthConfig] = IO {
-    val useLive: Boolean = true
+    val useLive: Boolean = false
     val url: Uri         = uri"https://api.etrade.com/"
     val sb: Uri          = uri"https://apisb.etrade.com/"
     val callbackUrl      = uri"http://localhost:5555/etrade/oauth_callback" // or 8888
@@ -54,8 +55,18 @@ object Main extends IOApp:
       _       <- IO(scribe.info("Running..."))
       config  <- createConfig(args)
       rqConfig = ETradeContext(config.apiUrl) // ETradeContext has context functions to aid in helping Request Creation
-      oauth    = OAuth(config)
-      login   <- oauth.login()                // Undecided what to do with this currently this forces manual login by opening web browser
-      res     <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(ETradeClient(rqConfig, cio)))
+
+      oauth  = OAuth(config)
+      // Something you wouldn't normally do, but nice for re-running in conssole without logging in all the time.
+      login <- TokenCache
+                 .refreshCachedTokens(config)(using rqConfig)
+                 .handleErrorWith { err =>
+                   scribe.warn(s"Caching Error: $err")
+                   oauth.login().flatTap(TokenCache.storeNewLogin)
+                 }
+      // Normally just: login   <- oauth.login()                // Undecided what to do with this currently this forces manual login by
+      // opening web
+      // browser
+      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(ETradeClient(rqConfig, cio)))
     } yield res
 end Main

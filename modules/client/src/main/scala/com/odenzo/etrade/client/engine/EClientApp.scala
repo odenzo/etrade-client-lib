@@ -39,11 +39,8 @@ class EClientApp(val session: OAuthSessionData, val c: Client[IO]) {
 
   val signingApp: ReaderT[IO, Request[IO], Response[IO]] = client.toHttpApp.compose(rq => sign(rq))
   // val command = signingApp.mapF()
-  def sign(rq: Request[IO]): IO[Request[IO]]             =
-    for {
-      accessToken <- IO.fromOption(login.accessToken)(Throwable("Access Token has not been set"))
-      signed      <- Authentication.sign(rq, accessToken, session.config.consumer)
-    } yield signed
+
+  def sign(rq: Request[IO]): IO[Request[IO]] = Authentication.sign(rq, session.accessToken, session.config.consumer)
 
   private def run[T: Decoder](rq: Request[IO]) =
     // import      org.http4s.circe.CirceSensitiveDataEntityDecoder.*

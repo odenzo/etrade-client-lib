@@ -47,7 +47,7 @@ object OAuthServer {
               id     <- IO(UUID.randomUUID())
               access <- Authentication.getAccessToken(verifier, rqToken, auth_token, config)
               _       = IO(scribe.info(s"Got ACCESS Token $access"))
-              session = OAuthSessionData(id = id, accessToken = access.some, authToken = auth_token, verifier, config)
+              session = OAuthSessionData(id = id, accessToken = access, authToken = auth_token, rqToken = rqToken, verifier, config)
               _      <- sessionD.complete(session) // Still a timing issue
               res    <- Ok(s"OK - ${Instant.now()}  --- You can close this browser now if you want.")
             } yield res

@@ -14,7 +14,7 @@ object V {
   val doobie             = "1.0.0-RC2"
   val fs2                = "3.2.5"
   val http4s             = "1.0.0-M31"
-  val logback            = "1.2.10"
+  val logback            = "1.2.11"
   val monocle            = "3.1.0"
   val munitCats          = "1.0.7"
   val munit              = "1.0.0-M1"
@@ -26,7 +26,7 @@ object V {
   val scodec             = "1.11.7"
   val scribe             = "3.8.1"
   val squants            = "1.7.0"
-  val sttpClient         = "3.4.1"
+  val sttpClient         = "3.5.1"
   val tapir              = "0.19.3"
   val scalaCache         = "1.0.0-M6"
   val scaffeine          = "5.1.2"
@@ -88,7 +88,7 @@ object Libs {
     "com.softwaremill.sttp.client3" %% "circe" % V.sttpClient
   )
 
-  val scribe = Seq("com.outr" %% "scribe" % V.scribe, "ch.qos.logback" % "logback-classic" % "1.2.10")
+  val scribe = Seq("com.outr" %% "scribe-slf4j" % V.scribe)
 
   val circe = Seq(
     "io.circe" %% "circe-core"    % V.circe,

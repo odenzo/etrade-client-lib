@@ -18,7 +18,7 @@ import org.typelevel.ci.CIString
 object OAuthStaticSigner {
 
   private def patchHeader(config: OAuthSessionData)(rq: Request[IO]): IO[Request[IO]] = Authentication
-    .sign(rq, config.accessToken.get, config.config.consumer)
+    .sign(rq, config.accessToken, config.config.consumer)
 
   def apply(config: OAuthSessionData)(client: Client[IO]): Client[IO] =
 

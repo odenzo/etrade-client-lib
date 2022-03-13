@@ -3,18 +3,26 @@ import cats.*
 import cats.data.{Chain, NonEmptyChain}
 import cats.syntax.all.*
 import cats.effect.{IO, Resource}
-import com.odenzo.etrade.client.api.AccountsApi.{accountBalancesCF, listTransactionsCF, standardCall, viewPortfolioCF}
+import com.odenzo.etrade.client.api.AccountsApi.*
 import com.odenzo.etrade.client.api.MarketApi
-import com.odenzo.etrade.models.responses.{AccountBalanceRs, PortfolioRs, TransactionListRs}
+import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs, TransactionListRs}
 import org.http4s.{Request, Response}
 import org.http4s.client.Client
 import com.odenzo.etrade.client.engine.*
 import com.odenzo.etrade.models.Transaction
 import io.circe.Decoder
+import org.http4s.Method.GET
 
 import java.time.LocalDate
 
 object Services extends ServiceHelpers {
+
+  def listAccountsApp(): ETradeService[ListAccountsRs] = {
+    val client = summon[Client[IO]]
+    standard[ListAccountsRs](listAccountsCF)
+  }
+
+  /** Get the Account Balances */
   def accountBalanceApp(
       accountIdKey: String,
       accountType: Option[String] = None,

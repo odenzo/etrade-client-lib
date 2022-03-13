@@ -83,9 +83,43 @@ object Authentication extends OAuthUtils {
   def getAccessToken(verifier: String, rqToken: Token, authToken: String, config: OAuthConfig)(using client: Client[IO]): IO[Token] = {
 
     val rq: IO[Request[IO]] = oauth1.signRequest[IO](
-      req = Request[IO](uri = config.oauthUrl / "oauth" / "access_token"), // apisb ?
+      req = Request[IO](uri = config.oauthUrl / "oauth" / "access_token"),
       consumer = ProtocolParameter.Consumer(config.consumer.key, config.consumer.secret),
       verifier = Verifier(verifier).some,
+      token = ProtocolParameter.Token(rqToken.value, rqToken.secret).some,
+      callback = Option.empty[ProtocolParameter.Callback],
+      timestampGenerator = ts,
+      nonceGenerator = nonce,
+      realm = Option.empty[Realm]
+    )
+
+    def handleResponse(rs: Response[IO]): IO[Token] = rs.as[UrlForm].flatMap(extractToken)
+
+    rq.flatMap(req => client.run(req).use(handleResponse))
+
+  }
+
+  def renewAccessToken(session: OAuthSessionData)(using client: Client[IO]): IO[Token] = {
+    val config              = session.config
+    val rq: IO[Request[IO]] = oauth1.signRequest[IO](
+      req = Request[IO](uri = config.oauthUrl / "oauth" / "renew_access_token"),
+      consumer = ProtocolParameter.Consumer(config.consumer.key, config.consumer.secret),
+      token = ProtocolParameter.Token(session.rqToken.value, session.rqToken.secret).some, // Says Consumer Request, but thinks its auth?
+      callback = Option.empty[ProtocolParameter.Callback],
+      timestampGenerator = ts,
+      nonceGenerator = nonce,
+      realm = Option.empty[Realm]
+    )
+
+    def handleResponse(rs: Response[IO]): IO[Token] = rs.as[UrlForm].flatMap(extractToken)
+
+    rq.flatMap(rq => client.run(rq).use(handleResponse))
+  }
+
+  def refreshAccessToken(config: OAuthConfig, rqToken: Token)(using client: Client[IO]): IO[Token] = {
+    val rq: IO[Request[IO]] = oauth1.signRequest[IO](
+      req = Request[IO](uri = config.oauthUrl / "oauth" / "renew_access_token"),
+      consumer = ProtocolParameter.Consumer(config.consumer.key, config.consumer.secret),
       token = ProtocolParameter.Token(rqToken.value, rqToken.secret).some, // Says Consumer Request, but thinks its auth?
       callback = Option.empty[ProtocolParameter.Callback],
       timestampGenerator = ts,
@@ -93,57 +127,9 @@ object Authentication extends OAuthUtils {
       realm = Option.empty[Realm]
     )
 
-    def handleResponse(rs: Response[IO]): IO[Token] = {
-      scribe.info(s"Handling the Response")
-      rs.as[UrlForm].flatMap(extractToken)
-    }
+    def handleResponse(rs: Response[IO]): IO[Token] = rs.as[UrlForm].flatMap(extractToken)
 
-    rq.flatMap {
-        (req: Request[IO]) =>
-          scribe.info(s"About to Run $req")
-          client.run(req).use(handleResponse)
-      }
-      .redeem(
-        e => {
-          scribe.error("Error in getAccessToken", e)
-          throw e
-        },
-        ok => {
-          scribe.warn(s"Got Access Token: $ok")
-          ok
-        }
-      )
+    rq.flatMap(rq => client.run(rq).use(handleResponse))
   }
 
-//  /**
-//    * I am not sure whose token it knows to renew, except I have single user token so thats easy enough! Probably going to need a new
-//    * request token first
-//    */
-//  def renewAccessToken(session: OAuthSessionData)(implicit client: Client[IO]): IO[Token] = {
-//    val rq =
-//      signRq(Request[IO](uri = session.config.baseUrl / "v1" / "oauth" / "renew_access_token"), session, session.config.consumer)
-//
-//    def handleResponse(rs: Response[IO]): IO[Token] = rs.as[UrlForm].flatMap(extractToken)
-//    rq.flatMap(rq => client.run(rq).use(handleResponse))
-//  }
-//
-//  /** Revokes access token, internally returns token but we void, errors in IO */
-//  def revokeAccessToken(session: OAuthSessionData)(implicit client: Client[IO]): IO[Unit] = {
-//    val baseRq = Request[IO](uri = session.config.baseUrl / "v1" / "oauth" / "revoke_access_token")
-//    val rq     = signRq(baseRq, session, OAuthConsumerKeys("foo", "secret"))
-//
-//    def handleResponse(rs: Response[IO]): IO[Unit] = rs.as[UrlForm].flatMap(extractToken).void
-//    rq.flatMap(rq => client.run(rq).use(handleResponse))
-//  }
-
-  def pileofwork() = {
-//  accessToken <- Authentication.getAccessToken(verifier, auth_token, session)
-//  access       = session.copy(accessToken = accessToken.some)
-//  _            = scribe.info(s"Returned Access Token: ${accessToken}")
-//  // sessionKey     <- IO(UUID.randomUUID())
-//  // authedSession   = .focus(_.accessToken).replace(accessToken.some).focus(_.verifier).replace(verifier.some)
-//  // _              <- cache.put(sessionKey, authedSession)
-//  done        <- Ok(s"Verifier: $verifier and Auth Token: $auth_token  $accessToken ....")
-//  _           <- IO.sleep(5.minutes) *> IO(scribe.info(s"Done Pretending to do callback work")) //
-  }
 }

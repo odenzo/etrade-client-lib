@@ -90,8 +90,8 @@ object BusinessMain {
       accountIdKey = myAccount.accountIdKey
     //  balances <- Services.accountBalanceApp(accountIdKey,None,"BROKERAGE")
     //      _ = scribe.info(s"Balances: ${oprint(balances)}")
-      txn <- Services.listTransactionsApp(accountIdKey,LocalDate.of(2021,1,1).some, LocalDate.of(2021,12,31).some)
-      _ = scribe.info(s" Txn: ${oprint(txn)}")
+    //  txn <- Services.listTransactionsApp(accountIdKey,LocalDate.of(2021,10,1).some, LocalDate.of(2021,12,31).some)
+    //  _ = scribe.info(s" Txn: ${oprint(txn)}")
       // view portfolio
 
     } yield myAccount

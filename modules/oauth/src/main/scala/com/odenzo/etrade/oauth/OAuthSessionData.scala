@@ -19,16 +19,15 @@ import java.util.UUID
   */
 case class OAuthSessionData(
     id: UUID,
-    accessToken: Option[Token],
+    accessToken: Token,
+    rqToken: Token,
     authToken: String,
     verifier: String,    // Transient but I am lazy
     config: OAuthConfig, // Just in case we have some different clients (sandbox / prod) using same system
     created: Instant = Instant.now()
 ) {
 
-  def setAccessToken(at: Token): OAuthSessionData = this.copy(accessToken = at.some)
-
-  def clearAccessToken(): OAuthSessionData = this.copy(accessToken = None)
+  def setAccessToken(at: Token): OAuthSessionData = this.copy(accessToken = at)
 
 }
 
@@ -41,8 +40,8 @@ object OAuthSessionData {
   // TODO: So, we need to make a specific type for BaseUri and AccessToken I think.
   type Contextual[T] = OAuthSessionData ?=> T
 
-  val baseUri: Contextual[Uri]               = summon[OAuthSessionData].config.apiUrl
-  val accessToken: Contextual[Option[Token]] = summon[OAuthSessionData].accessToken
+  val baseUri: Contextual[Uri]       = summon[OAuthSessionData].config.apiUrl
+  val accessToken: Contextual[Token] = summon[OAuthSessionData].accessToken
   // val authToken: Contextual[Option[Token]]   = summon[OAuthSessionData].authToken
   // def token(ctx: OAuthSessionData): Contextual[Token] = ctx.accessToken.getOrElse(throw Throwable("Hissy Fit"))
 }
