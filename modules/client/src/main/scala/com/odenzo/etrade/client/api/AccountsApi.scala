@@ -11,11 +11,12 @@ import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, Por
 import com.odenzo.etrade.oauth.OAuthSessionData
 import com.odenzo.etrade.oauth.OAuthSessionData.Contextual
 import io.circe.*
-import org.http4s.{Request, *}
+import org.http4s.*
 import org.http4s.Method.GET
 import org.http4s.client.Client
 import org.http4s.Uri.*
-import org.http4s.headers.Accept
+import org.http4s.headers.*
+
 import monocle.*
 import monocle.syntax.all.*
 import com.odenzo.etrade.client.engine.*
@@ -36,12 +37,14 @@ object AccountsApi extends APIHelper {
       accountType: Option[String] = None,
       instType: String = "BROKERAGE"
   ): ETradeCall =
+    // This suddently starts spitting out XML, so manual set the accept-type as applciation/jon
     Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "balance")
         .withQueryParam("instType", instType)
         .withQueryParam("realTimeNAV", true)
-        .withOptionQueryParam("accountType", accountType)
+        .withOptionQueryParam("accountType", accountType),
+      headers = acceptJsonHeaders
     ).pure
 
   /**
@@ -79,7 +82,8 @@ object AccountsApi extends APIHelper {
       lots: Boolean = false,
       view: String = "COMPLETE",
       totals: Boolean = true,
-      count: Int = 50
+      count: Int = 50,
+      marker: Option[String] = None // TransactionId
   ): ETradeCall = {
     IO.pure(Request[IO](GET, (baseUri / "v1" / accountIdKey / "portfolio").withQueryParam("count", count)))
   }

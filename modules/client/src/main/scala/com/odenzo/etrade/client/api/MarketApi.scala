@@ -12,6 +12,11 @@ import org.http4s.Request
 
 object MarketApi extends APIHelper {
 
+  /**
+    * First time I get an error (e.g. bad symbol). Docs are wrong, 200 still returned, which Messages I am not sure if I ever get messages
+    * AND the full reponse or not. Could probably punt on either one of them instead of Ior, just to see if QuoteRs | QuoteErrorRs works
+    * well enough. But in that case I should raise an ETradeError with messages data.
+    */
   def getEquityQuotesCF(
       symbols: NonEmptyChain[String],
       details: QuoteDetail = QuoteDetail.INTRADAY,

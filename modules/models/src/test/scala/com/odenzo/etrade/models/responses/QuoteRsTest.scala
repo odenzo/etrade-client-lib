@@ -8,7 +8,7 @@ import munit.FunSuite
 
 import javax.tools.ForwardingFileObject
 
-class ETimestampTest extends FunSuite {
+class QuoteRsTest extends FunSuite {
 
   val jsonTxt: String =
     """  {

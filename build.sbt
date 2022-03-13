@@ -1,6 +1,6 @@
 import sbt._
 
-ThisBuild / bspEnabled := false
+//ThisBuild / bspEnabled := false
 
 val javart = "1.11"
 

@@ -59,3 +59,13 @@ Better to check back in a few weeks... but for now see MainTest in oauth module 
 e-trade oauth proced requires you to login via the webbrowser. On "initial login" thi program will 
 
 
+# ETrade API Oddities Not Handled
+
+
+## Error Handling Related
+### AccountsBalance
+Even with Accept(application/json) this will return XML on bad arguments with error message (HTTP Sttaus 400 at least!)
+Fix: expect(X).onError(expect(Y)) style and throw an error with Y in it.
+
+
+

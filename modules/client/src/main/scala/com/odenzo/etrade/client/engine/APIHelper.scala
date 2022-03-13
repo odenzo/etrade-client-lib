@@ -1,8 +1,8 @@
 package com.odenzo.etrade.client.engine
 
+import cats.data.NonEmptyList
 import cats.effect.*
 import cats.effect.syntax.all.*
-import com.odenzo.etrade.client.api.AccountsApi.standardCall
 import com.odenzo.etrade.models.responses.AccountBalanceRs
 import io.circe.*
 import org.http4s.*
@@ -21,8 +21,8 @@ trait APIHelper {
   val ddMMUUUU: DateTimeFormatter = DateTimeFormatter.ofPattern("ddMMyyyy")
   val MMddUUUU: DateTimeFormatter = DateTimeFormatter.ofPattern("MMddyyyy")
 
-  val acceptJson: Accept           = Accept(MediaType.application.json)
-  val acceptJsonHeader: Header.Raw = Header.Raw(CIString("Accept"), "application/json")
+  val json: (Any, ParseResult[MediaType]) = (MediaType.application.json, MediaType.parse("text/html"))
+  val acceptJsonHeaders: Headers          = Headers(Header.Raw(CIString("Accept"), "application/json"))
 
   def handleHttpErrors[T](rq: Request[IO], rs: Response[IO]): IO[Throwable] = {
     IO(Throwable(s"Crude HTTP Error: ${rs.status}"))

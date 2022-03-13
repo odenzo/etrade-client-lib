@@ -121,7 +121,7 @@ case class ExtendedHourQuoteDetail(
                 },
  */
 
-/** If Fundamental key is in base response. */
+/** If Fundamental key is in base response. This seems complete */
 case class FundamentalQuoteDetails(
     companyName: String,       //	string	The name of the company associated with the equity, option, or index.
     eps: BigDecimal,           //	number (double)	The earnings per share on a rolling basis (Applies to stocks only)
@@ -145,39 +145,38 @@ case class FundamentalQuoteDetails(
                 },
  */
 
-// Is this a union of subtypes, I think not. This is what I get with ALL details flag and requireEarningData = true
-// Intraday quote when the market is cloed (or in extended market hours)
+// This is the answer I get back after hours at leasts (for a STK)
 case class IntraDayQuoteDetails(
     adjustedFlag: Option[Boolean],
     ask: BigDecimal,                   // 	number (double)	The current ask price for a security
-    askSize: Long,
-    askTime: Option[String],           // Weird dateimte at EST Seconds
+    //  askSize: Long,
+    //   askTime: Option[String],           // Weird dateimte at EST Seconds
     bid: BigDecimal,                   //  (double)	The current bid price for a security
-    bidExchange: Option[String],
-    bidSize: Long,
-    bidTime: Option[String],
+    //   bidExchange: Option[String],
+    //  bidSize: Long,
+    //   bidTime: Option[String],
     changeClose: BigDecimal,           //  (double)	The dollar change of the last price from the previous close
-    changeClosePercentage: BigDecimal, //  (double)	The percentage change of the last price from the previous close
+    changeClosePercentage: BigDecimal, //  (double)	The percentage change of the last price from the previous close (e.g. -0.16 , is .16%)
     companyName: String,               //	string	The name of the company associated with the equity, option, or index
-    daysToExpiration: Option[Long],
-    dirLast: String,
-    dividend: BigDecimal,
-    eps: BigDecimal,
-    estEarnings: BigDecimal,
-    exDividendDate: ETimestamp,
+    //   daysToExpiration: Option[Long],
+//    dirLast: String,
+    //   dividend: BigDecimal,
+    //   eps: BigDecimal,
+//    estEarnings: BigDecimal,
+//    exDividendDate: ETimestamp,
     high: BigDecimal,                  //  (double)	The highest price at which a security has traded during the current day
-    high52: BigDecimal,                //  (double)	The highest price at which a security has traded during the current day
+//    high52: BigDecimal,                //  (double)	The highest price at which a security has traded during the current day
     lastTrade: BigDecimal,             //  (double)	The price of the last trade
     low: BigDecimal,                   //  (double)	The lowest price at which a security has traded during the current day
-    low52: BigDecimal,                 //  (double)	The lowest price at which a security has traded during the current day
-    open: BigDecimal,
-    openInterest: Long,
-    optionStyle: Option[String],
-    optionUnderlier: Option[String],
-    previousClose: BigDecimal,
-    previousDayVolume: Long,
-    upc: Option[Long],
-    cashDeliverable: Option[BigDecimal],
+//    low52: BigDecimal,                 //  (double)	The lowest price at which a security has traded during the current day
+//    open: BigDecimal,
+//    openInterest: Long,
+//    optionStyle: Option[String],
+//    optionUnderlier: Option[String],
+//    previousClose: BigDecimal,
+//    previousDayVolume: Long,
+//    upc: Option[Long],
+//    cashDeliverable: Option[BigDecimal],
     totalVolume: Long                  //	integer (int64)	Total number of shares or contracts exchanging hands
     // Price adjusted for CA or Dividends
 ) extends QuoteDetails derives Codec.AsObject
@@ -306,17 +305,14 @@ case class OptionQuoteDetails(
 
 ) extends QuoteDetails derives Codec.AsObject
 
+/** Looks OK for stocks, low52 is zero though */
 case class Week52(
-    /*
-                     "Week52" : {
-                                   "companyName" : "CLOUDFLARE INC CL A COM",
-                                   "high52" : 221.64,
-                                   "lastTrade" : 94.03,
-                                   "low52" : 61.77,
-                                   "perf12Months" : 179.0,
-                                   "previousClose" : 100.91,
-                                   "symbolDescription" : "CLOUDFLARE INC CL A COM",
-                                   "totalVolume" : 4710229
-                               },
-     */
+    companyName: String,
+    high52: BigDecimal,        //  (double)	The highest price at which a security has traded during the current day
+    lastTrade: BigDecimal,     //  (double)	The price of the last trade
+    low52: BigDecimal,
+    perf12Months: BigDecimal,
+    previousClose: BigDecimal,
+    symbolDescription: String, //	string	The name of the company associated with the equity, option, or index
+    totalVolume: Long
 ) extends QuoteDetails derives Codec.AsObject

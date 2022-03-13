@@ -27,18 +27,13 @@ object BusinessMain {
   val now: LocalDate                           = LocalDate.now() // Note this may be off by one due to timezone
   val minDate                                  = now.minusYears(2)
   scribe.warn(s"DATES: $minDate  <---> $now")
-  def run(eclient: ETradeClient): IO[ExitCode] = QuoteDetail
-    .values
-    .toList
-    .filterNot(_ == QuoteDetail.MF_DETAIL)
-    .traverse { detail =>
+  def run(eclient: ETradeClient): IO[ExitCode] =
       for {
-        account <- fetchRandomAccount(eclient)
-        res     <- eclient.fetchCF[QuoteRs](MarketApi.getEquityQuotesCF(NonEmptyChain("NET", "VWIGX"), details = detail, true))
-        _        = scribe.info(s" ${oprint(res)}")
-        // _       <- callAccountPagingAPI(account.accountIdKey, eclient)
+        //account <- fetchRandomAccount(eclient)
+       // res     <- eclient.fetchCF[QuoteRs](MarketApi.getEquityQuotesCF(NonEmptyChain("APPL"), details = QuoteDetail.FUNDAMENTAL, true))
+       // _        = scribe.info(s" ${oprint(res)}")
+         _       <- badCalls(eclient)
       } yield ExitCode.Success
-    }
     .as(ExitCode.Success)
 
   /** Calls inidividual Account API, returning model. No Paging */
@@ -68,7 +63,8 @@ object BusinessMain {
       _           <- IO(scribe.info(s"Calling Account API..."))
       accounts    <- eclient.fetchCF[ListAccountsRs](AccountsApi.listAccountsCF).map(_.accounts)
       myAccount   <- accounts.headOption.pipe(IOU.required("MyAccount"))
-      accountIdKey = myAccount.accountIdKey
+      _ = scribe.info(s"Account: ${oprint(myAccount)}")
+
     } yield myAccount
 
   }
@@ -79,8 +75,27 @@ object BusinessMain {
     given ETradeContext = eclient.config
     for {
       _    <- IO(scribe.info(s"Txns for $accountIdKey  $minDate   $now --> "))
-      txns <- Services.listTransactionsApp(accountIdKey, minDate.some, now.some, 45)
+      txns <- Services.listTransactionsApp(accountIdKey, minDate.some, now.some)
       _     = scribe.info(s"Txns APP Results: ${oprint(txns)}")
     } yield ()
+
+
+
+  /** Quick experiment to see if messages shows up in any other calls besides QuoteRs */
+  def badCalls(eclient: ETradeClient): IO[Account] = {
+    given Client[IO]    = eclient.c
+    given ETradeContext = eclient.config
+    for {
+      myAccount   <-fetchRandomAccount(eclient)
+      accountIdKey = myAccount.accountIdKey
+    //  balances <- Services.accountBalanceApp(accountIdKey,None,"BROKERAGE")
+    //      _ = scribe.info(s"Balances: ${oprint(balances)}")
+      txn <- Services.listTransactionsApp(accountIdKey,LocalDate.of(2021,1,1).some, LocalDate.of(2021,12,31).some)
+      _ = scribe.info(s" Txn: ${oprint(txn)}")
+      // view portfolio
+
+    } yield myAccount
+  }
+
 
 }

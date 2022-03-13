@@ -46,18 +46,9 @@ class MainTest extends munit.CatsEffectSuite {
       then OAuthConfig(oauthUrl = url, apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
       else OAuthConfig(oauthUrl = url, apiUrl = sb, consumer = Consumer(sbKey, sbSecret), callbackUrl, redirectUrl)
 
-    def clientWorker(login: OAuthSessionData): IO[Unit] = {
-      val loginId = login.id
-      for {
-        _ <- IO(scribe.info(s"Worker Running with Login ID $loginId needs to make its own client, and cache if wants"))
-        _ <- IO.sleep(1.minutes)
-        _ <- IO(scribe.info(s"Done Sleeping"))
-      } yield ()
-    }
-
-    val oauth = OAuth(config)
+    val oauth                      = OAuth(config)
     scribe.info(s"Running Main Test with Config ${oprint(config)}")
-    oauth.login().flatMap(clientWorker)
+    val done: IO[OAuthSessionData] = oauth.login()
 
   }
 }

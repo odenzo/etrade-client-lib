@@ -14,7 +14,7 @@ object PortfolioRs {
 }
 
 // Need to upcase position
-case class AccountPortfolio(accountId: String, position: List[Position], totalPages: Long)
+case class AccountPortfolio(accountId: String, position: List[Position], next: String, totalPages: Long)
 
 // Really need to deal with { PortfolioResponse { AccountPortfolio [ { List(AccountPortfilio }}
 // CIRCE Decoder something like
