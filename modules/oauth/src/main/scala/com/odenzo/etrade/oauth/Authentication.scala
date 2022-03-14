@@ -6,7 +6,7 @@ import cats.data.Validated.*
 import cats.effect.syntax.all.*
 import cats.effect.{Fiber, FiberIO, IO}
 import cats.syntax.all.*
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.oauth.config.OAuthConfig
 import com.odenzo.etrade.oauth.utils.OAuthUtils
 import org.http4s.*

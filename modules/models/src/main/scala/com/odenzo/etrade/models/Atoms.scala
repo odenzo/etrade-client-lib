@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models
 
 import cats.data.Chain
-import com.odenzo.base.CirceCodecs.*
+import com.odenzo.etrade.base.CirceCodecs.*
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.Decoder.*

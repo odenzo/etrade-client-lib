@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
 import cats.data.NonEmptyList
-import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.{PortfolioTotals, Position}
 import io.circe.{Codec, Decoder}
 import io.circe.generic.AutoDerivation

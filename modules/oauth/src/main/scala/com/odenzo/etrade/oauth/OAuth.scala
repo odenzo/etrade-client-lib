@@ -7,7 +7,7 @@ import cats.effect.*
 import cats.effect.kernel.Outcome.{Canceled, Errored, Succeeded}
 import cats.effect.syntax.all.*
 import com.github.blemale.scaffeine
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.oauth.client.{BrowserRedirect, OAuthClient}
 import com.odenzo.etrade.oauth.config.OAuthConfig
 import com.odenzo.etrade.oauth.server.OAuthServer

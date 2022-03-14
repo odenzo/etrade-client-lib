@@ -1,13 +1,13 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
+
+import cats.*
+import cats.data.*
+import cats.effect.*
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
 
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Future
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
-
-import cats.effect.*
-import cats.effect.syntax.all.*
 
 /** This can go away and FU used instead */
 trait IOU {
@@ -17,7 +17,7 @@ trait IOU {
   def optionToError[A](t: Option[A])(err: Throwable): IO[A] = IO.fromOption(t)(err)
 
   def toIO[A](fn: => CompletableFuture[A]): IO[A] = {
-    import scala.jdk.FutureConverters._
+    import scala.jdk.FutureConverters.*
     val ff: IO[Future[A]] = IO.delay(fn.asScala)
     IO.fromFuture(ff) // Does IO.async under the hood.
   }

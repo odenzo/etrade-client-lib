@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 import cats.data.*
 import cats.syntax.all.*
-import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
 import io.circe.*
 import io.circe.Encoder.*
@@ -27,9 +27,10 @@ object MessageRs:
   }
 
   /** Note the encoder and decoder and not symmetric since we are navigating through an unknown intermediate. Kinda slack but... */
-  val encoder = Encoder.encodeList[Message]
-  .contramap[MessageRs](_.messages)
-  .mapJson { (j: Json) => JsonObject("Messages" := JsonObject.singleton("Message", j)).asJson }
+  val encoder = Encoder
+    .encodeList[Message]
+    .contramap[MessageRs](_.messages)
+    .mapJson { (j: Json) => JsonObject("Messages" := JsonObject.singleton("Message", j)).asJson }
 
   given Codec[MessageRs] = Codec.from(decoder, encoder)
 

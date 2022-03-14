@@ -6,9 +6,9 @@ import cats.effect.*
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import com.github.blemale.scaffeine
-import com.odenzo.base.OPrint.oprint
-import com.odenzo.base.ScribeConfig
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.TokenCache.CachedTokens
+import com.odenzo.etrade.base.ScribeConfig
 import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs

@@ -1,4 +1,4 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
 
 import scala.util.Random
 

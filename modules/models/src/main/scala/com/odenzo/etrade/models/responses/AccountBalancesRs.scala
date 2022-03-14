@@ -1,8 +1,7 @@
 package com.odenzo.etrade.models.responses
 
-import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
-
 import com.odenzo.etrade.models.responses.AccountBalances.rename
 import io.circe.*
 import io.circe.Codec.*

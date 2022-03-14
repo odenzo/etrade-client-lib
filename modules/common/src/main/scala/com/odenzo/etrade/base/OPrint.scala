@@ -1,7 +1,13 @@
-package com.odenzo.base
-import cats.implicits.*
-import io.circe.*
-import io.circe.syntax.{given, *}
+package com.odenzo.etrade.base
+import io.circe.syntax.*
+import cats.effect.*
+import cats.effect.syntax.all.*
+
+import cats.*
+import cats.data.*
+import cats.syntax.all.*
+
+import io.circe.{Json, JsonObject}
 import pprint.{PPrinter, Tree}
 
 object OPrint {

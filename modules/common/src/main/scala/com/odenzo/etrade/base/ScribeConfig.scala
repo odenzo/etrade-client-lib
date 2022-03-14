@@ -1,11 +1,10 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
 
-import com.odenzo.base.OPrint.oprint
-import scribe.*
-import scribe.filter.*
+import com.odenzo.etrade.base.OPrint.oprint
+import scribe.filter.{FilterBuilder, PackageNameFilter, select}
 import scribe.format.*
-import scribe.filter.FilterMatcher
 import scribe.modify.LevelFilter
+import scribe.*
 
 /**
   * Scribe....I will regret this. Back to blindsight since I can't remember how to config the damn thing. Need to make is sl4j comptable no
@@ -30,7 +29,10 @@ object ScribeConfig extends Logger {
       val startPackages            = onlyWarnings.map(name => PackageNameFilter.startsWith(name))
       select(startPackages*).exclude(levelFilter)
 
-    Logger.root.clearModifiers().clearHandlers()
+    Logger
+      .root
+      .clearModifiers()
+      .clearHandlers()
       .withMinimumLevel(initialLevel)
       .withHandler(formatter = myFormatter)
       .withModifier(filters)

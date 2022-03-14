@@ -67,3 +67,4 @@ lazy val example = project
   .settings(libraryDependencies ++= Libs.testing)
 
 addCommandAlias("ci-test", "+clean;+test -- -DCI=true")
+addCommandAlias("erun", "example/run")

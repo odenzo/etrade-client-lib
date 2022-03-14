@@ -1,4 +1,4 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
 
 import com.sun.org.apache.bcel.internal.generic.Select
 import io.circe.*

@@ -1,7 +1,7 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
 
 object CirceCodecs {
-  import io.circe._
+  import io.circe.*
 
   import scala.compiletime.summonAll
   import scala.deriving.Mirror

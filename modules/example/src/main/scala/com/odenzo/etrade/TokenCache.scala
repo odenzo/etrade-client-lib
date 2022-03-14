@@ -8,7 +8,7 @@ import io.circe.*
 import io.circe.syntax.*
 import cats.effect.*
 import cats.effect.syntax.all.*
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.client.engine.ETradeContext
 import com.odenzo.etrade.client.services.Services
 import com.odenzo.etrade.models.responses.ListAccountsRs

@@ -4,7 +4,7 @@ import cats.syntax.all.*
 import cats.*
 import cats.data.*
 import cats.effect.IO
-import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.ComputedBalance.rename
 import io.circe.*

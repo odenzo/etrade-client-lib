@@ -4,8 +4,8 @@ import cats.data.*
 import cats.effect.*
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
-import com.odenzo.base.IOU
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
+import com.odenzo.etrade.base.IOU
 import com.odenzo.etrade.client.api.{AccountsApi, MarketApi}
 import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
 import com.odenzo.etrade.client.services.Services

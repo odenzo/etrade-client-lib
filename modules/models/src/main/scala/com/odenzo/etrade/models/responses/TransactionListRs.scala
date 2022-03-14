@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
 import cats.data.Chain
-import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.opaques.NEString
 import io.circe.*

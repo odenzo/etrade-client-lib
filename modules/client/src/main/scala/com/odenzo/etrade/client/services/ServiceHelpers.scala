@@ -4,7 +4,7 @@ import cats.syntax.all.*
 import cats.data.{Chain, Ior}
 import cats.effect.IO
 import cats.effect.syntax.all.*
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.client.engine.IorDecoder
 import com.odenzo.etrade.models.errors.{ETradeErrorMsg, ETradeErrorRs}
 import com.odenzo.etrade.models.responses.MessageRs
