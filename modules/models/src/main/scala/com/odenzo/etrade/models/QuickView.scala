@@ -5,12 +5,12 @@ import java.time.Instant
 
 case class QuickView(
     lastTrade: BigDecimal,
-    lastTradeTime: Instant,
+    lastTradeTime: ETimestamp,
     change: BigDecimal,
     changePct: BigDecimal,
     volume: BigDecimal,
     quoteStatus: String,
-    evenDayCurrentYield: BigDecimal,    // Percentage
-    annualTotalReturn: BigDecimal,      // Percentage
-    weightedAverageMaturity: BigDecimal // Percentage
+    evenDayCurrentYield: Option[BigDecimal],    // Percentage
+    annualTotalReturn: Option[BigDecimal],      // Percentage
+    weightedAverageMaturity: Option[BigDecimal] // Percentage
 ) derives Codec.AsObject

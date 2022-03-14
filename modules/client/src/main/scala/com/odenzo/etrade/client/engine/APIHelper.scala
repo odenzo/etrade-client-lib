@@ -1,6 +1,8 @@
 package com.odenzo.etrade.client.engine
 
-import cats.data.NonEmptyList
+import cats.*
+import cats.data.*
+import cats.syntax.all.*
 import cats.effect.*
 import cats.effect.syntax.all.*
 import com.odenzo.etrade.models.responses.AccountBalanceRs
@@ -23,6 +25,8 @@ trait APIHelper {
 
   val json: (Any, ParseResult[MediaType]) = (MediaType.application.json, MediaType.parse("text/html"))
   val acceptJsonHeaders: Headers          = Headers(Header.Raw(CIString("Accept"), "application/json"))
+  val acceptPdfHeaders: Headers           = Headers(Header.Raw(CIString("Accept"), "application/pdf"))
+  val acceptXmlHeaders: Headers           = Headers(Header.Raw(CIString("Accept"), "application/xml"))
 
   def handleHttpErrors[T](rq: Request[IO], rs: Response[IO]): IO[Throwable] = {
     IO(Throwable(s"Crude HTTP Error: ${rs.status}"))

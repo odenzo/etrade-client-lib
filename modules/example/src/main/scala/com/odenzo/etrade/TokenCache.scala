@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 object TokenCache {
   import io.circe.generic.auto.*
 
-  case class CachedTokens(requestToken: Token, accessToken: Token) derives Codec.AsObject
+  case class CachedTokens(requestToken: Token, accessToken: Token, isSandbox: Boolean) derives Codec.AsObject
 
   val cacheFile: os.Path = home / ".etrade-cache"
 
@@ -32,30 +32,29 @@ object TokenCache {
     * Tries to use cached token to get a new access token. Throws if fails (i.e. no cached tokens, refresh token fails), in which case a
     * full login is needed.
     */
-  def refreshCachedTokens(config: OAuthConfig)(using ctx: ETradeContext): IO[OAuthSessionData] =
+  def refreshCachedTokens(config: OAuthConfig, sandbox: Boolean)(using ctx: ETradeContext): IO[OAuthSessionData] =
     // Get the cached auth and access token, see if the access token still works.
     // If doens't see if we can get a new access token from the auth token
     // We could see if the access token still works, but a quick hack to get new one always.
 
     for {
       cached       <- fetchCachedTokens
+      _            <- IO.whenA(cached.isSandbox != sandbox)(deleteCache())
+      _            <- IO.raiseWhen(cached.isSandbox != sandbox)(Throwable("HAve to login manually when switching from Sandbox"))
       cachedSession = rebuildSessionDate(cached.requestToken, cached.accessToken, config)
       _             = scribe.info(s"Cached Session: ${oprint(cached)} -> ${oprint(cachedSession)} ")
       newSession   <- sampleServiceCall(cachedSession).handleErrorWith { err =>
                         scribe.error(s"Just a warning, calling health fn returned error with cached token/refreshing $err")
                         refreshToken(cachedSession)
                       }
-      _            <- storeNewLogin(newSession)
+      _            <- storeNewLogin(newSession, sandbox)
     } yield newSession
 
   end refreshCachedTokens
 
   def rebuildSessionDate(rq: Token, access: Token, config: OAuthConfig): OAuthSessionData = OAuthSessionData(
-    id = UUID.randomUUID(),
     accessToken = access,
     rqToken = rq,
-    authToken = "",
-    verifier = "",
     config = config
   )
 
@@ -87,7 +86,9 @@ object TokenCache {
     os.write.over(cacheFile, ct.asJson.spaces4)
   }
 
-  def storeNewLogin(newLogin: OAuthSessionData): IO[Unit] =
-    val ct = CachedTokens(newLogin.rqToken, newLogin.accessToken)
+  def storeNewLogin(newLogin: OAuthSessionData, sandbox: Boolean): IO[Unit] =
+    val ct = CachedTokens(newLogin.rqToken, newLogin.accessToken, sandbox)
     storeCachedTokens(ct)
+
+  def deleteCache(): IO[Unit] = IO(os.remove(cacheFile)) *> IO(scribe.warn("Deleted Cache"))
 }

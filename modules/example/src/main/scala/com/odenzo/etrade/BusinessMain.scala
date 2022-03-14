@@ -47,8 +47,8 @@ object BusinessMain {
       accountIdKey = myAccount.accountIdKey
       _           <- IO(scribe.debug(s"Accounts ${oprint(accounts)}"))
       _           <- IO(scribe.info(s"MyAccount  ${oprint(myAccount)}"))
-      // balances    <- eclient.fetchCF[AccountBalanceRs](AccountsApi.accountBalancesCF(accountIdKey))
-      //  _            = scribe.info(s"Account Balances: ${oprint(balances)}")
+       balances    <- eclient.fetchCF[AccountBalanceRs](AccountsApi.accountBalancesCF(accountIdKey))
+        _            = scribe.info(s"Account Balances: ${oprint(balances)}")
 //      portfolio <- eclient.fetchCF[PortfolioRs](AccountsApi.viewPortfolioCF(accountId, lots = true))
 //      _          = scribe.info(s"PORTFOLIO: ${oprint(portfolio)}")
 //      txns        <- eclient.fetchCF[TransactionListRs](AccountsApi.listTransactionsCF(accountIdKey, mtdStart.some, mtdEnd.some))
@@ -88,11 +88,11 @@ object BusinessMain {
     for {
       myAccount   <-fetchRandomAccount(eclient)
       accountIdKey = myAccount.accountIdKey
-    //  balances <- Services.accountBalanceApp(accountIdKey,None,"BROKERAGE")
-    //      _ = scribe.info(s"Balances: ${oprint(balances)}")
-    //  txn <- Services.listTransactionsApp(accountIdKey,LocalDate.of(2021,10,1).some, LocalDate.of(2021,12,31).some)
-    //  _ = scribe.info(s" Txn: ${oprint(txn)}")
-      // view portfolio
+//      balances <- Services.accountBalanceApp(accountIdKey,None,"BROKERAGE")
+//         _ = scribe.info(s"Balances: ${oprint(balances)}")
+//      txn <- Services.listTransactionsApp(accountIdKey,LocalDate.of(2021,10,1).some, LocalDate.of(2021,12,31).some)
+//       _ = scribe.info(s" Txn: ${oprint(txn)}")
+      portfolio <- Services.viewPortfolioApp(accountIdKey,false,PortfolioView.FUNDAMENTAL, totals = true)
 
     } yield myAccount
   }

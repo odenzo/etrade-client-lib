@@ -53,8 +53,9 @@ object Authentication extends OAuthUtils {
     * running already.
     */
   def requestToken(baseUri: Uri, callback: Uri, consumer: Consumer)(using client: Client[IO]): IO[Token] = {
-    scribe.info(s"Getting Request Token $baseUri aith Callback $callback")
+
     val rqTokenUrl: Request[IO]   = Request[IO](uri = baseUri / "oauth" / "request_token")
+    scribe.info(s"Getting Request Token $rqTokenUrl with Callback $callback and Consumer: $consumer ")
     val signedRq: IO[Request[IO]] = oauth1.signRequest[IO](
       req = rqTokenUrl,
       consumer = ProtocolParameter.Consumer(consumer.key, consumer.secret), // Application Consumer
@@ -80,8 +81,8 @@ object Authentication extends OAuthUtils {
   }
 
   /** Callbacks gives us verifier and auth_token, this uses verifier to get access tokewn (with no auth_token used!?) */
-  def getAccessToken(verifier: String, rqToken: Token, authToken: String, config: OAuthConfig)(using client: Client[IO]): IO[Token] = {
-
+  def getAccessToken(verifier: String, rqToken: Token, config: OAuthConfig)(using client: Client[IO]): IO[Token] = {
+    scribe.warn(s"Getting ACCESS TOKEN with rqToken $rqToken and  Config ${oprint(config)}")
     val rq: IO[Request[IO]] = oauth1.signRequest[IO](
       req = Request[IO](uri = config.oauthUrl / "oauth" / "access_token"),
       consumer = ProtocolParameter.Consumer(config.consumer.key, config.consumer.secret),
@@ -93,7 +94,10 @@ object Authentication extends OAuthUtils {
       realm = Option.empty[Realm]
     )
 
-    def handleResponse(rs: Response[IO]): IO[Token] = rs.as[UrlForm].flatMap(extractToken)
+    def handleResponse(rs: Response[IO]): IO[Token] = rs
+      .as[UrlForm]
+      .flatMap(extractToken)
+      .flatTap(t => IO(scribe.warn(s"Got Access Token $t")))
 
     rq.flatMap(req => client.run(req).use(handleResponse))
 

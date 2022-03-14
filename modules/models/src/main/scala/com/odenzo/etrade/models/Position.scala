@@ -1,20 +1,22 @@
 package com.odenzo.etrade.models
 
+import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.models.responses.AccountBalances
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
 import java.time.Instant
 
 case class Position(
-    id: Long,
+    positionId: Long,
     symbolDescription: String,
-    dateAquired: Instant,
+    dateAcquired: EDatestamp,
     pricePaid: BigDecimal,
     commissions: BigDecimal,
     otherFees: BigDecimal,
     quantity: BigDecimal,
     positionIndicator: String,
-    positionType: String, // enum LONG, SHORT or whatever
+    positionType: String,                 // enum LONG, SHORT or whatever
     daysGain: BigDecimal,
     daysGainPct: BigDecimal,
     marketValue: BigDecimal,
@@ -23,7 +25,7 @@ case class Position(
     totalGainPct: BigDecimal,
     pctOfPortfolio: BigDecimal,
     costPerShare: BigDecimal,
-    todayComissions: BigDecimal,
+    todayCommissions: BigDecimal,
     todayFees: BigDecimal,
     todayPricePaid: BigDecimal,
     todayQuantity: BigDecimal,
@@ -31,35 +33,15 @@ case class Position(
     lotsDetails: OUrl,
     quoteDetails: OUrl,
     product: ETProduct,
-    quick: QuickView
-) derives Codec.AsObject
+    quick: Option[QuickView],             // quick / complete /
+    complete: Option[CompleteView],       // Performance, Fundamental, Option Views too. These are really Either[] or is there a oneOf since
+    performance: Option[PerformanceView], // Performance, Fundamental, Option Views too. These are really Either[] or is there a oneOf
+    fundamental: Option[FundamentalView]
+    // since
+    // they all have different keys
+)
 
-//
-//case class Position(
-//    positionId: Int,
-//    symbolDescription: String,
-//    dateAcquired: Instant,
-//    pricePaid: BigDecimal,
-//    commissions: BigDecimal,
-//    otherFees: BigDecimal,
-//    quantity: BigDecimal,
-//    positionIndicator: String,
-//    positionType: String,
-//    daysGain: BigDecimal,
-//    daysGainPct: BigDecimal,
-//    marketValue: BigDecimal,
-//    totalCost: BigDecimal,
-//    totalGain: BigDecimal,
-//    totalGainPct: BigDecimal,
-//    pctOfPortfolio: BigDecimal,
-//    costPerShare: BigDecimal,
-//    todayCommissions: BigDecimal,
-//    todayFees: BigDecimal,
-//    todayPricePaid: BigDecimal,
-//    todayQuantity: BigDecimal,
-//    adjPrevClose: BigDecimal,
-//    lotsDetails: String,  // URL
-//    quoteDetails: String, // URL https://api.etrade.com/v1/market/quote/AAPL,
-//    product: Product,
-//    quick: Quick
-//)
+object Position:
+
+  def rename: Map[String, String]       = List("product", "quick", "complete", "performance", "fundamental").map(lc => lc -> lc.capitalize).toMap
+  given codec: Codec.AsObject[Position] = CirceUtils.renamingCodec(deriveCodec[Position], rename)

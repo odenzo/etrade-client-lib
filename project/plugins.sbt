@@ -2,9 +2,9 @@
 //addSbtPlugin("org.jmotor.sbt" % "sbt-dependency-updates" % "1.2.1")
 // addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.2")
 
-addSbtPlugin("com.eed3si9n"   % "sbt-buildinfo"       % "0.11.0")
+//addSbtPlugin("com.eed3si9n"   % "sbt-buildinfo"       % "0.11.0")
 //addSbtPlugin("com.codecommit" % "sbt-github-actions"  % "0.9.5")
-addSbtPlugin("com.codecommit" % "sbt-github-packages" % "0.5.3")
+//addSbtPlugin("com.codecommit" % "sbt-github-packages" % "0.5.3") // GITHUB_TOKEN?
 //addSbtPlugin("com.typesafe.sbt" % "sbt-git"             % "1.0.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9")

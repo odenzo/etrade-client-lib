@@ -1,16 +1,45 @@
 package com.odenzo.etrade.models
 
 import cats.data.Chain
+import com.odenzo.base.CirceCodecs.*
 import io.circe.*
+import io.circe.generic.semiauto.deriveCodec
+import io.circe.Decoder.*
+import io.circe.Encoder.*
+import io.circe.Codec.*
+
+import scala.util.Try
 
 /** MF_DETAIL can only be used on valid mutual funds apparently */
 enum QuoteDetail:
   case ALL, FUNDAMENTAL, INTRADAY, OPTIONS, WEEK_52, MF_DETAIL
 
+enum PortfolioView:
+  case PERFORMANCE, FUNDAMENTAL, OPTIONSWATCH, QUICK, COMPLETE
+
+object PortfolioView:
+  given Codec[PortfolioView] = Codec.from(
+    stringCIEnumDecoder[PortfolioView],
+    stringCIEnumEncoder[PortfolioView]
+  )
 enum QuoteStatus:
   case REALTIME, DELAYED, CLOSING, EH_REALTIME, EH_BEFORE_OPEN, EH_CLOSED
 
-case class NetAssets(value: Long, asOfDate: ETimestamp)
+enum MarketSession:
+  case REGULAR, EXTENDED
+
+object MarketSession:
+  given Codec[MarketSession] = Codec.from(
+    stringCIEnumDecoder[MarketSession],
+    stringCIEnumEncoder[MarketSession]
+  )
+
+object QuoteStatus:
+  given codec: Codec[QuoteStatus] = Codec.from(
+    decodeString.emapTry(s => scala.util.Try { QuoteStatus.valueOf(s) }),
+    encodeString.contramap(qs => qs.toString)
+  )
+case class NetAssets(value: Long, asOfDate: ETimestamp) derives Codec.AsObject
 
 case class Redemption(
     minMonth: String,               // 	string	The minimum month for redemption of mutual fund shares.

@@ -1,8 +1,12 @@
 package com.odenzo.base
 
+import com.sun.org.apache.bcel.internal.generic.Select
 import io.circe.*
+import io.circe.Decoder.decodeString
+import io.circe.Encoder.encodeString
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
+import os./
 
 import scala.deriving.Mirror
 
@@ -53,6 +57,16 @@ trait CirceUtils {
       decodeA = codec.prepare(prepareKeys(unCaptialize)),
       encodeA = codec.mapJsonObject(encoderTransformKey(capitalize))
     )
+// TODO: Stuck on generic enum codec for simple Value
+//  def stringEnumCodec[T <: Product]                                   = {
+//    Codec.from[T](
+//      decodeString.emapTry(s => scala.util.Try { T.valueOf(s) }),
+//      encodeString.contramap(en => en.toString)
+//    )
+//  }
+//
+  /* EnumValues.scala */
+
 }
 
 object CirceUtils extends CirceUtils

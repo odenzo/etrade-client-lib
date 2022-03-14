@@ -123,14 +123,14 @@ case class ExtendedHourQuoteDetail(
 
 /** If Fundamental key is in base response. This seems complete */
 case class FundamentalQuoteDetails(
-    companyName: String,       //	string	The name of the company associated with the equity, option, or index.
-    eps: BigDecimal,           //	number (double)	The earnings per share on a rolling basis (Applies to stocks only)
-    estEarnings: BigDecimal,   //	number (double)	The estimated earnings
-    high52: BigDecimal,        //	number (double)	The highest price at which a security has traded during the past year (52 weeks). For options, this value is the lifetime high.
-    lastTrade: BigDecimal,     //	number (double)	The most recent trade price for a security
-    low52: BigDecimal,         //	number (double)	The lowest price at which a security has traded during the past year (52 weeks). For options, this value is the lifetime low.
-    symbolDescription: String, //	string	A description of the security, such as company name or option description
-    nextEarningDate: Option[String]
+    companyName: String,      //	string	The name of the company associated with the equity, option, or index.
+    eps: BigDecimal,          //	number (double)	The earnings per share on a rolling basis (Applies to stocks only)
+    estEarnings: BigDecimal,  //	number (double)	The estimated earnings
+    high52: BigDecimal,       //	number (double)	The highest price at which a security has traded during the past year (52 weeks). For options, this value is the lifetime high.
+    lastTrade: BigDecimal,    //	number (double)	The most recent trade price for a security
+    low52: BigDecimal,        //	number (double)	The lowest price at which a security has traded during the past year (52 weeks). For options, this value is the lifetime low.
+    nextEarningDate: Option[String],
+    symbolDescription: String //	string	A description of the security, such as company name or option description
 ) extends QuoteDetails derives Codec.AsObject
 
 /*

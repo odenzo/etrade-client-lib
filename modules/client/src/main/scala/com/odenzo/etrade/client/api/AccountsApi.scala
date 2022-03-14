@@ -6,7 +6,7 @@ import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import com.odenzo.etrade.client.api.AccountsApi.standardCall
 import com.odenzo.etrade.client.engine.{APIHelper, ETradeContext}
-import com.odenzo.etrade.models.Transaction
+import com.odenzo.etrade.models.{MarketSession, PortfolioView, Transaction}
 import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs, TransactionListRs}
 import com.odenzo.etrade.oauth.OAuthSessionData
 import com.odenzo.etrade.oauth.OAuthSessionData.Contextual
@@ -16,10 +16,10 @@ import org.http4s.Method.GET
 import org.http4s.client.Client
 import org.http4s.Uri.*
 import org.http4s.headers.*
-
 import monocle.*
 import monocle.syntax.all.*
 import com.odenzo.etrade.client.engine.*
+
 import java.time.LocalDate
 
 /**
@@ -29,7 +29,7 @@ import java.time.LocalDate
 object AccountsApi extends APIHelper {
 
   def listAccountsCF: ETradeCall = {
-    Request[IO](GET, baseUri / "v1" / "accounts" / "list").pure
+    Request[IO](GET, baseUri / "v1" / "accounts" / "list", headers = acceptJsonHeaders).pure
   }
 
   def accountBalancesCF(
@@ -63,7 +63,7 @@ object AccountsApi extends APIHelper {
       startDate: Option[LocalDate] = None,
       endDate: Option[LocalDate] = None,
       count: Int = 50,
-      marker: Option[String] = None // TransactionId
+      marker: Option[String] = None
   ): ETradeCall = {
     // The request can return 204 with no content, apparently if no transactions in that range.
     scribe.info(s"Calling List Txn on Account $accountIdKey")
@@ -77,15 +77,37 @@ object AccountsApi extends APIHelper {
     ).addHeader(Accept(MediaType.application.json)).pure
   }
 
+  def listTransactionsDetailCF(
+      accountIdKey: String,
+      transactionId: String,
+      storeId: Option[String]
+  ): ETradeCall = {
+
+    Request[IO](
+      GET,
+      (baseUri / "v1" / "accounts" / accountIdKey / "transactions" / transactionId).withOptionQueryParam("storeId", storeId)
+    ).addHeader(Accept(MediaType.application.json)).pure
+  }
+
   def viewPortfolioCF(
       accountIdKey: String,
       lots: Boolean = false,
-      view: String = "COMPLETE",
-      totals: Boolean = true,
+      view: PortfolioView = PortfolioView.PERFORMANCE,
+      totalsRequired: Boolean = true,
+      marketSession: MarketSession,
       count: Int = 50,
-      marker: Option[String] = None // TransactionId
+      pageNumber: Option[String] = None // TransactionId
   ): ETradeCall = {
-    IO.pure(Request[IO](GET, (baseUri / "v1" / accountIdKey / "portfolio").withQueryParam("count", count)))
+    IO.pure(Request[IO](
+      GET,
+      (baseUri / "v1" / "accounts" / accountIdKey / "portfolio")
+        .withQueryParam("count", count)
+        .withQueryParam("totalsRequired", totalsRequired)
+        .withQueryParam("view", view.toString)
+        .withQueryParam("lots", lots)
+        .withOptionQueryParam("pageNumber", pageNumber),
+      headers = acceptJsonHeaders
+    ))
   }
 
 }

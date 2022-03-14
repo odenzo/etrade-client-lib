@@ -37,6 +37,7 @@ lazy val models = project
   .dependsOn(common)
   .settings(name := "models")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
+  .settings(libraryDependencies ++= Libs.scalaXML)
   .settings(libraryDependencies ++= Libs.testing)
 
 lazy val client = project
