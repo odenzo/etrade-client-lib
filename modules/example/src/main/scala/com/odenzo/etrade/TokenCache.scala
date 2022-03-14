@@ -2,7 +2,6 @@ package com.odenzo.etrade
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import com.odenzo.etrade.oauth.config.OAuthConfig
 import os.*
 import io.circe.*
 import io.circe.syntax.*
@@ -12,7 +11,7 @@ import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.client.engine.ETradeContext
 import com.odenzo.etrade.client.services.Services
 import com.odenzo.etrade.models.responses.ListAccountsRs
-import com.odenzo.etrade.oauth.{Authentication, OAuthSessionData}
+import com.odenzo.etrade.oauth.{Authentication, OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.oauth.client.OAuthClient
 import org.http4s.client.Client
 import org.http4s.client.oauth1.Token

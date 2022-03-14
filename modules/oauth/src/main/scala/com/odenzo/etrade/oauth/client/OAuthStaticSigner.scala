@@ -12,8 +12,9 @@ import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /**
-  * Simple Middleware for Signing Requests, based on the RequestLogger middlewarequests As They Are Processed Unfortunately this has status
-  * OAuthSesssionData but good enough for my use-case. Scope down to whatever is needed to sign request and refresh token. Taglessify
+  * Simple Middleware for Signing Requests, based on the RequestLogger middlewarequests As They Are Processed Unfortunately this has static
+  * OAuthSesssionData but good enough for my use-case. Scope down to whatever is needed to sign request and refresh token. Taglessify I
+  * guess there is no reason not to use "ServerSide" vault
   */
 object OAuthStaticSigner {
 

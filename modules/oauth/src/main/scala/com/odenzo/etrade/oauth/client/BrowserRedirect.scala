@@ -11,9 +11,10 @@ import org.http4s.QueryParameterKey.*
 import os.CommandResult
 
 /**
-  * Called from Initiate Login Authentication Action to open a browser to login to etrade. The login will result in a callback url on our
-  * web server being redirected to (a localhost). This should be customized for Linux and Windows based on env var. TODO: Allow
-  * cutsomization of browser command via some format.
+  * # Markup Style
+  *   - Called from Initiate Login Authentication Action to open a browser to login to etrade. The login will result in a callback url on
+  *     our web server being redirected to (a localhost). This should be customized for Linux and Windows based on env var.
+  *   - TODO: Allow cutsomization of browser command via some format. Or let lib-users just send in a function.
   */
 object BrowserRedirect {
   def openLoginBrowser(uri: Uri): IO[CommandResult] = IO {
@@ -24,9 +25,7 @@ object BrowserRedirect {
 
   /** Constructs the e-trade specific (probably) query params onto the base URL. */
   def redirectToETradeAuthorizationPage(url: Uri, appConsumerKeys: Consumer, appToken: Token): IO[CommandResult] = {
-    val dest = url
-      .withQueryParam("key", appConsumerKeys.key)
-      .withQueryParam("token", appToken.value)
+    val dest = url.withQueryParam("key", appConsumerKeys.key).withQueryParam("token", appToken.value)
     openLoginBrowser(dest)
   }
 }

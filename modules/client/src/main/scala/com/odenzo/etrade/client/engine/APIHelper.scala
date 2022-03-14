@@ -28,16 +28,4 @@ trait APIHelper {
   val acceptPdfHeaders: Headers           = Headers(Header.Raw(CIString("Accept"), "application/pdf"))
   val acceptXmlHeaders: Headers           = Headers(Header.Raw(CIString("Accept"), "application/xml"))
 
-  def handleHttpErrors[T](rq: Request[IO], rs: Response[IO]): IO[Throwable] = {
-    IO(Throwable(s"Crude HTTP Error: ${rs.status}"))
-  }
-
-  def errorHandlerFn[T](rq: Request[IO], rs: Response[IO], err: Throwable): IO[T] = {
-    IO.raiseError(Throwable(s"Crude HTTP Error: ${rs.status}", err))
-  }
-
-  def standardCall[T: Decoder](rq: Request[IO], rs: Response[IO]): IO[T] =
-    import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
-    rs.as[T].handleErrorWith((err: Throwable) => errorHandlerFn(rq, rs, err))
-
 }

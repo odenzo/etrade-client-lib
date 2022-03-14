@@ -1,3 +1,4 @@
+import sbt.Keys.packageSrc
 import sbt._
 
 //ThisBuild / bspEnabled := false
@@ -7,6 +8,7 @@ val javart = "1.11"
 ThisBuild / scalaVersion              := "3.1.1"
 ThisBuild / organization              := "com.odenzo"
 ThisBuild / dependencyAllowPreRelease := true
+ThisBuild / versionScheme             := Some("early-semver")
 
 root / Compile / mainClass := Some("com.odenzo.etrade.Main")
 Test / fork                := true
@@ -17,16 +19,24 @@ ThisBuild / scalacOptions := Seq("-release", "11")
 ThisBuild / scalacOptions ++= Scala3Settings.settings
 ThisBuild / scalacOptions ++= Seq("-Xmax-inlines", "512")
 
+val publishSettings = Seq(
+  Test / packageBin / publishArtifact := false,
+  Test / packageDoc / publishArtifact := false,
+  Test / packageSrc / publishArtifact := true
+)
+
+val noPublishSettings = Seq(publishArtifact := false)
+
 lazy val root = project
   .in(file("."))
   .withId("etrade")
   .aggregate(common, models, client, oauth, example)
-  .settings(name := "etrade", doc / aggregate := false)
+  .settings(name := "etrade", doc / aggregate := true, Test / publishArtifact := true)
 
 lazy val common = project
   .in(file("modules/common"))
   .withId("common")
-  .settings(name := "common")
+  .settings(name := "etrade-common")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
   .settings(libraryDependencies ++= Libs.scaffeine) // SOmething is mkaing scribe logging config not work in oauth
@@ -35,7 +45,7 @@ lazy val models = project
   .in(file("modules/models"))
   .withId("models")
   .dependsOn(common)
-  .settings(name := "models")
+  .settings(name := "etrade-models")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.scalaXML)
   .settings(libraryDependencies ++= Libs.testing)
@@ -62,8 +72,8 @@ lazy val example = project
   .withId("example")
   .dependsOn(common, models, oauth, client)
   .settings(name := "example-usage")
+  .settings(noPublishSettings)
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.circe ++ Libs.catsExtra ++ Libs.fs2)
-  // .settings(libraryDependencies ++= Libs.logback) // Add a concrete implementation
   .settings(libraryDependencies ++= Libs.testing)
 
 addCommandAlias("ci-test", "+clean;+test -- -DCI=true")

@@ -3,8 +3,7 @@ package com.odenzo.etrade.client.engine
 import cats.conversions.all.autoWidenFunctor
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
-import com.odenzo.etrade.oauth.OAuthSessionData
-import com.odenzo.etrade.oauth.config.OAuthConfig
+import com.odenzo.etrade.oauth.{OAuthConfig, OAuthSessionData}
 import org.http4s.Uri.*
 import org.http4s.client.Client
 import org.http4s.client.oauth1.{Consumer, Token}
@@ -22,6 +21,11 @@ import java.util.UUID
 
 type ETradeRequest[T] = ETradeContext ?=> T
 type ETradeCall       = ETradeRequest[IO[Request[IO]]]
+
+/**
+  * This gives us the context function, and errors are raised in IO (mostly). Not it assumes that the client has middleware to do signing.
+  * One is upplied in oauth.clients package.
+  */
 type ETradeService[T] = (ETradeContext, Client[IO]) ?=> IO[T]
 
 /**
@@ -29,9 +33,8 @@ type ETradeService[T] = (ETradeContext, Client[IO]) ?=> IO[T]
   * anymore. (So essentially its almost a singleton, but we may refresh this so its actually mutable session state) We will use scalacache
   * to deal with it, since thats what the previous full system used for sessions. Should parameterize key and make a trait too
   */
-case class ETradeContext(
-    apiUrl: Uri
-)
+case class ETradeContext(apiUrl: Uri)
 
+/** baseUri contextual function, allows us to use in functions of type ETradeRequest "magically" */
 val baseUri: ETradeRequest[Uri] = summon[ETradeContext].apiUrl
 val v1: ETradeRequest[Uri]      = summon[ETradeContext].apiUrl / "v1"

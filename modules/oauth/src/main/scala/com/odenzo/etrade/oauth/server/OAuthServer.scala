@@ -9,8 +9,7 @@ import com.github.blemale.scaffeine
 import com.github.blemale.scaffeine.Cache
 import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.oauth.client.OAuthClient
-import com.odenzo.etrade.oauth.{OAuthSessionData, *}
-import com.odenzo.etrade.oauth.config.OAuthConfig
+import com.odenzo.etrade.oauth.{OAuthConfig, OAuthSessionData, *}
 import fs2.concurrent.SignallingRef
 import org.http4s.*
 import org.http4s.Uri.RegName

@@ -6,8 +6,8 @@ import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.base.IOU
-import com.odenzo.etrade.client.api.{AccountsApi, MarketApi}
-import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
+import com.odenzo.etrade.client.api.*
+import com.odenzo.etrade.client.engine.{*, given}
 import com.odenzo.etrade.client.services.Services
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.responses.*
@@ -15,6 +15,7 @@ import com.odenzo.etrade.oauth.OAuthSessionData
 import io.circe.Decoder.Result
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import org.http4s.EntityDecoder
 import org.http4s.client.Client
 
 import java.time.{Instant, LocalDate}
@@ -26,67 +27,46 @@ object BusinessMain {
   val mtdEnd: LocalDate                        = LocalDate.now() // Note this may be off by one due to timezone
   val now: LocalDate                           = LocalDate.now() // Note this may be off by one due to timezone
   val minDate                                  = now.minusYears(2)
-  scribe.warn(s"DATES: $minDate  <---> $now")
-  def run(eclient: ETradeClient): IO[ExitCode] =
+
+  def run(client: Client[IO], ctx: ETradeContext): IO[ExitCode] =
+      given Client[IO] = client
+      given ETradeContext = ctx
       for {
-        //account <- fetchRandomAccount(eclient)
-       // res     <- eclient.fetchCF[QuoteRs](MarketApi.getEquityQuotesCF(NonEmptyChain("APPL"), details = QuoteDetail.FUNDAMENTAL, true))
-       // _        = scribe.info(s" ${oprint(res)}")
-         _       <- badCalls(eclient)
+         _       <- badCalls()
       } yield ExitCode.Success
     .as(ExitCode.Success)
 
-  /** Calls inidividual Account API, returning model. No Paging */
-  def callAccountsAPIs(eclient: ETradeClient): IO[Account] = {
-    // Here we DO NOT make eclient implicit so the CF run is called and resolved there (to the same stuff in this example)
-
+  /** Calls inidividual Account API, then allows you to ue client to do the actual call. semiManual Approach
+   * Basically, using the raw ClientpIO] power. Note that the Services automate some of the error handline and paging.
+   * This just shows how you can still accesss as based level.*/
+  def lowLevel(): ETradeService[Account] = {
+    // The context function gives us unnamed. I guess we can using it, but summon is nice I think.
+    import     org.http4s.circe.jsonOf
+    given entityDecoder: EntityDecoder[IO, ListAccountsRs] = jsonOf[IO,ListAccountsRs]
+    val client: Client[IO] = summon[Client[IO]]
     for {
       _           <- IO(scribe.info(s"Calling Account API..."))
-      accounts    <- eclient.fetchCF[ListAccountsRs](AccountsApi.listAccountsCF).map(_.accounts)
-      myAccount   <- accounts.filter(a => a.accountName === "NickName-2" && a.accountStatus === "ACTIVE").pipe(IOU.exactlyOne("MyAccount"))
-      accountIdKey = myAccount.accountIdKey
-      _           <- IO(scribe.debug(s"Accounts ${oprint(accounts)}"))
-      _           <- IO(scribe.info(s"MyAccount  ${oprint(myAccount)}"))
-       balances    <- eclient.fetchCF[AccountBalanceRs](AccountsApi.accountBalancesCF(accountIdKey))
-        _            = scribe.info(s"Account Balances: ${oprint(balances)}")
-//      portfolio <- eclient.fetchCF[PortfolioRs](AccountsApi.viewPortfolioCF(accountId, lots = true))
-//      _          = scribe.info(s"PORTFOLIO: ${oprint(portfolio)}")
-//      txns        <- eclient.fetchCF[TransactionListRs](AccountsApi.listTransactionsCF(accountIdKey, mtdStart.some, mtdEnd.some))
-//      _            = scribe.info(s"Txns First Page: ${oprint(txns)}")
-    } yield myAccount
+      accounts    <- client.expect[ListAccountsRs](AccountsApi.listAccountsCF).map(_.accounts)
+      firstAcct = accounts.head
+    } yield firstAcct
 
   }
 
   /** Calls inidividual Account API, returning model. No Paging */
-  def fetchRandomAccount(eclient: ETradeClient): IO[Account] = {
+  def firstAccount(): ETradeService[Account] = {
     for {
-      _           <- IO(scribe.info(s"Calling Account API..."))
-      accounts    <- eclient.fetchCF[ListAccountsRs](AccountsApi.listAccountsCF).map(_.accounts)
-      myAccount   <- accounts.headOption.pipe(IOU.required("MyAccount"))
+      myAccount    <- Services.listAccountsApp().map(_.accounts.headOption) >>= IOU.required("First Account is My Account")
       _ = scribe.info(s"Account: ${oprint(myAccount)}")
-
     } yield myAccount
 
   }
-
-  /** Call the two Accounts paging API through predefined pagers */
-  def callAccountPagingAPI(accountIdKey: String, eclient: ETradeClient): IO[Unit] =
-    given Client[IO]    = eclient.c
-    given ETradeContext = eclient.config
-    for {
-      _    <- IO(scribe.info(s"Txns for $accountIdKey  $minDate   $now --> "))
-      txns <- Services.listTransactionsApp(accountIdKey, minDate.some, now.some)
-      _     = scribe.info(s"Txns APP Results: ${oprint(txns)}")
-    } yield ()
-
 
 
   /** Quick experiment to see if messages shows up in any other calls besides QuoteRs */
-  def badCalls(eclient: ETradeClient): IO[Account] = {
-    given Client[IO]    = eclient.c
-    given ETradeContext = eclient.config
+  def badCalls(): ETradeService[Account] = {
+
     for {
-      myAccount   <-fetchRandomAccount(eclient)
+      myAccount   <-firstAccount()
       accountIdKey = myAccount.accountIdKey
 //      balances <- Services.accountBalanceApp(accountIdKey,None,"BROKERAGE")
 //         _ = scribe.info(s"Balances: ${oprint(balances)}")

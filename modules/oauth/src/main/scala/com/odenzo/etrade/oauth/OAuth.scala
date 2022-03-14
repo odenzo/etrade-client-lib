@@ -9,7 +9,6 @@ import cats.effect.syntax.all.*
 import com.github.blemale.scaffeine
 import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.oauth.client.{BrowserRedirect, OAuthClient}
-import com.odenzo.etrade.oauth.config.OAuthConfig
 import com.odenzo.etrade.oauth.server.OAuthServer
 import fs2.concurrent.SignallingRef
 import org.http4s.{HttpRoutes, Uri}

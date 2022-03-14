@@ -7,7 +7,6 @@ import cats.effect.syntax.all.*
 import cats.effect.{Fiber, FiberIO, IO}
 import cats.syntax.all.*
 import com.odenzo.etrade.base.OPrint.oprint
-import com.odenzo.etrade.oauth.config.OAuthConfig
 import com.odenzo.etrade.oauth.utils.OAuthUtils
 import org.http4s.*
 import org.http4s.CacheDirective.public
@@ -38,6 +37,9 @@ object Authentication extends OAuthUtils {
     case Valid(l: List[String])     => IO.raiseError(Exception(s"List size ${l.size} != 2 for parameters"))
   }
 
+  /**
+    * This can be used to sign a request with the given access token. There is also a signing client that will do it automatically.
+    */
   def sign(rq: Request[IO], accessToken: Token, consumerKeys: Consumer): IO[Request[IO]] = oauth1.signRequest[IO](
     req = rq,
     consumer = ProtocolParameter.Consumer(consumerKeys.key, consumerKeys.secret),

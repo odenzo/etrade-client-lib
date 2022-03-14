@@ -9,12 +9,11 @@ import com.github.blemale.scaffeine
 import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.TokenCache.CachedTokens
 import com.odenzo.etrade.base.ScribeConfig
-import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
+import com.odenzo.etrade.client.engine.ETradeContext
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
-import com.odenzo.etrade.oauth.*
+import com.odenzo.etrade.oauth.{OAuthConfig, *}
 import com.odenzo.etrade.oauth.client.*
-import com.odenzo.etrade.oauth.config.OAuthConfig
 import org.http4s.Uri
 import org.http4s.Uri.{*, given}
 import org.http4s.client.Client
@@ -45,8 +44,8 @@ object Main extends IOApp:
     val secret      = scala.sys.env("ETRADE_LIVE_SECRET")
 
     if !useSandbox
-    then OAuthConfig(oauthUrl = url, apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
-    else OAuthConfig(oauthUrl = url, apiUrl = sb, consumer = Consumer(sbKey, sbSecret), callbackUrl, redirectUrl)
+    then com.odenzo.etrade.oauth.OAuthConfig(oauthUrl = url, apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
+    else com.odenzo.etrade.oauth.OAuthConfig(oauthUrl = url, apiUrl = sb, consumer = Consumer(sbKey, sbSecret), callbackUrl, redirectUrl)
   }
 
   def run(args: List[String]): IO[ExitCode] =
@@ -68,6 +67,6 @@ object Main extends IOApp:
       // Normally just: login   <- oauth.login()                // Undecided what to do with this currently this forces manual login by
       // opening web
       // browser
-      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(ETradeClient(rqConfig, cio)))
+      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(cio, rqConfig))
     } yield res
 end Main
