@@ -37,6 +37,7 @@ lazy val models = project
   .dependsOn(common)
   .settings(name := "models")
   .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
+  .settings(libraryDependencies ++= Libs.scalaXML)
   .settings(libraryDependencies ++= Libs.testing)
 
 lazy val client = project
@@ -62,7 +63,8 @@ lazy val example = project
   .dependsOn(common, models, oauth, client)
   .settings(name := "example-usage")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.circe ++ Libs.catsExtra ++ Libs.fs2)
-  .settings(libraryDependencies ++= Libs.logback) // Add a concrete implementation
+  // .settings(libraryDependencies ++= Libs.logback) // Add a concrete implementation
   .settings(libraryDependencies ++= Libs.testing)
 
 addCommandAlias("ci-test", "+clean;+test -- -DCI=true")
+addCommandAlias("erun", "example/run")

@@ -7,7 +7,7 @@ Scala 3 e-trade web api client
 ## Tech Stack
 - Scala 3.1.1
 - Cats / Cats Effect (V3)
-- HTTP4S 1.0-Mxx Branch
+- HTTP4S 1.0-Mxx Branch (Tempted to switch for STTP Client which has ScalaJS and JVM)
 - FS2
 - Circe
 - Scribe/SLF4J (WIP)
@@ -21,9 +21,7 @@ in the package `com.odenzo.etrade.client.api`
 
 ## Status
 
-Still very much in-progress, but the basic configuration and OAuth login is done.
-A few of the existing APIs are pasted over, but the approach may change for API call based on Scala 3 enhancements.
-
++ Workable for the APIs I am using, which center on reporting for Mutual Funds and Equities. Not much work on Options
 
 
 ## Details
@@ -51,9 +49,7 @@ In Progress.
 Three artifacts are produced, you only need to include  `githubthing %% etrade-client % <verison` it will pull in the Scala oauth and 
 models.
 
-While the program itself is backend only, the util and  models will be x-compiled to ScalaJS. 
-
-Better to check back in a few weeks... but for now see MainTest in oauth module tests for the structure.
+While the program itself is backend only, the util and  models will be x-compiled to ScalaJS.
 
 
 e-trade oauth proced requires you to login via the webbrowser. On "initial login" thi program will 
@@ -69,3 +65,6 @@ Fix: expect(X).onError(expect(Y)) style and throw an error with Y in it.
 
 
 
+### oauth/request token
+This is acting up, and often redirecting me to the etrade home page. Running again it works. This is out of regular etrade hours
+so not sure what is up.

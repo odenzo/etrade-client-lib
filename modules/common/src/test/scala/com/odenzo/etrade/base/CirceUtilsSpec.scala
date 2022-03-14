@@ -1,10 +1,11 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
 
+import com.odenzo.etrade.base.CirceUtils
 import io.circe.*
 import io.circe.Decoder.{Result, const}
+import io.circe.JsonObject.*
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import io.circe.JsonObject.*
 import munit.FunSuite
 
 class CirceUtilsSpec extends munit.CatsEffectSuite with CirceUtils {

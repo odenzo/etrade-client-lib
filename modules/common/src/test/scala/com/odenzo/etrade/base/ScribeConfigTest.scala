@@ -1,8 +1,9 @@
-package com.odenzo.base
+package com.odenzo.etrade.base
 
+import cats.effect.IO
+import com.odenzo.etrade.base.ScribeConfig
 import munit.FunSuite
 import scribe.Level
-import cats.effect.IO
 class ScribeConfigTest extends FunSuite {
   test("Logging") {
     ScribeConfig.setupRoot(onlyWarnings = List("com.odenzo.base"), initialLevel = Level.Error)

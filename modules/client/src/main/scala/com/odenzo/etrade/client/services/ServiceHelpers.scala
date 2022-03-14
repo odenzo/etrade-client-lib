@@ -4,13 +4,19 @@ import cats.syntax.all.*
 import cats.data.{Chain, Ior}
 import cats.effect.IO
 import cats.effect.syntax.all.*
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.client.engine.IorDecoder
+import com.odenzo.etrade.models.errors.{ETradeErrorMsg, ETradeErrorRs}
 import com.odenzo.etrade.models.responses.MessageRs
 import io.circe.Decoder
+import org.http4s.blaze.http.http2.PseudoHeaders.Status
 import org.http4s.{MalformedMessageBodyFailure, Request, Response}
 import org.http4s.client.Client
 import org.typelevel.jawn.ParseException
+
+import scala.math.E
+import scala.util.Try
+import scala.xml.Elem
 
 trait ServiceHelpers {
 
@@ -31,18 +37,20 @@ trait ServiceHelpers {
     rqIO.flatMap { rq =>
       c.run(rq)
         .use { rs =>
-          rs.as[T]
-            .handleErrorWith {
-              case err: MalformedMessageBodyFailure =>
-                scribe.error(s"Malformed Response: ${err.details}", err)
-                err
-                  .cause
-                  .foreach {
-                    e => scribe.error("Caused By Parse", e)
-                  }
-                IO.raiseError(err)
-              case err                              => errorHandlerFn[T](rq, rs, err)
-            }
+          val rsCode      = rs.status.code
+          val contentType = rs.contentType
+          scribe.info(s"Code $rsCode Family: ${rs.status.responseClass}")
+          // Expand to all cases that give XML errors
+          rs.status.responseClass match {
+            case org.http4s.Status.ClientError => // if contentType is XML otherwise try Json Messages
+              import org.http4s.scalaxml.*
+              rs.as[Elem].map(elem => errorXmlRsFromXml(rq, rs, elem)).flatMap(err => IO.raiseError(err))
+            case org.http4s.Status.ServerError =>
+              rs.as[String] *> IO.raiseError(ETradeErrorRs(rq.toString, List.empty)) // Actually  its text/html,
+
+            case org.http4s.Status.Informational => rs.as[T]
+            case _                               => rs.as[T]
+          }
         }
     }
   }
@@ -106,8 +114,19 @@ trait ServiceHelpers {
     }
   }
 
+  // This is empty
+  def errorXmlRsFromXml(rq: Request[IO], rs: Response[IO], xml: Elem): ETradeErrorRs = {
+    // A far as I know only one elem in most responses
+    val errs = List(errorMsgFromXml(xml))
+    ETradeErrorRs(rq.toString, errs)
+  }
+
+  /** Falls back to -1 for error code and fallback for text too */
+  def errorMsgFromXml(elem: Elem): ETradeErrorMsg = {
+    val code: Int   = Try { (elem \ "code").text.toInt }.getOrElse(-1)
+    val msg: String = Try { (elem \ "message").text }.getOrElse("No Message Text Found")
+    ETradeErrorMsg(code, msg)
+  }
 }
 
-object ServiceHelpers extends ServiceHelpers {
-  // This is empty
-}
+object ServiceHelpers extends ServiceHelpers {}

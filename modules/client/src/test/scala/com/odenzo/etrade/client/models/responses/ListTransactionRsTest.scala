@@ -1,6 +1,6 @@
 package com.odenzo.etrade.client.models.responses
 
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.models.responses.TransactionListResponse
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveCodec

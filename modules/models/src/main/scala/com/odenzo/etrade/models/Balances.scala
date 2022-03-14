@@ -1,6 +1,6 @@
 package com.odenzo.etrade.models
 
-import com.odenzo.base.CirceUtils
+import com.odenzo.etrade.base.CirceUtils
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 

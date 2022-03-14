@@ -7,7 +7,7 @@ import cats.effect.*
 import cats.effect.implicits.*
 import com.github.blemale.scaffeine
 import com.github.blemale.scaffeine.Cache
-import com.odenzo.base.OPrint.oprint
+import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.oauth.client.OAuthClient
 import com.odenzo.etrade.oauth.{OAuthSessionData, *}
 import com.odenzo.etrade.oauth.config.OAuthConfig
@@ -44,10 +44,9 @@ object OAuthServer {
             given Client[IO] = scopedClient
             for {
               _      <- IO(scribe.warn(s"Got the etrade login oauth callback: $verifier $auth_token"))
-              id     <- IO(UUID.randomUUID())
-              access <- Authentication.getAccessToken(verifier, rqToken, auth_token, config)
+              access <- Authentication.getAccessToken(verifier, rqToken, config)
               _       = IO(scribe.info(s"Got ACCESS Token $access"))
-              session = OAuthSessionData(id = id, accessToken = access.some, authToken = auth_token, verifier, config)
+              session = OAuthSessionData(accessToken = access, rqToken = rqToken, config)
               _      <- sessionD.complete(session) // Still a timing issue
               res    <- Ok(s"OK - ${Instant.now()}  --- You can close this browser now if you want.")
             } yield res

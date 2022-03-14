@@ -3,8 +3,8 @@ package com.odenzo.etrade.oauth
 import cats.effect.{Deferred, IO, Resource}
 import cats.implicits.*
 import com.github.blemale.scaffeine
-import com.odenzo.base.OPrint.oprint
-import com.odenzo.base.ScribeConfig
+import com.odenzo.etrade.base.OPrint.oprint
+import com.odenzo.etrade.base.ScribeConfig
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
 import com.odenzo.etrade.oauth.*

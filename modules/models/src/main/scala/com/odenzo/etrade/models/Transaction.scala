@@ -5,8 +5,8 @@ import io.circe.*
 case class Transaction(
     transactionId: String,
     accountId: String,
-    transactionDate: ETimestamp,
-    postDate: ETimestamp,
+    transactionDate: EDatestamp,
+    postDate: EDatestamp,
     amount: BigDecimal,
     description: String,
     description2: Option[String],

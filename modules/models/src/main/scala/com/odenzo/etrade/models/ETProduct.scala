@@ -15,12 +15,14 @@ object ETProduct {
   given codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
 
 }
-case class Product2(
+
+/** This is returned in Portfolio views (with Complete at least) */
+case class ProductFull(
     symbol: String,
     securityType: String,
-    expiryYear: BigDecimal, // Dunno, YYYY I guess, 0 for my non-option stuff
+    expiryYear: Int,         // Dunno, YYYY I guess, 0 for my non-option stuff
     expiryMonth: Int,
     expiryDay: Int,
-    strikePrice: BigDecimal,
+    strikePrice: BigDecimal, // Option info
     productId: ProductId
 ) derives Codec.AsObject

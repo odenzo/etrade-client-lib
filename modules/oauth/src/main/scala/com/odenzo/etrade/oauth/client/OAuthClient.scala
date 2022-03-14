@@ -1,6 +1,7 @@
 package com.odenzo.etrade.oauth.client
 
 import cats.effect.{IO, Resource, *}
+import cats.syntax.all.*
 import com.odenzo.etrade.oauth.OAuthSessionData
 import org.http4s.*
 import org.http4s.blaze.client.BlazeClientBuilder
@@ -38,7 +39,6 @@ object OAuthClient {
     for {
       base  <- BlazeClientBuilder[IO].withRetries(1).withDefaultSslContext.resource
       logged = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
-
     } yield logged
   }
 
@@ -56,10 +56,13 @@ object OAuthClient {
   def signingDebugClient(oauthSesssion: OAuthSessionData): Resource[IO, Client[IO]] = {
     for {
       base    <- BlazeClientBuilder[IO].withDefaultSslContext.resource
-      signing  = OAuthStaticSigner(oauthSesssion)(base)
+      logging  = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
+      signing  = OAuthStaticSigner(oauthSesssion)(logging)
       redirect = FollowRedirect(3)(signing)
-      logging  = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(redirect)
-    } yield logging
+      cookies <- Resource.pure(CookieJar.impl(redirect))
+
+    } yield redirect
+
   }
 
 }
