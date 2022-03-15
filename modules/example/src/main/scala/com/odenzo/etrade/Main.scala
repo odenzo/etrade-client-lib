@@ -6,6 +6,7 @@ import cats.effect.*
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import com.github.blemale.scaffeine
+import com.odenzo.etrade.Main.createConfig
 import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.TokenCache.CachedTokens
 import com.odenzo.etrade.base.ScribeConfig
@@ -69,4 +70,15 @@ object Main extends IOApp:
       // browser
       res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(cio, rqConfig))
     } yield res
+  end run
+
+  def runNoCache(config: OAuthConfig): IO[ExitCode] = {
+    val oauth   = OAuth(config)                //  setting up
+    val context = ETradeContext(config.apiUrl) // Context with info needed to construct HTTP Requests
+    for {
+      login <- oauth.login()
+      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(cio, context))
+    } yield res
+  }
+
 end Main

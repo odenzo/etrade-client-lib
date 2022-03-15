@@ -19,10 +19,18 @@ import org.http4s.client.oauth1.Token
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-/** Offline Token Cache writing to disk in place of Redis/DB etc for development. Inside the cache is a simple JSON format */
+/**
+  * # Offline Token Cache
+  *   - writing to disk in place of Redis/DB etc for development. Inside the cache is a simple JSON format
+  *   - A sane person would never do this with live account.
+  */
 object TokenCache {
   import io.circe.generic.auto.*
 
+  /**
+    * Sensitive Information that can be stored somewhere between runs.
+    *   - AccessToken hass about 2 hours TTL. At midnight EST requestToken gets killed too.
+    */
   case class CachedTokens(requestToken: Token, accessToken: Token, isSandbox: Boolean) derives Codec.AsObject
 
   val cacheFile: os.Path = home / ".etrade-cache"

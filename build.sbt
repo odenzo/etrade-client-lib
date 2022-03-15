@@ -1,5 +1,6 @@
 import sbt.Keys.packageSrc
 import sbt._
+import sbt.util.FileInfo.hash
 
 //ThisBuild / bspEnabled := false
 
@@ -10,10 +11,32 @@ ThisBuild / organization              := "com.odenzo"
 ThisBuild / dependencyAllowPreRelease := true
 ThisBuild / versionScheme             := Some("early-semver")
 
+ThisBuild / homepage          := Some(url("https://github.com/odenzo/etrade=client-lib"))
+ThisBuild / licenses          := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild / publishMavenStyle := true
+
+ThisBuild / githubTokenSource := TokenSource.Or(TokenSource.Environment("GITHUB_TOKEN"), TokenSource.GitConfig("github.token"))
+ThisBuild / githubOwner       := "odenzo"
+ThisBuild / githubRepository  := "etrade-client-lib"
+
+resolvers += Resolver.githubPackages("odenzo")
+//Compile / doc / scalacOptions ++= {
+//  Seq(
+//    "-sourcepath",
+//    (LocalRootProject / baseDirectory).value.getAbsolutePath,
+//    "-doc-source-url",
+//    s"https://github.com/sbt/sbt-release/tree/${hash()}€{FILE_PATH}.scala"
+//  )
+//}
+
 root / Compile / mainClass := Some("com.odenzo.etrade.Main")
 Test / fork                := true
 Test / parallelExecution   := false
 Test / logBuffered         := false
+
+/** Scala 3 Scala Docs */
+ThisBuild / apiURL          := Some(url("https://odenzo.com/etrade-client/api/"))
+ThisBuild / autoAPIMappings := true
 
 ThisBuild / scalacOptions := Seq("-release", "11")
 ThisBuild / scalacOptions ++= Scala3Settings.settings
@@ -31,7 +54,7 @@ lazy val root = project
   .in(file("."))
   .withId("etrade")
   .aggregate(common, models, client, oauth, example)
-  .settings(name := "etrade", doc / aggregate := true, Test / publishArtifact := true)
+  .settings(name := "etrade", publish / skip := true)
 
 lazy val common = project
   .in(file("modules/common"))
@@ -72,9 +95,10 @@ lazy val example = project
   .withId("example")
   .dependsOn(common, models, oauth, client)
   .settings(name := "example-usage")
-  .settings(noPublishSettings)
+  .settings(publish / skip := true)
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.circe ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
+addCommandAlias("make-docs", "clean;")
 addCommandAlias("ci-test", "+clean;+test -- -DCI=true")
 addCommandAlias("erun", "example/run")
