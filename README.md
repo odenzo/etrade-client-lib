@@ -7,16 +7,16 @@
 ![Branch Push](https://github.com/odenzo/etrade-client-lib/actions/workflows/ci.yml/badge.svg?event=push)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
 [![HitCount](https://hits.dwyl.com/odenzo/etrade-client-lib.svg?style=flat)](http://hits.dwyl.com/odenzo/etrade-client-lib)
-![Latest Release](https://github.com/github/v/release/odenzo/etrade-client-lib?display_name=tag)]
+![Latest Release](/github/v/release/odenzo/etrade-client-lib?display_name=tag)
 
 This is a simple e-trade oauth client library that I use to query etrade account
 for accounting purposes. It was also a chance to re-write in Scala 3 to try it out.
 
-## Why publish it?
+### Why publish it?
 It is nothing special, but it is tiresome making model classes, and finding
 all the oddities and documentation gaps.
 
-I publish so other people can fork or use, and hopefully will out the 
+I publish so other people can fork or use, and hopefully fill out the 
 model objects with more of the API.
 
 Also, I think Scala 3 is great, and Context Functions like ETradeService
