@@ -6,10 +6,9 @@ import sbt.util.FileInfo.hash
 
 val javart = "1.11"
 
-ThisBuild / scalaVersion                               := "3.1.1"
-ThisBuild / organization                               := "com.odenzo"
-dependencyAllowPreRelease.withRank(KeyRanks.Invisible) := true
-ThisBuild / versionScheme                              := Some("early-semver")
+ThisBuild / scalaVersion  := "3.1.1"
+ThisBuild / organization  := "com.odenzo"
+ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / homepage := Some(url("https://github.com/odenzo/etrade=client-lib"))
 ThisBuild / licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
