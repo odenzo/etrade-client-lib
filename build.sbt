@@ -52,35 +52,49 @@ val publishSettings = Seq(
   Test / packageSrc / publishArtifact := true
 )
 
-val noPublishSettings = Seq(publishArtifact := false)
+lazy val noPublishSettings = Seq(publishArtifact := false)
 
 lazy val root = project
   .in(file("."))
+  .aggregate(common.js, common.jvm, models.js, models.jvm,)
   .withId("etrade")
-  .aggregate(common, models, client, oauth, example)
-  .settings(name := "etrade", publish / skip := true)
+  .settings(
+    name           := "etrade",
+    publish / skip := true
+  )
 
-lazy val common = project
+lazy val common = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
   .in(file("modules/common"))
-  .withId("common")
   .settings(name := "etrade-common")
-  .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
-  .settings(libraryDependencies ++= Libs.testing)
-  .settings(libraryDependencies ++= Libs.scaffeine) // SOmething is mkaing scribe logging config not work in oauth
+  .settings(libraryDependencies ++= Seq(
+    XLibs.circeCore.value,
+    XLibs.circeParser.value,
+    XLibs.circeGeneric.value,
+    XLibs.circePointer.value,
+    XLibs.monocle.value,
+    XLibs.scribe.value,
+    XLibs.pPrint.value,
+    XLibs.cats.value,
+    XLibs.catsEffect.value,
+    XLibs.fs2.value,
+    XLibs.munit.value,
+    XLibs.munitCats.value
+  ))
+  .jvmSettings()
+  .jsSettings()
 
-lazy val models = project
+lazy val models = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
   .in(file("modules/models"))
-  .withId("models")
+  // .withId("models")
   .dependsOn(common)
-  .settings(name := "etrade-models")
-  .settings(libraryDependencies ++= Libs.standard ++ Libs.monocle ++ Libs.circe ++ Libs.cats ++ Libs.catsExtra ++ Libs.scribe ++ Libs.fs2)
-  .settings(libraryDependencies ++= Libs.scalaXML)
-  .settings(libraryDependencies ++= Libs.testing)
+  .settings(name := "etrade-models", libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.scalaXML.value))
+  .jvmSettings()
+  .jsSettings()
 
 lazy val client = project
   .in(file("modules/client"))
   .withId("client")
-  .dependsOn(common, models, oauth)
+  .dependsOn(common.jvm, models.jvm, oauth)
   .settings(name := "etrade-client")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
@@ -88,7 +102,7 @@ lazy val client = project
 lazy val oauth = project
   .in(file("modules/oauth"))
   .withId("oauth")
-  .dependsOn(common, models)
+  .dependsOn(common.jvm, models.jvm)
   .settings(name := "etrade-oauth")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.scaffeine)
@@ -97,7 +111,7 @@ lazy val oauth = project
 lazy val example = project
   .in(file("modules/example"))
   .withId("example")
-  .dependsOn(common, models, oauth, client)
+  .dependsOn(common.jvm, models.jvm, oauth, client)
   .settings(name := "example-usage")
   .settings(publish / skip := true)
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.circe ++ Libs.catsExtra ++ Libs.fs2)
