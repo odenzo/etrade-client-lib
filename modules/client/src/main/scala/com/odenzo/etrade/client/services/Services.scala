@@ -19,7 +19,6 @@ import java.time.LocalDate
 object Services extends ServiceHelpers {
 
   def listAccountsApp(): ETradeService[ListAccountsRs] = {
-    val client = summon[Client[IO]]
     standard[ListAccountsRs](listAccountsCF)
   }
 
@@ -29,7 +28,6 @@ object Services extends ServiceHelpers {
       accountType: Option[String] = None,
       instType: String = "BROKERAGE"
   ): ETradeService[AccountBalanceRs] = {
-    val client = summon[Client[IO]]
     standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
   }
 
@@ -38,14 +36,13 @@ object Services extends ServiceHelpers {
       accountIdKey: String,
       startDate: Option[LocalDate] = None,
       endDate: Option[LocalDate] = None
-  )(using c: Client[IO]): ETradeService[Chain[Transaction]] = {
+  ): ETradeService[Chain[Transaction]] = {
     import com.odenzo.etrade.models.*
     val rqFn: Option[String] => IO[Request[IO]]        = listTransactionsCF(accountIdKey, startDate, endDate, 10, _)
     val extractor: TransactionListRs => Option[String] = (rs: TransactionListRs) => rs.transactionListResponse.marker
     loopingFunction(rqFn, extractor)(None, Chain.empty).map { (responses: Chain[TransactionListRs]) =>
       responses.flatMap(rs => rs.transactionListResponse.transaction)
     }
-
   }
 
   def viewPortfolioApp(
@@ -62,8 +59,8 @@ object Services extends ServiceHelpers {
 
   }
 
-  def equityQuotesApp(symbols: NonEmptyChain[String]): ETradeService[Unit] =
-    given c: Client[IO] = summon[Client[IO]]
-    standard[Unit](MarketApi.getEquityQuotesCF(symbols))
+  def lookUpProductApp(search: String): ETradeService[LookUpProductRs] = standard[LookUpProductRs](MarketApi.lookUpProductCF(search))
+
+  def equityQuotesApp(symbols: NonEmptyChain[String]): ETradeService[QuoteRs] = standard[QuoteRs](MarketApi.getEquityQuotesCF(symbols))
 
 }

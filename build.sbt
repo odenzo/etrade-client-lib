@@ -63,7 +63,8 @@ lazy val root = project
     publish / skip := true
   )
 
-lazy val common = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
+lazy val common = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
   .in(file("modules/common"))
   .settings(name := "etrade-common")
   .settings(libraryDependencies ++= Seq(
@@ -81,7 +82,8 @@ lazy val common = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) // Tesst
   .jvmSettings().jsSettings()
 
-lazy val models = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
+lazy val models = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
   .in(file("modules/models"))
   // .withId("models")
   .dependsOn(common)
@@ -89,14 +91,16 @@ lazy val models = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) //
   .jvmSettings().jsSettings()
 
-lazy val client = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
+lazy val client = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
   .in(file("modules/client"))
   .dependsOn(common, models, oauth)
   .settings(name := "etrade-client")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
-lazy val oauth = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Full))
+lazy val oauth = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Full)
   .in(file("modules/oauth"))
   .dependsOn(common, models)
   .settings(name := "etrade-oauth")

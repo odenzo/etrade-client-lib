@@ -76,7 +76,7 @@ object AccountsApi extends APIHelper {
     ).addHeader(Accept(MediaType.application.json)).pure
   }
 
-  def listTransactionsDetailCF(accountIdKey: String, transactionId: String, storeId: Option[String]): ETradeCall = {
+  def transactionsDetailCF(accountIdKey: String, transactionId: String, storeId: Option[String]): ETradeCall = {
     Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "transactions" / transactionId).withOptionQueryParam("storeId", storeId)

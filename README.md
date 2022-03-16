@@ -108,6 +108,19 @@ There is something similar used in defining the API requests, but without
 requiring the Client[IO]. Note you can make your own Client[IO] but be sure
 to include OAuth signing middleware.
 
+
+## Implemented (Fully or Partially - some options stuff missing especially)
+* Accounts
+  * listAccounts
+  * accountBalances
+  * listTransactions
+  * transactionDetail
+  * viewPortfolio
+
+* Market
+  * GetQuotes
+  * LookupProduct
+ 
 ## Tech Stack
 - Scala 3.1.1
 - Cats / Cats Effect (V3)

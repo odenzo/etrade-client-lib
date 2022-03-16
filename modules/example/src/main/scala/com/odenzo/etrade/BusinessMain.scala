@@ -72,8 +72,10 @@ object BusinessMain {
 //         _ = scribe.info(s"Balances: ${oprint(balances)}")
 //      txn <- Services.listTransactionsApp(accountIdKey,LocalDate.of(2021,10,1).some, LocalDate.of(2021,12,31).some)
 //       _ = scribe.info(s" Txn: ${oprint(txn)}")
-      portfolio <- Services.viewPortfolioApp(accountIdKey,false,PortfolioView.FUNDAMENTAL, totals = true)
+      //portfolio <- Services.viewPortfolioApp(accountIdKey,false,PortfolioView.FUNDAMENTAL, totals = true)
+      cloadflare <- Services.lookUpProductApp("CloudFlare").flatTap(s=>IO(scribe.info(s"Lookup: ${oprint(s)}")))
 
+      intel <- Services.equityQuotesApp(NonEmptyChain.one("VWIGX")).flatTap(s=>IO(scribe.info(s"Qute Index: ${oprint(s)}")))
     } yield myAccount
   }
 
