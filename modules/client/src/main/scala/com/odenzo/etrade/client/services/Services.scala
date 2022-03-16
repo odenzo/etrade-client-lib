@@ -18,18 +18,14 @@ import java.time.LocalDate
 
 object Services extends ServiceHelpers {
 
-  def listAccountsApp(): ETradeService[ListAccountsRs] = {
-    standard[ListAccountsRs](listAccountsCF)
-  }
+  def listAccountsApp(): ETradeService[ListAccountsRs] = standard[ListAccountsRs](listAccountsCF)
 
   /** Get the Account Balances */
   def accountBalanceApp(
       accountIdKey: String,
       accountType: Option[String] = None,
       instType: String = "BROKERAGE"
-  ): ETradeService[AccountBalanceRs] = {
-    standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
-  }
+  ): ETradeService[AccountBalanceRs] = standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
 
   /** Gets txns in range, automatically paging through and returning aggregated results. 4xs gives me XML error */
   def listTransactionsApp(
@@ -38,7 +34,7 @@ object Services extends ServiceHelpers {
       endDate: Option[LocalDate] = None
   ): ETradeService[Chain[Transaction]] = {
     import com.odenzo.etrade.models.*
-    val rqFn: Option[String] => IO[Request[IO]]        = listTransactionsCF(accountIdKey, startDate, endDate, 10, _)
+    val rqFn: Option[String] => IO[Request[IO]]        = listTransactionsCF(accountIdKey, startDate, endDate, 50, _)
     val extractor: TransactionListRs => Option[String] = (rs: TransactionListRs) => rs.transactionListResponse.marker
     loopingFunction(rqFn, extractor)(None, Chain.empty).map { (responses: Chain[TransactionListRs]) =>
       responses.flatMap(rs => rs.transactionListResponse.transaction)
@@ -52,7 +48,7 @@ object Services extends ServiceHelpers {
       totals: Boolean = true,
       marketSession: MarketSession = MarketSession.REGULAR
   ): ETradeService[Chain[PortfolioRs]] = {
-    val rqFn: Option[String] => IO[Request[IO]]  = viewPortfolioCF(accountIdKey, lots, view, totals, marketSession, 2, _)
+    val rqFn: Option[String] => IO[Request[IO]]  = viewPortfolioCF(accountIdKey, lots, view, totals, marketSession, 25, _)
     val extractor: PortfolioRs => Option[String] = (rs: PortfolioRs) => rs.AccountPortfolio.head.nextPageNo
     scribe.warn(s"About to call looking function")
     loopingFunction(rqFn, extractor)(None, Chain.empty).map { (responses: Chain[PortfolioRs]) => responses }

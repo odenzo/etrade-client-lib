@@ -2,7 +2,7 @@ package com.odenzo.etrade.models
 
 import cats.data.Chain
 import com.odenzo.etrade.base.CirceUtils
-import com.odenzo.etrade.models.responses.TransactionListResponse
+
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -10,7 +10,6 @@ import java.time.Instant
 
 sealed trait QuoteDetails
 
-object QuoteDetails {}
 // Can't decide if I should find unique fields to "select" which object we have, or use the field from the enclosing class (QuoteRs)
 // Better to to on level above I think
 //val selector = Map("availability" -> summon[Decoder[MutualFund]])

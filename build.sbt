@@ -87,7 +87,7 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
   .in(file("modules/models"))
   // .withId("models")
   .dependsOn(common)
-  .settings(name := "etrade-models", libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.scalaXML.value))
+  .settings(name := "etrade-models", libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.scalaXML.value, XLibs.http4sCirce.value))
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) //
   .jvmSettings().jsSettings()
 

@@ -26,13 +26,6 @@ object opaques {
     def underlying(s: NEString): Option[String] = s
 
     val empty: NEString = None
-    //  given decoder: Decoder[NEString]             = Decoder.instance[NEString] { hcuror =>
-    //    val json = hcuror.value
-    //    if json.isNull then NEString.empty.asRight[DecodingFailure]
-    //    else if json.isString then NEString.fromOption(json.asString).asRight[DecodingFailure]
-    //    else DecodingFailure("Invalid NEString Value", hcuror.history).asLeft[NEString]
-    //
-    //  }
 
     extension (nes: NEString)
       def asString      = underlying(nes)
@@ -42,6 +35,7 @@ object opaques {
 
 }
 
+/** Hack for dealing with simple opque type recursion pending Circe upgrade hopefully... */
 object codecs {
   given neStringDecoder: Decoder[NEString] = Decoder.instance[NEString] { hcuror =>
     scribe.info(s"Decoding NEString $hcuror ${hcuror.succeeded}")

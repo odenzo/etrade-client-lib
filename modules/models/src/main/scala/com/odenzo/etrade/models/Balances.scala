@@ -30,7 +30,7 @@ case class Lending(
     availableCredit: BigDecimal,
     ytdInterestPaid: BigDecimal,
     lastYtdInterestPaid: BigDecimal,
-    paymentDueDate: ETimestamp,
+    paymentDueDate: ETimestamp, // Or EDateStamp?
     lastPaymentReceivedDate: ETimestamp,
     paymentReceivedMtd: BigDecimal
 ) derives Codec.AsObject
@@ -51,8 +51,8 @@ case class ComputedBalance(
     dtCashBuyingPower: Option[BigDecimal],
     shortAdjustBalance: Option[BigDecimal],
     accountBalance: Option[BigDecimal],
-    openCalls: OpenCalls,          // TODO: Normalize and Map to openCalls field name
-    realTimeValues: RealTimeValues // TODO: realTimeValues field name
+    openCalls: OpenCalls,
+    realTimeValues: RealTimeValues
 )
 
 object ComputedBalance {

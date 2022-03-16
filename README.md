@@ -124,7 +124,7 @@ to include OAuth signing middleware.
 ## Tech Stack
 - Scala 3.1.1
 - Cats / Cats Effect (V3)
-- HTTP4S 1.0-Mxx Branch  - Maybe switching to STTPClient 
+- HTTP4S 1.0-Mxx Branch  - Ember Client, since speed isn't an issue and ScalaJS compatable
 - FS2
 - Circe
 - Scribe/SLF4J 
@@ -159,7 +159,7 @@ The callback is configurable.
 
 TODO: The command line argument to open the WebBrowser is not configurable yet.
 
-Can also have set it up so you open a browser and login, and paste your verification code into console but took that out.
+Can also have set it up for your  open a browser and login, and paste your verification code into console but took that out.
 
 
 ### Example Program:

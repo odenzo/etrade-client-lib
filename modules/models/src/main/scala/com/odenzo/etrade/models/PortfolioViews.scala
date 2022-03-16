@@ -1,8 +1,45 @@
 package com.odenzo.etrade.models
 
 import io.circe.Codec
-
 import java.time.Instant
+
+case class QuickView(
+    lastTrade: BigDecimal,
+    lastTradeTime: ETimestamp,
+    change: BigDecimal,
+    changePct: BigDecimal,
+    volume: BigDecimal,
+    quoteStatus: String,
+    evenDayCurrentYield: Option[BigDecimal],    // Percentage
+    annualTotalReturn: Option[BigDecimal],      // Percentage
+    weightedAverageMaturity: Option[BigDecimal] // Percentage
+) derives Codec.AsObject
+
+case class FundamentalView(
+    astTrade: Option[BigDecimal], //	The last trade total
+    change: BigDecimal,           //	The change
+    changePct: BigDecimal,        //	The change percentage
+    divYield: BigDecimal,         //	The dividend yield
+    dividend: BigDecimal,         //	The dividend
+    eps: BigDecimal,              //	The earnings per share
+    lastTradeTime: ETimestamp,    // (int64)	The time of the last trade
+    marketCap: BigDecimal,        //	The market cap
+    peRatio: BigDecimal,          //	The Price to Earnings (P/E) ratio
+    quoteStatus: String,          //	The quote type	REALTIME, DELAYED, CLOSING, EH_REALTIME, EH_BEFORE_OPEN, EH_CLOSED
+    week52Range: String           //	The 52 week range
+) derives Codec.AsObject
+
+case class PerformanceView(
+    change: BigDecimal,               //	The change
+    changePct: BigDecimal,            //	The change percentage
+    lastTrade: BigDecimal,            //	The last trade
+    daysGain: Option[BigDecimal],     //	The gain over the day
+    totalGain: Option[BigDecimal],    //	The total gain
+    totalGainPct: Option[BigDecimal], //	The total gain percentage
+    marketValue: Option[BigDecimal],  //	The market value
+    quoteStatus: QuoteStatus,         //	The quote type	REALTIME, DELAYED, CLOSING, EH_REALTIME, EH_BEFORE_OPEN, EH_CLOSED
+    lastTradeTime: ETimestamp         // (int64)	The time of the last trade
+) derives Codec.AsObject
 
 case class CompleteView(
     priceAdjustedFlag: Boolean,   //	boolean	The price adjusted flag
@@ -71,4 +108,14 @@ case class CompleteView(
     exDividendDate: Long,         // (int64)	The extended dividend date
     cusip: String,                //	The CUSIP :BigDecimal , //
     quoteStatus: QuoteStatus
+) derives Codec.AsObject
+
+case class OptionWatchView(
+    baseSymbolAndPrice: String, //	The price of the underlying or base symbol of the option
+    premium: BigDecimal,        //	The option premium
+    lastTrade: BigDecimal,      //	The last trade
+    bid: BigDecimal,            //	The bid
+    ask: BigDecimal,            //	The ask
+    quoteStatus: String,        //	The quote type	REALTIME, DELAYED, CLOSING, EH_REALTIME, EH_BEFORE_OPEN, EH_CLOSED
+    lastTradeTime: Long         // (int64)	The time of the last trade
 ) derives Codec.AsObject
