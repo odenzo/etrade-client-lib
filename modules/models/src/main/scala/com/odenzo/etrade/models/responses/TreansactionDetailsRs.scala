@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
-import com.odenzo.etrade.models.{Brokerage, Category}
-import io.circe.generic.AutoDerivation
+import com.odenzo.etrade.models.*
+import io.circe.*
 
 import java.time.Instant
 
@@ -14,4 +14,4 @@ case class TreansactionDetailsRs(
     description: String,
     category: Category,
     brokerage: Brokerage
-) extends AutoDerivation
+) derives Codec.AsObject

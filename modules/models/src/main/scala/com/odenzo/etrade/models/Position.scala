@@ -4,6 +4,8 @@ import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.responses.AccountBalances
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
+import org.http4s.Uri
+//import org.http4s.circe.decodeUri
 
 import java.time.Instant
 
@@ -30,8 +32,8 @@ case class Position(
     todayPricePaid: BigDecimal,
     todayQuantity: BigDecimal,
     adjPrevClose: BigDecimal,
-    lotsDetails: OUrl,
-    quoteDetails: OUrl,
+    lotsDetails: String,                  // uri has codecs but try to minimize pollution
+    quoteDetails: String,
     product: ETProduct,
     quick: Option[QuickView],             // quick / complete /
     complete: Option[CompleteView],       // Performance, Fundamental, Option Views too. These are really Either[] or is there a oneOf since

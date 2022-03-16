@@ -1,7 +1,6 @@
 package com.odenzo.etrade.models
 
 import com.odenzo.etrade.base.CirceUtils
-import com.odenzo.etrade.models.responses.TransactionListRs
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 

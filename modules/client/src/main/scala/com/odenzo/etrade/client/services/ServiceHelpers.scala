@@ -5,7 +5,7 @@ import cats.data.{Chain, Ior}
 import cats.effect.IO
 import cats.effect.syntax.all.*
 import com.odenzo.etrade.base.OPrint.oprint
-import com.odenzo.etrade.client.engine.IorDecoder
+
 import com.odenzo.etrade.models.errors.{ETradeErrorMsg, ETradeErrorRs}
 import com.odenzo.etrade.models.responses.MessageRs
 import io.circe.Decoder
@@ -19,6 +19,14 @@ import scala.util.Try
 import scala.xml.Elem
 
 trait ServiceHelpers {
+
+  def handleHttpErrors[T](rq: Request[IO], rs: Response[IO]): IO[Throwable] = {
+    IO(Throwable(s"Crude HTTP Error: ${rs.status}"))
+  }
+
+  def standardCall[T: Decoder](rq: Request[IO], rs: Response[IO]): IO[T] =
+    import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
+    rs.as[T].handleErrorWith((err: Throwable) => errorHandlerFn(rq, rs, err))
 
   /** Thi handles both HTTP protocal level and the decoding */
   protected def errorHandlerFn[T](rq: Request[IO], rs: Response[IO], err: Throwable): IO[T] = {

@@ -38,8 +38,18 @@ object MarketApi extends APIHelper {
                 (baseUri / "v1" / "market" / "quote" / csv)
                   .withQueryParam("overrideSymbolCount", over)
                   .withQueryParam("detailFlag", details.toString)
-                  .withQueryParam("requireEarningsDate", requireEarnings)
+                  .withQueryParam("requireEarningsDate", requireEarnings),
+                headers = acceptJsonHeaders
               )
     } yield rq
   }
+
+  def lookUpProductCF(search: String): ETradeCall = {
+    Request[IO](
+      GET,
+      (baseUri / "v1" / "market" / "lookup" / search),
+      headers = acceptJsonHeaders
+    ).pure
+  }
+
 }

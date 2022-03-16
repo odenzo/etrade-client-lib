@@ -2,7 +2,6 @@ package com.odenzo.etrade
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import com.odenzo.etrade.oauth.config.OAuthConfig
 import os.*
 import io.circe.*
 import io.circe.syntax.*
@@ -12,7 +11,7 @@ import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.client.engine.ETradeContext
 import com.odenzo.etrade.client.services.Services
 import com.odenzo.etrade.models.responses.ListAccountsRs
-import com.odenzo.etrade.oauth.{Authentication, OAuthSessionData}
+import com.odenzo.etrade.oauth.{Authentication, OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.oauth.client.OAuthClient
 import org.http4s.client.Client
 import org.http4s.client.oauth1.Token
@@ -20,10 +19,18 @@ import org.http4s.client.oauth1.Token
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-/** Offline Token Cache writing to disk in place of Redis/DB etc for development. Inside the cache is a simple JSON format */
+/**
+  * # Offline Token Cache
+  *   - writing to disk in place of Redis/DB etc for development. Inside the cache is a simple JSON format
+  *   - A sane person would never do this with live account.
+  */
 object TokenCache {
   import io.circe.generic.auto.*
 
+  /**
+    * Sensitive Information that can be stored somewhere between runs.
+    *   - AccessToken hass about 2 hours TTL. At midnight EST requestToken gets killed too.
+    */
   case class CachedTokens(requestToken: Token, accessToken: Token, isSandbox: Boolean) derives Codec.AsObject
 
   val cacheFile: os.Path = home / ".etrade-cache"

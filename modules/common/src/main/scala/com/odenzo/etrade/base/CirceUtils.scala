@@ -1,12 +1,10 @@
 package com.odenzo.etrade.base
 
-import com.sun.org.apache.bcel.internal.generic.Select
 import io.circe.*
 import io.circe.Decoder.decodeString
 import io.circe.Encoder.encodeString
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import os./
 
 import scala.deriving.Mirror
 

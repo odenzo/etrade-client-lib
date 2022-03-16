@@ -13,7 +13,6 @@ case class ETProduct(symbol: Option[String], securityType: Option[String])
 
 object ETProduct {
   given codec: Codec.AsObject[ETProduct] = deriveCodec[ETProduct]
-
 }
 
 /** This is returned in Portfolio views (with Complete at least) */

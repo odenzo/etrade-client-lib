@@ -1,30 +1,30 @@
 package com.odenzo.etrade.client.api
 
 import cats.data.{Chain, Kleisli}
-import cats.effect.{IO, Resource}
 import cats.effect.syntax.all.*
+import cats.effect.{IO, Resource}
 import cats.syntax.all.*
-import com.odenzo.etrade.client.api.AccountsApi.standardCall
-import com.odenzo.etrade.client.engine.{APIHelper, ETradeContext}
-import com.odenzo.etrade.models.{MarketSession, PortfolioView, Transaction}
+import com.odenzo.etrade.client.engine.*
 import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs, TransactionListRs}
+import com.odenzo.etrade.models.{MarketSession, PortfolioView, Transaction}
 import com.odenzo.etrade.oauth.OAuthSessionData
 import com.odenzo.etrade.oauth.OAuthSessionData.Contextual
 import io.circe.*
-import org.http4s.*
-import org.http4s.Method.GET
-import org.http4s.client.Client
-import org.http4s.Uri.*
-import org.http4s.headers.*
 import monocle.*
 import monocle.syntax.all.*
-import com.odenzo.etrade.client.engine.*
+import org.http4s.*
+import org.http4s.Method.GET
+import org.http4s.Uri.*
+import org.http4s.client.Client
+import org.http4s.headers.*
 
 import java.time.LocalDate
 
 /**
-  * The Requests will all have authentication added and the requets signed before invoking ## THIS IS DEFINATELY AN IMPLEMENTATION WORK IN
-  * PROGRESS
+  * # API Request Design This is a way to construct Requests for the service, still pretty low level.
+  *   - The signing of these requests it done * whwn they * are * invoked.
+  *   - From a deisgn point of view I stick with `IO[Require[IO]]` because more usually it can take a while to contruct a request.
+  *   - Also note that making the return type `ETradeCall` will get you a ETraceContext for free and any function defined for that.
   */
 object AccountsApi extends APIHelper {
 
@@ -37,7 +37,6 @@ object AccountsApi extends APIHelper {
       accountType: Option[String] = None,
       instType: String = "BROKERAGE"
   ): ETradeCall =
-    // This suddently starts spitting out XML, so manual set the accept-type as applciation/jon
     Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "balance")
@@ -77,12 +76,7 @@ object AccountsApi extends APIHelper {
     ).addHeader(Accept(MediaType.application.json)).pure
   }
 
-  def listTransactionsDetailCF(
-      accountIdKey: String,
-      transactionId: String,
-      storeId: Option[String]
-  ): ETradeCall = {
-
+  def transactionsDetailCF(accountIdKey: String, transactionId: String, storeId: Option[String]): ETradeCall = {
     Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "transactions" / transactionId).withOptionQueryParam("storeId", storeId)
@@ -98,7 +92,7 @@ object AccountsApi extends APIHelper {
       count: Int = 50,
       pageNumber: Option[String] = None // TransactionId
   ): ETradeCall = {
-    IO.pure(Request[IO](
+    Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "portfolio")
         .withQueryParam("count", count)
@@ -107,7 +101,7 @@ object AccountsApi extends APIHelper {
         .withQueryParam("lots", lots)
         .withOptionQueryParam("pageNumber", pageNumber),
       headers = acceptJsonHeaders
-    ))
+    ).pure
   }
 
 }
