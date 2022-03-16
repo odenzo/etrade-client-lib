@@ -4,7 +4,7 @@ import cats.effect.{IO, Resource, *}
 import cats.syntax.all.*
 import com.odenzo.etrade.oauth.OAuthSessionData
 import org.http4s.*
-import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.ember.client.*
 import org.http4s.circe.middleware.JsonDebugErrorHandler
 import org.http4s.client.middleware.*
 import org.http4s.client.*
@@ -25,9 +25,10 @@ object OAuthClient {
   )
 
   /** Simple HTTP4S Client with no middleware */
-  val clientR: Resource[IO, Client[IO]] = BlazeClientBuilder[IO].resource
+  val builder: EmberClientBuilder[IO]        = EmberClientBuilder.default[IO]
+  val simpleClient: Resource[IO, Client[IO]] = builder.build
 
-  val simpleClient: Resource[IO, Client[IO]] = BlazeClientBuilder[IO].withDefaultSslContext.resource
+  val clientR: Resource[IO, Client[IO]] = simpleClient
 
   /** OAuthClient that has redirect and logging, for use with OAuth module */
   val oauthClient: Resource[IO, Client[IO]] = {
@@ -40,7 +41,7 @@ object OAuthClient {
 
   val debugClient: Resource[IO, Client[IO]] = {
     for {
-      base  <- BlazeClientBuilder[IO].withRetries(1).withDefaultSslContext.resource
+      base  <- simpleClient
       logged = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
     } yield logged
   }
@@ -50,7 +51,7 @@ object OAuthClient {
     */
   def signingClient(oauthSesssion: OAuthSessionData): Resource[IO, Client[IO]] = {
     for {
-      base    <- BlazeClientBuilder[IO].withDefaultSslContext.resource
+      base    <- simpleClient
       signing  = OAuthStaticSigner(oauthSesssion)(base)
       redirect = FollowRedirect(3)(signing)
     } yield redirect
@@ -58,7 +59,7 @@ object OAuthClient {
 
   def signingDebugClient(oauthSesssion: OAuthSessionData): Resource[IO, Client[IO]] = {
     for {
-      base    <- BlazeClientBuilder[IO].withDefaultSslContext.resource
+      base    <- simpleClient
       logging  = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
       signing  = OAuthStaticSigner(oauthSesssion)(logging)
       redirect = FollowRedirect(3)(signing)

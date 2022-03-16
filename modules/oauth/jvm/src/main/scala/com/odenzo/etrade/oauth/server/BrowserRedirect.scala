@@ -1,13 +1,8 @@
-package com.odenzo.etrade.oauth.client
+package com.odenzo.etrade.oauth.server
 
 import cats.effect.IO
 import org.http4s.Uri
 import org.http4s.client.oauth1.{Consumer, Token}
-import org.http4s.*
-import org.http4s.implicits.*
-import org.http4s.QueryParameterValue.{given, *}
-import org.http4s.QueryParameterKey.*
-import org.http4s.QueryParameterKey.*
 import os.CommandResult
 
 /**

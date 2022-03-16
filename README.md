@@ -1,7 +1,5 @@
 # e-trade api lib
 
-
-
 [![License Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.tldrlegal.com/l/apache2)
 ![Build](https://github.com/odenzo/etrade-client-lib/actions/workflows/ci.yml/badge.svg)
 ![Branch Push](https://github.com/odenzo/etrade-client-lib/actions/workflows/ci.yml/badge.svg?event=push)
@@ -11,6 +9,13 @@
 
 This is a simple e-trade oauth client library that I use to query etrade account
 for accounting purposes. It was also a chance to re-write in Scala 3 to try it out.
+
+The majority i cross-compiled for Scala 3 and Scala JS (1.9).
+To do etrade oauth, a callback can be used when running on JVM. This opens a HTTP Server. This style
+is only supported on JVM now. (Maybe doable in browser have to try).
+
+The client lib and everything is on ScalaJS, but untested at this point using "verifier" cut and paste between
+an opened browser window login to e-trade.
 
 ### Why publish it?
 It is nothing special, but it is tiresome making model classes, and finding
@@ -37,7 +42,7 @@ Scala Project Dependency:
 
 To use the library you must first made an `OAuthConfig` instance, a crude example:
 
-```scala
+```scala3
  def createConfig(args: List[String], useSandbox: Boolean = false): IO[OAuthConfig] = IO {
     val url: Uri    = uri"https://api.etrade.com/"
     val sb: Uri     = uri"https://apisb.etrade.com/"

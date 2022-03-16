@@ -56,7 +56,7 @@ lazy val noPublishSettings = Seq(publishArtifact := false)
 
 lazy val root = project
   .in(file("."))
-  .aggregate(common.js, common.jvm, models.js, models.jvm,)
+  .aggregate(common.js, common.jvm, models.js, models.jvm, oauth.js, oauth.jvm, client.js, client.jvm, example)
   .withId("etrade")
   .settings(
     name           := "etrade",
@@ -76,45 +76,41 @@ lazy val common = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
     XLibs.pPrint.value,
     XLibs.cats.value,
     XLibs.catsEffect.value,
-    XLibs.fs2.value,
-    XLibs.munit.value,
-    XLibs.munitCats.value
+    XLibs.fs2.value
   ))
-  .jvmSettings()
-  .jsSettings()
+  .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) // Tesst
+  .jvmSettings().jsSettings()
 
 lazy val models = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
   .in(file("modules/models"))
   // .withId("models")
   .dependsOn(common)
   .settings(name := "etrade-models", libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.scalaXML.value))
-  .jvmSettings()
-  .jsSettings()
+  .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) //
+  .jvmSettings().jsSettings()
 
-lazy val client = project
+lazy val client = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure))
   .in(file("modules/client"))
-  .withId("client")
-  .dependsOn(common.jvm, models.jvm, oauth)
+  .dependsOn(common, models, oauth)
   .settings(name := "etrade-client")
   .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
-lazy val oauth = project
+lazy val oauth = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Full))
   .in(file("modules/oauth"))
-  .withId("oauth")
-  .dependsOn(common.jvm, models.jvm)
+  .dependsOn(common, models)
   .settings(name := "etrade-oauth")
-  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
-  .settings(libraryDependencies ++= Libs.scaffeine)
-  .settings(libraryDependencies ++= Libs.testing)
+  .settings(libraryDependencies ++= Seq(XLibs.http4sEmber.value, XLibs.http4sCirce.value))
+  .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value))
+  .jvmSettings(libraryDependencies ++= Libs.standard ++ Libs.http4s)
+  .jsSettings(libraryDependencies ++= Seq())
 
 lazy val example = project
   .in(file("modules/example"))
   .withId("example")
-  .dependsOn(common.jvm, models.jvm, oauth, client)
+  .dependsOn(common.jvm, models.jvm, oauth.jvm, client.jvm)
   .settings(name := "example-usage")
   .settings(publish / skip := true)
-  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.circe ++ Libs.catsExtra ++ Libs.fs2)
   .settings(libraryDependencies ++= Libs.testing)
 
 addCommandAlias("make-docs", "clean;")

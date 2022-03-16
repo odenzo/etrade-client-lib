@@ -1,32 +1,32 @@
-package com.odenzo.etrade.oauth
+package com.odenzo.etrade.oauth.server
 
 import cats.*
 import cats.data.*
-import cats.syntax.all.*
 import cats.effect.*
 import cats.effect.kernel.Outcome.{Canceled, Errored, Succeeded}
 import cats.effect.syntax.all.*
-import com.github.blemale.scaffeine
+import cats.syntax.all.*
 import com.odenzo.etrade.base.OPrint.oprint
-import com.odenzo.etrade.oauth.client.{BrowserRedirect, OAuthClient}
+import com.odenzo.etrade.oauth.client.OAuthClient
 import com.odenzo.etrade.oauth.server.OAuthServer
+import com.odenzo.etrade.oauth.{Authentication, OAuthConfig, OAuthSessionData}
 import fs2.concurrent.SignallingRef
-import org.http4s.{HttpRoutes, Uri}
 import org.http4s.Uri.*
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.client.Client
 import org.http4s.client.oauth1.Token
 import org.http4s.server.{Router, Server}
 import org.http4s.syntax.literals.uri
+import org.http4s.{HttpRoutes, Uri}
 
-import scala.concurrent.duration.*
 import java.util.UUID
+import scala.concurrent.duration.*
 
 /**
   * Main class to instanciate the system for a login, or multiple logins to a partocular host with app consumer keys. This should turn into
   * a facade that supports both initial sign-in/oauth and the refresh information, and the oauth cache ?
   */
-class OAuth(val config: OAuthConfig) {
+class OAuthCallback(val config: OAuthConfig) {
   def login(): IO[OAuthSessionData] = this.fullLogin
 
   // val killSwitch                    = fs2.concurrent.Signal[IO, Boolean]
