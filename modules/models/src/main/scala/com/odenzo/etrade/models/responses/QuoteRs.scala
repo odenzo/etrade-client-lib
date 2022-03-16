@@ -56,7 +56,7 @@ case class Quote(
     dateTimeUTC: ETimestamp,
     quoteStatus: String, // e.g. CLOSING
     ahFlag: String,      // after hours flag, "true" , "false" :-( TODO Decoder this
-    hasMiniOptions: Boolean,
+    hasMiniOptions: Option[Boolean],
     product: ETProduct,
     detail: QuoteDetails
 )
@@ -74,7 +74,7 @@ object Quote:
         .keys
         .fold(List.empty)(_.toList)
         .collectFirst[Result[QuoteDetails]] {
-          case "MutualFund"  => hcursor.downField("MutualFund").as[MutualFund]
+          case "MutualFund"  => hcursor.downField("MutualFund").as[MutualFundQuoteDetails]
           case "Intraday"    => hcursor.downField("Intraday").as[IntraDayQuoteDetails]
           case "Week52"      => hcursor.downField("Week52").as[Week52]
           case "Fundamental" => hcursor.downField("Fundamental").as[FundamentalQuoteDetails]
@@ -88,7 +88,7 @@ object Quote:
       dateTime <- hcursor.downField("dateTimeUTC").as[ETimestamp]
       qstatus  <- hcursor.downField("quoteStatus").as[String]
       flag     <- hcursor.downField("ahFlag").as[String]
-      options  <- hcursor.downField("hasMiniOptions").as[Boolean]
+      options  <- hcursor.downField("hasMiniOptions").as[Option[Boolean]]
       product  <- hcursor.downField("Product").as[ETProduct] // Note: Capital P
     } yield Quote(dateTime, qstatus, flag, options, product, details)
 

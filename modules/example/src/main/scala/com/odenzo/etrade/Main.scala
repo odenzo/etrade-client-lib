@@ -5,16 +5,17 @@ import cats.data.ValidatedNec
 import cats.effect.*
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
-import com.github.blemale.scaffeine
+import com.odenzo.etrade.Main.createConfig
+import com.odenzo.etrade.apisupport.ETradeContext
 import com.odenzo.etrade.base.OPrint.oprint
-import com.odenzo.etrade.TokenCache.CachedTokens
 import com.odenzo.etrade.base.ScribeConfig
-import com.odenzo.etrade.client.engine.{ETradeClient, ETradeContext}
+import com.odenzo.etrade.client.models.OAuthConfig
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
 import com.odenzo.etrade.oauth.*
 import com.odenzo.etrade.oauth.client.*
-import com.odenzo.etrade.oauth.config.OAuthConfig
+import com.odenzo.etrade.oauth.server.*
+import org.http4s.AuthScheme.OAuth
 import org.http4s.Uri
 import org.http4s.Uri.{*, given}
 import org.http4s.client.Client
@@ -45,8 +46,8 @@ object Main extends IOApp:
     val secret      = scala.sys.env("ETRADE_LIVE_SECRET")
 
     if !useSandbox
-    then OAuthConfig(oauthUrl = url, apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
-    else OAuthConfig(oauthUrl = url, apiUrl = sb, consumer = Consumer(sbKey, sbSecret), callbackUrl, redirectUrl)
+    then OAuthConfig(apiUrl = url, consumer = Consumer(key, secret), callbackUrl, redirectUrl)
+    else com.odenzo.etrade.client.models.OAuthConfig(apiUrl = sb, consumer = Consumer(sbKey, sbSecret), callbackUrl, redirectUrl)
   }
 
   def run(args: List[String]): IO[ExitCode] =
@@ -55,7 +56,7 @@ object Main extends IOApp:
       config  <- createConfig(args)
       rqConfig = ETradeContext(config.apiUrl) // ETradeContext has context functions to aid in helping Request Creation
 
-      oauth  = OAuth(config)
+      oauth  = OAuthCallback(config)
       // Something you wouldn't normally do, but nice for re-running in conssole without logging in all the time.
       // Note: Switching between Sandbox and Production wou hould manually delete the cache (Or I should flag it in Cache and do it myself)
       // Since this OAuth is so far from standard now might as well.
@@ -63,11 +64,21 @@ object Main extends IOApp:
                  .refreshCachedTokens(config, sandbox = useSandbox)(using rqConfig)
                  .handleErrorWith { err =>
                    scribe.warn(s"Caching Error Going Directly to Normal Login: $err")
-                   oauth.login().flatTap(TokenCache.storeNewLogin(_, useSandbox))
+                   oauth.login(BrowserRedirect.openMacOsEdge).flatTap(TokenCache.storeNewLogin(_, useSandbox))
                  }
-      // Normally just: login   <- oauth.login()                // Undecided what to do with this currently this forces manual login by
-      // opening web
-      // browser
-      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(ETradeClient(rqConfig, cio)))
+      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(cio, rqConfig))
     } yield res
+  end run
+
+  /** A more realistic non-development example. */
+  def runNoCache(config: OAuthConfig): IO[ExitCode] = {
+    val oauth   = OAuthCallback(config)        //  setting up
+    val context = ETradeContext(config.apiUrl) // Context with info needed to construct HTTP Requests
+
+    for {
+      login <- oauth.login(BrowserRedirect.openMacOsEdge)
+      res   <- OAuthClient.signingDebugClient(login).use(cio => BusinessMain.run(cio, context))
+    } yield ExitCode.Success
+  }
+
 end Main

@@ -1,81 +1,88 @@
 package com.odenzo.etrade.models
 
 import cats.data.Chain
+import com.odenzo.etrade.base.CirceUtils
+
 import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 
 import java.time.Instant
 
 sealed trait QuoteDetails
 
-object QuoteDetails {}
 // Can't decide if I should find unique fields to "select" which object we have, or use the field from the enclosing class (QuoteRs)
 // Better to to on level above I think
 //val selector = Map("availability" -> summon[Decoder[MutualFund]])
 
 /** max inlines problem not here. As */
-case class MutualFund(
-    actual12B1Fee: BigDecimal,                      //	The annual marketing or distribution fee on the mutual fund
-    annualTotalReturn: BigDecimal,                  //	number (double)	The annual total return
-    avaiability: String,
-    averageAnnualReturn10Yr: BigDecimal,            //	number (double)	The average annual return for ten years
-    averageAnnualReturn1Yr: BigDecimal,             //	number (double)	The average annual return for one year
-    averageAnnualReturn3Yr: BigDecimal,             //	number (double)	The average annual return for three years
-    averageAnnualReturn5Yr: BigDecimal,             //	number (double)	The average annual return for five years
-    averageAnnualReturns: Option[BigDecimal],       //	number (double)	The average annual return at the end of the quarter; this is available if fund// has been active for more than 10 years
+case class MutualFundQuoteDetails(
+    actual12B1Fee: Option[BigDecimal],                      //	The annual marketing or distribution fee on the mutual fund
+    annualTotalReturn: BigDecimal,                          //	number (double)	The annual total return
+    availability: String,
+    averageAnnualReturn10Yr: BigDecimal,                    //	number (double)	The average annual return for ten years
+    averageAnnualReturn1Yr: BigDecimal,                     //	number (double)	The average annual return for one year
+    averageAnnualReturn3Yr: BigDecimal,                     //	number (double)	The average annual return for three years
+    averageAnnualReturn5Yr: BigDecimal,                     //	number (double)	The average annual return for five years
+    averageAnnualReturns: Option[BigDecimal],               //	number (double)	The average annual return at the end of the quarter; this is available if fund// has been active for more than 10 years
     changeClose: BigDecimal,
     changeClosePercentage: Double,
     cusip: String,
-    deferredSalesCharges: Chain[SalesChargeValues], // 	The deferred sales charge
+    deferredSalesCharges: Option[Chain[SalesChargeValues]], // 	The deferred sales charge
     earlyRedemptionFee: Option[String],
-    etradeEarlyRedemptionFee: String,               //	string	The E*TRADE early redemption fee
-    exchangeCode: String,                           //	string	The code of the exchange
-    exchangeName: BigDecimal,                       // 	string	The exchange name of the fund
-    frontEndSalesCharges: Chain[SalesChargeValues], //	array[SaleChargeValues]	The front-end sales charge
+    etradeEarlyRedemptionFee: Option[String],               //	string	The E*TRADE early redemption fee
+    exchangeCode: String,                                   //	string	The code of the exchange
+    frontEndSalesCharges: Option[Chain[SalesChargeValues]], //	array[SaleChargeValues]	The front-end sales charge
     fundFamily: String,
-    fundInceptionDate: ETimestamp,                  //	integer (int64)	The date when the fund started
+    fundInceptionDate: EDatestamp,                          //	integer (int64)	The date when the fund started
     fundName: String,
     grossExpenseRatio: BigDecimal,
-    high52: BigDecimal,                             //	number (double)	The highest price at which a security has traded during the past year
+    high52: BigDecimal,                                     //	number (double)	The highest price at which a security has traded during the past year
     initialInvestment: BigDecimal,
     initialIraInvestment: BigDecimal,
-    lastTrade: BigDecimal,                          //	number (double)	The price of the most recent trade of the security
-    low52: BigDecimal,                              // 	number (double)	The lowest price at which a security has traded during the past year
-    maxSalesLoad: Option[BigDecimal],               //	number	The maximum sales charge
-    monthlyTrailingReturn10Y: BigDecimal,           // 	number	The ten-year monthly trailing return value
-    monthlyTrailingReturn1M: BigDecimal,            // 	The one-month monthly trailing return value
-    monthlyTrailingReturn1Y: BigDecimal,            //	number	The one-year monthly trailing return value
-    monthlyTrailingReturn3M: BigDecimal,            // 	The three-month monthly trailing return value
-    monthlyTrailingReturn3Y: BigDecimal,            // 	number	The three-year monthly trailing return value
-    monthlyTrailingReturn5Y: BigDecimal,            // 	number	The five-year monthly trailing return value
-    monthlyTrailingReturn6M: BigDecimal,            // 	The six-month monthly trailing return value
-    monthlyTrailingReturnYTD: BigDecimal,           // 	number	The year-to-date monthly trailing return value
-    morningStarCategory: String,                    //	string	The Morningstar category for the fund
+    lastTrade: BigDecimal,                                  //	number (double)	The price of the most recent trade of the security
+    low52: BigDecimal,                                      // 	number (double)	The lowest price at which a security has traded during the past year
+    maxSalesLoad: Option[BigDecimal],                       //	number	The maximum sales charge
+    monthlyTrailingReturn10Y: Option[BigDecimal],           // 	number	The ten-year monthly trailing return value
+    monthlyTrailingReturn1M: Option[BigDecimal],            // 	The one-month monthly trailing return value
+    monthlyTrailingReturn1Y: Option[BigDecimal],            //	number	The one-year monthly trailing return value
+    monthlyTrailingReturn3M: Option[BigDecimal],            // 	The three-month monthly trailing return value
+    monthlyTrailingReturn3Y: Option[BigDecimal],            // 	number	The three-year monthly trailing return value
+    monthlyTrailingReturn5Y: Option[BigDecimal],            // 	number	The five-year monthly trailing return value
+    monthlyTrailingReturn6M: Option[BigDecimal],            // 	The six-month monthly trailing return value
+    monthlyTrailingReturnYTD: Option[BigDecimal],           // 	number	The year-to-date monthly trailing return value
+    morningStarCategory: Option[String],                    //	string	The Morningstar category for the fund
     netAssetValue: BigDecimal,
     netAssets: NetAssets,
     netExpenseRatio: BigDecimal,
-    orderCutoffTime: ETimestamp,
-    performanceAsOfDate: String,                    //	string	The start date the performance is measured from
+    orderCutoffTime: Int,                                   // HHmmm, e.g. 1600 = 4PM each day
+    performanceAsOfDate: Option[String],                    //	string	The start date the performance is measured from
     previousClose: BigDecimal,
     publicOfferPrice: BigDecimal,
-    qtrlyPerformanceAsOfDate: String,               // 	string	The start date of the quarter that the performance is measured from
-    qtrlyTrailingReturn1M: BigDecimal,              // 	The one-month quarterly trailing return value
-    qtrlyTrailingReturn3M: BigDecimal,              // 	The three-month quarterly trailing return value
-    qtrlyTrailingReturn6M: BigDecimal,              // 	The six-month quarterly trailing return value
-    qtrlyTrailingReturnYTD: BigDecimal,             // 	The year-to-date quarterly trailing return value
-    quarterlySinceInception: BigDecimal,            //	number	The quarterly average value of the fund since the beginning of fund
-    redemption: Redemption,                         // 	The mutual fund shares redemption properties
+    qtrlyPerformanceAsOfDate: Option[String],               // 	string	The start date of the quarter that the performance is
+    // measured from
+    qtrlyTrailingReturn1M: Option[BigDecimal],              // 	The one-month quarterly trailing return value
+    qtrlyTrailingReturn3M: Option[BigDecimal],              // 	The three-month quarterly trailing return value
+    qtrlyTrailingReturn6M: Option[BigDecimal],              // 	The six-month quarterly trailing return value
+    qtrlyTrailingReturnYTD: Option[BigDecimal],             // 	The year-to-date quarterly trailing return value
+    quarterlySinceInception: Option[BigDecimal],            //	number	The quarterly average value of the fund since the beginning of fund
+    redemption: Option[Redemption],                         // 	The mutual fund shares redemption properties
     salesCharge: String,
-    sevenDayCurrentYield: BigDecimal,               //	number (double)	The seven-day current yield
-    sinceInception: BigDecimal,                     //	number	The value of the fund since its beginning
+    sevenDayCurrentYield: BigDecimal,                       //	number (double)	The seven-day current yield
+    sinceInception: BigDecimal,                             //	number	The value of the fund since its beginning
     subsequentInvestment: BigDecimal,
     subsequentIraInvestment: BigDecimal,
     symbolDescription: String,
     timeOfLastTrade: ETimestamp,
-    transactionFee: String,                         // yes/no
-    week52HiDate: BigDecimal,                       //	integer (int64)	The date when the price was the highest in the last 52 weeks
-    week52LowDate: BigDecimal,                      //	integer (int64)	The date when the price was the lowest in the last 52 weeks
-    weightedAverageMaturity: BigDecimal             //	number (double)	The weighted average of maturity
-) extends QuoteDetails derives Codec.AsObject
+    transactionFee: String,                                 // yes/no
+    week52HiDate: ETimestamp,                               //	integer (int64)	The date when the price was the highest in the last 52 weeks
+    week52LowDate: ETimestamp,                              //	integer (int64)	The date when the price was the lowest in the last 52 weeks
+    weightedAverageMaturity: BigDecimal                     //	number (double)	The weighted average of maturity
+) extends QuoteDetails
+
+object MutualFundQuoteDetails:
+  import com.odenzo.etrade.models.codecs.given
+  val rename                                          = Map("netAssets" -> "NetAssets")
+  given codec: Codec.AsObject[MutualFundQuoteDetails] = CirceUtils.renamingCodec(deriveCodec[MutualFundQuoteDetails], rename)
 
 /**
   * Before or After Hourss, this is embedded not top level?

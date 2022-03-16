@@ -12,3 +12,4 @@ metals.log
 metals.h2.db
 .bloop/
 .metals/
+.vscode/
