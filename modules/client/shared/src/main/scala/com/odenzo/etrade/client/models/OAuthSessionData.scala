@@ -3,6 +3,10 @@ package com.odenzo.etrade.client.models
 import cats.conversions.all.autoWidenFunctor
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
+<<<<<<<< HEAD:modules/client/shared/src/main/scala/com/odenzo/etrade/client/models/OAuthSessionData.scala
+========
+import org.http4s.{Request, Uri}
+>>>>>>>> origin/main:modules/oauth/shared/src/main/scala/com/odenzo/etrade/oauth/OAuthSessionData.scala
 import org.http4s.Uri.*
 import org.http4s.client.oauth1.{Consumer, Token}
 import org.http4s.implicits.uri
