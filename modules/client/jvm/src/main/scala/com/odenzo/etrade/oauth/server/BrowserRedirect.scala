@@ -1,7 +1,7 @@
 package com.odenzo.etrade.oauth.server
 
 import cats.effect.IO
-import com.odenzo.etrade.client.models.OAuthConfig
+import com.odenzo.etrade.api.models.OAuthConfig
 import org.http4s.Uri
 import org.http4s.Uri.Fragment
 import org.http4s.client.oauth1.{Consumer, Token}

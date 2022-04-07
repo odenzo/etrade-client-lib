@@ -5,9 +5,11 @@ import cats.effect.implicits.*
 import cats.effect.unsafe.*
 import cats.effect.unsafe.IORuntime.global
 import cats.implicits.*
+import com.odenzo.etrade.api.models.OAuthConfig
 import com.odenzo.etrade.base.OPrint.oprint
-import com.odenzo.etrade.client.models.{OAuthConfig, OAuthSessionData}
-import com.odenzo.etrade.oauth.client.OAuthClient
+
+import com.odenzo.etrade.models.OAuthConfig
+import com.odenzo.etrade.oauth.client.OAuthClientMiddleware
 import com.odenzo.etrade.oauth.*
 import fs2.concurrent.SignallingRef
 import org.http4s.*
@@ -35,7 +37,7 @@ object OAuthServer {
   /** A resource is created. */
   def routes(config: OAuthConfig, rqToken: Token, sessionD: Deferred[IO, OAuthSessionData]): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "etrade" / "oauth_callback" :? OAuthVerifierQPM(verifier) +& OAuthTokenQPM(auth_token) =>
-      OAuthClient
+      OAuthClientMiddleware
         .simpleClient
         .use {
           scopedClient =>

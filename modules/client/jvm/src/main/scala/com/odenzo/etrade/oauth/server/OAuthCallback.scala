@@ -6,12 +6,14 @@ import cats.effect.*
 import cats.effect.kernel.Outcome.{Canceled, Errored, Succeeded}
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
+import com.odenzo.etrade.api.Authentication
 import com.odenzo.etrade.base.OPrint.oprint
-import com.odenzo.etrade.client.models.{OAuthConfig, OAuthSessionData, PartialLogin}
-import com.odenzo.etrade.oauth.client.OAuthClient
+import com.odenzo.etrade.api.models.*
+import com.odenzo.etrade.oauth.client.OAuthClientMiddleware
 import com.odenzo.etrade.oauth.server.BrowserRedirectFn
 import com.odenzo.etrade.oauth.server.OAuthServer
 import com.odenzo.etrade.oauth.Authentication
+import com.odenzo.etrade.oauth.client.middleware.OAuthClientMiddleware
 import fs2.concurrent.SignallingRef
 import org.http4s.Uri.*
 import org.http4s.blaze.server.BlazeServerBuilder
@@ -54,7 +56,7 @@ class OAuthCallback(val config: OAuthConfig) {
   // val killSwitch                    = fs2.concurrent.Signal[IO, Boolean]
   private[oauth] val killSwitch: IO[SignallingRef[IO, Boolean]] = SignallingRef[IO, Boolean](false)
 
-  private[oauth] val requestTokenProg: IO[Token] = OAuthClient
+  private[oauth] val requestTokenProg: IO[Token] = OAuthClientMiddleware
     .oauthClient
     .use { client => Authentication.requestToken(config.oauthUrl, uri"oob", config.consumer)(using client: Client[IO]) }
 

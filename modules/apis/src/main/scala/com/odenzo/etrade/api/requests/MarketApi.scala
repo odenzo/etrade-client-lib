@@ -4,10 +4,11 @@ import cats.*
 import cats.data.*
 import cats.syntax.all.*
 import cats.effect.IO
-import com.odenzo.etrade.apisupport.*
 import com.odenzo.etrade.models.*
 import org.http4s.Method.GET
 import org.http4s.Request
+import com.odenzo.etrade.api.utils.APIHelper
+import com.odenzo.etrade.api.*
 
 object MarketApi extends APIHelper {
 

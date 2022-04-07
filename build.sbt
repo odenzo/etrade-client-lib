@@ -91,23 +91,23 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) //
   .jvmSettings().jsSettings()
 
+lazy val apis = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/apis"))
+  .dependsOn(common, models)
+  .settings(name := "etrade-apis")
+  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
+  .settings(libraryDependencies ++= Libs.testing)
+
 lazy val client = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/client"))
-  .dependsOn(common, models)
+  .dependsOn(common, models, apis)
   .settings(name := "etrade-client")
   .settings(libraryDependencies ++= Seq(XLibs.http4sEmber.value, XLibs.http4sCirce.value))
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value))
   .jvmSettings(libraryDependencies ++= Libs.standard ++ Libs.http4s)
   .jsSettings(libraryDependencies ++= Seq())
-
-lazy val apis = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/apis"))
-  .dependsOn(common, models, client)
-  .settings(name := "etrade-apis")
-  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
-  .settings(libraryDependencies ++= Libs.testing)
 
 lazy val example = project
   .in(file("modules/example"))

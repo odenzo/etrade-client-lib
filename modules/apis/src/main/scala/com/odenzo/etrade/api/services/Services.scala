@@ -3,15 +3,14 @@ import cats.*
 import cats.data.{Chain, NonEmptyChain}
 import cats.syntax.all.*
 import cats.effect.{IO, Resource}
+import com.odenzo.etrade.api.ETradeService
 import com.odenzo.etrade.api.requests.AccountsApi.*
 import com.odenzo.etrade.api.requests.MarketApi
 import com.odenzo.etrade.api.requests.MarketApi.*
+import com.odenzo.etrade.api.utils.ServiceHelpers
 import com.odenzo.etrade.models.responses.*
 import org.http4s.{Request, Response}
 import org.http4s.client.Client
-
-import com.odenzo.etrade.apisupport.*
-
 import com.odenzo.etrade.models.{MarketSession, PortfolioView, Transaction}
 import io.circe.Decoder
 import org.http4s.Method.GET

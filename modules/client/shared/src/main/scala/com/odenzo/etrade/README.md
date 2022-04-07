@@ -1,5 +1,20 @@
 # Client Usage
 
+
+Version 1.0 Approach:
+
+Everything in APIs module to use once have a signed on Client/Access Token.
+
+Three possible ways to get access token:
+1. Callback to JVM HTTP Server
+2. Callback to Browser based HTTP Server
+3. Cut and paste Verifier from whatever method needed.
+
+#3 I don't care about, since I have callback configured on my account.
+Try and put it in anyway, as shared JVM/JS and leverage that as single source of truth from the other servers.
+
+
+
 Configure the case class ETradeConfig from its components and your values.
 
 The e-trade client can be run solely from the browser, or with a JVM backend and (optional) front end components.
@@ -12,7 +27,7 @@ For both methods you first have to setup the configuration, if not using callbac
 
 ```scala
     import com.odenzo.etrade.client.engine.ETradeContext
-import com.odenzo.etrade.client.models.OAuthConfig
+import com.odenzo.etrade.models.OAuthConfig
 
 val config = ETradeConfig(useSandbox = true, callback = ???, auth = ???)
 val oauthConfig: OAuthConfig = config.asOAuthConfig()

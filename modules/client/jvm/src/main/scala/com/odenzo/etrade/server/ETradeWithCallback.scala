@@ -1,9 +1,9 @@
 package com.odenzo.etrade.server
 
 import cats.effect.{IO, Resource}
-import com.odenzo.etrade.apisupport.ETradeContext
+import com.odenzo.etrade.api.ETradeContext
 import com.odenzo.etrade.client.models.ETradeConfig
-import com.odenzo.etrade.oauth.client.OAuthClient
+import com.odenzo.etrade.oauth.client.OAuthClientMiddleware
 import com.odenzo.etrade.oauth.server.OAuthCallback
 import com.odenzo.etrade.oauth.server.BrowserRedirect
 import org.http4s.client.Client
@@ -19,7 +19,9 @@ object ETradeWithCallback {
   def callbackBasedClient(config: ETradeConfig): IO[Resource[IO, (Client[IO], ETradeContext)]] = {
     val context = config.asContext
     val oauth   = OAuthCallback(config.asOAuthConfig) //  setting up
-    oauth.login(BrowserRedirect.openMacOsEdge).map(session => OAuthClient.signingDebugClient(session).map(client => (client, context)))
+    oauth
+      .login(BrowserRedirect.openMacOsEdge)
+      .map(session => OAuthClientMiddleware.signingDebugClient(session).map(client => (client, context)))
 
   }
 

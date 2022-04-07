@@ -1,14 +1,15 @@
 package com.odenzo.etrade.api.requests
 
-import cats.data.{Chain, Kleisli}
+import cats.*
+import cats.data.*
 import cats.effect.syntax.all.*
-import cats.effect.{IO, Resource}
+import cats.effect.*
 import cats.syntax.all.*
-import com.odenzo.etrade.apisupport.{APIHelper, ETradeCall, baseUri}
-import com.odenzo.etrade.client.models.OAuthSessionData
 import com.odenzo.etrade.models.responses.{AccountBalanceRs, ListAccountsRs, PortfolioRs, TransactionListRs}
 import com.odenzo.etrade.models.{MarketSession, PortfolioView, Transaction}
-
+import com.odenzo.etrade.api.*
+import com.odenzo.etrade.api.ETradeContext.*
+import com.odenzo.etrade.api.utils.APIHelper
 import io.circe.*
 import monocle.*
 import monocle.syntax.all.*
@@ -19,6 +20,7 @@ import org.http4s.client.Client
 import org.http4s.headers.*
 
 import java.time.LocalDate
+import scala.language.postfixOps
 
 /**
   * # API Request Design This is a way to construct Requests for the service, still pretty low level.
@@ -104,4 +106,28 @@ object AccountsApi extends APIHelper {
     ).pure
   }
 
+  // Hmm, composing (a,b,..) => IO[T] with IO[T] => IO[U] to yield (a,b...) => IO[U] should be easy?
+  // Scala compose  / andThen only works on Function1
+  case class Foo(something: String)
+  // given Foo                                               = Foo("implicitness")
+  def testT(a: Int, b: Int)(using x: Foo): IO[BigDecimal] = IO.pure(BigDecimal(a * b))
+  def testU(t: IO[BigDecimal]): IO[String]                = t.map(v => s"T was $v")
+
+  val fnTestT: (Int, Int) => IO[BigDecimal]          = {
+    given Foo = Foo("implicit")
+    testT _
+  }
+  val fnTestU: IO[BigDecimal] => IO[Fragment]        = testU _
+  val reqKleise: ReaderT[IO, (Int, Int), BigDecimal] = Kleisli(fnTestT.tupled)
+
+  import cats.arrow.{given, *}
+
+  val serviceA: ((Int, Int)) => IO[Fragment] = fnTestT.tupled.andThen(fnTestU)
+
+  val service: ((Int, Int)) => IO[Fragment] = fnTestU.compose(fnTestT.tupled)
+
+  // So we end up with a A => F[Result] but with initial params tupled.
+
+  // val testMe: (Fragment, Boolean, PortfolioView, Boolean, MarketSession, Int, Option[Fragment]) =>
+  // IO[Request[IO]] = (viewPortfolioCF _)
 }
