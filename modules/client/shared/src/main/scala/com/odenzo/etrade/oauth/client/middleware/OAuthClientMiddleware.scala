@@ -1,11 +1,12 @@
 package com.odenzo.etrade.oauth.client.middleware
 
+import cats.effect.implicits.*
 import cats.effect.*
 import cats.syntax.all.*
 import com.odenzo.etrade.api.Authentication
 import com.odenzo.etrade.api.models.*
 import org.http4s.*
-import org.http4s.ember.client.*
+
 import org.http4s.circe.middleware.JsonDebugErrorHandler
 import org.http4s.client.middleware.*
 import org.http4s.client.*
@@ -17,72 +18,25 @@ import org.http4s.client.*
   */
 object OAuthClientMiddleware {
 
-  val logAction: Some[String => IO[Unit]] = Some((s: String) => IO(scribe.info(s"RQRS: $s")))
+  def wrapOAuthStaticSigner(session: OAuthSessionData)(client: Client[IO]) = OAuthStaticSigner.apply(session)(client)
 
-  val fullLogger: Client[IO] => Client[IO] = Logger(
-    logHeaders = true,
-    logBody = true,
-    redactHeadersWhen = _ => false,
-    logAction = logAction
-  )
+  def wrapLogger(logBody: Boolean)(client: Client[IO]): Client[IO] =
+    val logAction: Some[String => IO[Unit]] = Some((s: String) => IO(scribe.info(s"RQRS: $s")))
+    Logger(
+      logHeaders = true,
+      logBody = true,
+      redactHeadersWhen = _ => false,
+      logAction = logAction
+    )(client)
 
   /** Simple HTTP4S Client with no middleware */
-  val builder: EmberClientBuilder[IO]        = EmberClientBuilder.default[IO]
-  val simpleClient: Resource[IO, Client[IO]] = builder.build
-
-  val clientR: Resource[IO, Client[IO]] = simpleClient
+  // Check what the deal with this is, perhaps not ScalaJS able
+  // def wrapGZip(client: Client[IO]): Client[IO] = org.http4s.client.middleware.GZip.apply[IO](32 * 1024)(client)
 
   /** OAuthClient that has redirect and logging, for use with OAuth module */
-  val oauthClient: Resource[IO, Client[IO]] = {
-    for {
-      base    <- simpleClient
-      logged   = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
-      redirect = FollowRedirect(3)(logged)
-    } yield redirect
-  }
+  def wrapRedirect(max: Int = 3)(client: Client[IO]): Client[IO] = FollowRedirect[IO](max)(client)
 
-  val debugClient: Resource[IO, Client[IO]] = {
-    for {
-      base  <- simpleClient
-      logged = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
-    } yield logged
-  }
-
-  /**
-    * Signing Client that follows redirects with no logging. Add your own or build your own from scratch, see OAuthStatusSigner middleware
-    */
-  def signingClient(oauthSesssion: OAuthSessionData): Resource[IO, Client[IO]] = {
-    for {
-      base    <- simpleClient
-      signing  = OAuthStaticSigner(oauthSesssion)(base)
-      redirect = FollowRedirect(3)(signing)
-    } yield redirect
-  }
-
-  def signingDebugClient(oauthSesssion: OAuthSessionData): Resource[IO, Client[IO]] = {
-    for {
-      base    <- simpleClient
-      logging  = Logger(logHeaders = true, logBody = true, redactHeadersWhen = _ => false, logAction = logAction)(base)
-      signing  = OAuthStaticSigner(oauthSesssion)(logging)
-      redirect = FollowRedirect(3)(signing)
-      cookies <- Resource.pure(CookieJar.impl(redirect))
-
-    } yield redirect
-
-  }
-
-  private def patchHeader(config: OAuthSessionData)(rq: Request[IO]): IO[Request[IO]] = Authentication
-    .sign(rq, config.accessToken, config.config.consumer)
-
-  def apply(config: OAuthSessionData)(client: Client[IO]): Client[IO] =
-
-    def fn(rq: Request[IO]): Resource[IO, Response[IO]] = {
-      val resourced: Resource[IO, Request[IO]] = Resource.eval(patchHeader(config)(rq))
-      val response: Resource[IO, Response[IO]] = resourced.flatMap((nrq: Request[IO]) => client.run(nrq))
-      // We could in the future handle authorization failure.
-      response
-    }
-
-    Client.apply(fn)
+  // Not sure we can use cookie jar easily in dom client... not this is in IO coming out.
+  def wrapCookie(client: Client[IO]): IO[Client[IO]] = CookieJar.impl(client)
 
 }

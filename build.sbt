@@ -66,19 +66,26 @@ lazy val root = project
 lazy val common = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/common"))
-  .settings(name := "etrade-common")
-  .settings(libraryDependencies ++= Seq(
-    XLibs.circeCore.value,
-    XLibs.circeParser.value,
-    XLibs.circeGeneric.value,
-    XLibs.circePointer.value,
-    XLibs.monocle.value,
-    XLibs.scribe.value,
-    XLibs.pPrint.value,
-    XLibs.cats.value,
-    XLibs.catsEffect.value,
-    XLibs.fs2.value
-  ))
+  .settings(
+    name := "etrade-common",
+    libraryDependencies ++= Seq(
+      XLibs.circeCore.value,
+      XLibs.circeParser.value,
+      XLibs.circeGeneric.value,
+      XLibs.circePointer.value,
+      XLibs.monocle.value,
+      XLibs.scribe.value,
+      XLibs.pPrint.value,
+      XLibs.cats.value,
+      XLibs.catsEffect.value,
+      XLibs.fs2.value,
+      XLibs.http4sClient.value,
+      XLibs.http4sServer.value,
+      XLibs.scalaXML.value,
+      // XLibs.http4sXml.value,
+      XLibs.http4sCirce.value
+    )
+  )
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) // Tesst
   .jvmSettings().jsSettings()
 
@@ -95,19 +102,28 @@ lazy val apis = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/apis"))
   .dependsOn(common, models)
-  .settings(name := "etrade-apis")
-  .settings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
-  .settings(libraryDependencies ++= Libs.testing)
+  .settings(
+    name := "etrade-apis",
+    libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.http4sDsl.value, XLibs.http4sCirce.value)
+  )
+  .jvmSettings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
 
 lazy val client = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/client"))
   .dependsOn(common, models, apis)
-  .settings(name := "etrade-client")
-  .settings(libraryDependencies ++= Seq(XLibs.http4sEmber.value, XLibs.http4sCirce.value))
-  .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value))
+  .settings(
+    name := "etrade-client",
+    libraryDependencies ++= Seq(
+      XLibs.munit.value,
+      XLibs.munitCats.value,
+      XLibs.http4sCore.value,
+      XLibs.http4sDsl.value,
+      XLibs.http4sCirce.value
+    )
+  )
   .jvmSettings(libraryDependencies ++= Libs.standard ++ Libs.http4s)
-  .jsSettings(libraryDependencies ++= Seq())
+  .jsSettings(libraryDependencies ++= Seq(JSLibs.http4sDom.value))
 
 lazy val example = project
   .in(file("modules/example"))

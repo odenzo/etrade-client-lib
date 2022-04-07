@@ -9,14 +9,12 @@ import com.odenzo.etrade.base.OPrint.oprint
 import com.odenzo.etrade.models.errors.{ETradeErrorMsg, ETradeErrorRs}
 import com.odenzo.etrade.models.responses.MessageRs
 import io.circe.Decoder
-import org.http4s.blaze.http.http2.PseudoHeaders.Status
 import org.http4s.client.Client
 import org.http4s.{MalformedMessageBodyFailure, Request, Response}
 import org.typelevel.jawn.ParseException
 
-import scala.math.E
 import scala.util.Try
-import scala.xml.Elem
+import _root_.scala.xml.*
 
 trait ServiceHelpers {
 
@@ -51,8 +49,9 @@ trait ServiceHelpers {
           // Expand to all cases that give XML errors
           rs.status.responseClass match {
             case org.http4s.Status.ClientError => // if contentType is XML otherwise try Json Messages
-              import org.http4s.scalaxml.*
-              rs.as[Elem].map(elem => errorXmlRsFromXml(rq, rs, elem)).flatMap(err => IO.raiseError(err))
+              IO.raiseError(Throwable(s"ClientError: ${rs.status} not dealing with XML again yet. "))
+            //              import org.http4s.scalaxml.*
+            //              rs.as[Elem].map(elem => errorXmlRsFromXml(rq, rs, elem)).flatMap(err => IO.raiseError(err))
             case org.http4s.Status.ServerError =>
               rs.as[String] *> IO.raiseError(ETradeErrorRs(rq.toString, List.empty)) // Actually  its text/html,
 

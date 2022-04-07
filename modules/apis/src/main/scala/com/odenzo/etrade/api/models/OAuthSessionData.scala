@@ -1,11 +1,12 @@
 package com.odenzo.etrade.api.models
 
+import org.http4s.client.oauth1.{Consumer, Token}
 import cats.conversions.all.autoWidenFunctor
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
 import org.http4s.{Request, Uri}
 import org.http4s.Uri.*
-import org.http4s.client.oauth1.{Consumer, Token}
+
 import org.http4s.implicits.uri
 import org.http4s.{Request, Uri}
 import io.circe.*

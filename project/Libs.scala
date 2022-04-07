@@ -109,8 +109,8 @@ object Libs {
   val http4s = Seq(
     //  "io.circe"       %% "circe-spire"          % "0.1.0",   Meh, stuck at 2.12
     "org.http4s" %% "http4s-dsl"          % V.http4s,
-    "org.http4s" %% "http4s-blaze-server" % V.http4s,
-    "org.http4s" %% "http4s-blaze-client" % V.http4s,
+    "org.http4s" %% "http4s-ember-server" % V.http4s,
+    "org.http4s" %% "http4s-ember-client" % V.http4s,
     "org.http4s" %% "http4s-circe"        % V.http4s,
     "org.http4s" %% "http4s-scala-xml"    % V.http4s
     // "org.http4s" %% "http4s-scalatags" % http4sVersion,
@@ -164,12 +164,16 @@ object XLibs {
 
   lazy val fs2 = Def.setting("co.fs2" %%% "fs2-core" % V.fs2) // fs-io is not xplatform, to JS at least.
 
-  lazy val http4sCore = Def.setting("org.http4s" %%% "http4s-core" % V.http4s)
-  lazy val http4sDsl  = Def.setting("org.http4s" %%% "http4s-dsl" % V.http4s)
+  lazy val http4sCore   = Def.setting("org.http4s" %%% "http4s-core" % V.http4s)
+  lazy val http4sClient = Def.setting("org.http4s" %%% "http4s-client" % V.http4s)
+  lazy val http4sServer = Def.setting("org.http4s" %%% "http4s-server" % V.http4s)
+  lazy val http4sDsl    = Def.setting("org.http4s" %%% "http4s-dsl" % V.http4s)
+  lazy val http4sCirce  = Def.setting("org.http4s" %%% "http4s-circe" % V.http4s)
+  lazy val http4sXml    = Def.setting("org.http4s" %%% "http4s-scala-xml" % V.http4s)
 
-  // lazy val http4sClient = Def.setting("org.http4s" %%% "http4s-blaze-client" % V.http4s) .. Bi ScalaJS
-  lazy val http4sEmber = Def.setting("org.http4s" %%% "http4s-ember-client" % V.http4s) // Diff with Blaze, use different on JVM or JS
-  lazy val http4sCirce = Def.setting("org.http4s" %%% "http4s-circe" % V.http4s)
+  /** These only run on JVM and Node not in Browser */
+  lazy val http4sEmberClient = Def.setting("org.http4s" %%% "http4s-ember-client" % V.http4s)
+  lazy val http4sEmberServer = Def.setting("org.http4s" %%% "http4s-ember-server" % V.http4s)
   //  lazy val http4sXml   = Def.setting("org.http4s" %%% "http4s-scala-xml" % V.http4s) // No ScalJS Version of htto4s stuff
 
   // val http4sJS = Seq(XLibs.http4Dsl, XLibs.http4sClient, XLibs.http4sCirce, http4sXml)
@@ -194,4 +198,12 @@ object XLibs {
   //  val lScalaCss     = Def.setting("com.github.japgolly.scalacss" %%% "core" % scalaCssV)
   //  val lScalaTagsCss = Def.setting("com.github.japgolly.scalacss" %%% "ext-scalatags" % scalaCssV)
   //
+}
+
+/** ScalaJS Only Libs */
+object JSLibs {
+  import sbt.{Def, _}
+  import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+
+  lazy val http4sDom = Def.setting("org.http4s" %%% "http4s-dom" % V.http4s)
 }
