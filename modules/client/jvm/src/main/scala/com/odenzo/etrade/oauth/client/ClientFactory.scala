@@ -12,7 +12,7 @@ import org.http4s.*
 import org.http4s.ember.client.*
 import org.http4s.client.*
 object ClientFactory {
-  def baseClientR[F[_]: Async]()(using config: ETradeConfig): Resource[F, Client[F]] = {
+  def baseClientR[F[_]: Async](): Resource[F, Client[F]] = {
     val default: EmberClientBuilder[F] = EmberClientBuilder.default[F]
     default.build
   }
