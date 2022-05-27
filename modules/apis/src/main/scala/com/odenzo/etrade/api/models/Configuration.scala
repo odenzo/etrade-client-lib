@@ -15,11 +15,22 @@ private val decodeUri = Decoder[String].emapTry[Uri](s => Try(Uri.unsafeFromStri
 
 given uriCodec: Codec[Uri] = Codec.from(decodeUri, encodeUri)
 
-case class ETradeConfig(useSandbox: Boolean, callback: ETradeCallback, auth: ETradeAuth, apis: ETradeApis = ETradeApis.defaultApis)
-    derives Codec.AsObject {
+case class ETradeConfig(
+    useSandbox: Boolean,
+    callback: ETradeCallback,
+    localCallback: Option[Uri],
+    auth: ETradeAuth,
+    apis: ETradeApis = ETradeApis.defaultApis
+) derives Codec.AsObject {
   val apiEndpoint: Uri = if useSandbox then apis.sandbox else apis.prod
 
-  def asOAuthConfig: OAuthConfig = OAuthConfig(apiEndpoint, Consumer(auth.key, auth.secret), callback.callback, apis.redirect)
+  def asOAuthConfig: OAuthConfig = OAuthConfig(
+    apiEndpoint,
+    Consumer(auth.key, auth.secret),
+    callback.callback,
+    apis.redirect,
+    localCallback
+  )
   def asContext: ETradeContext   = com.odenzo.etrade.api.ETradeContext(apiEndpoint)
 
 }

@@ -5,7 +5,7 @@ import io.circe.*
 
 import java.time.Instant
 
-case class TreansactionDetailsRs(
+case class TransactionDetailsRs(
     transactionId: Long,
     accountId: String,
     transactionDate: Instant,

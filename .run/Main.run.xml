@@ -1,5 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Main" type="Application" factoryName="Application" activateToolWindowBeforeRun="false">
+    <envs>
+      <env name="GITHUB_TOKEN" value="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" />
+    </envs>
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
     <option name="MAIN_CLASS_NAME" value="com.odenzo.etrade.Main" />
     <extension name="coverage">

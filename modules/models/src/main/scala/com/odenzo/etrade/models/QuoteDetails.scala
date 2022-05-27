@@ -33,7 +33,7 @@ case class MutualFundQuoteDetails(
     exchangeCode: String,                                   //	string	The code of the exchange
     frontEndSalesCharges: Option[Chain[SalesChargeValues]], //	array[SaleChargeValues]	The front-end sales charge
     fundFamily: String,
-    fundInceptionDate: EDatestamp,                          //	integer (int64)	The date when the fund started
+    fundInceptionDate: EDateStamp,                          //	integer (int64)	The date when the fund started
     fundName: String,
     grossExpenseRatio: BigDecimal,
     high52: BigDecimal,                                     //	number (double)	The highest price at which a security has traded during the past year

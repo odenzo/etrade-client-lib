@@ -30,5 +30,5 @@ case class Account(
     closedDate: ETimestamp
 ) derives Codec.AsObject {
 
-  def iClosed: Boolean = closedDate.isDefined
+  def isClosed: Boolean = closedDate.isDefined
 }

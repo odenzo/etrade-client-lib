@@ -48,7 +48,7 @@ trait CirceUtils {
       codec.mapJsonObject(encoderTransformKey(mapKeys(rename)))
     )
 
-  /** Converts all case class fieldss to Upper-Case Json Field Names */
+  /** Converts all case class fields to Upper-Case Json Field Names */
   def capitalizeCodec[T](codec: Codec.AsObject[T]): Codec.AsObject[T] = Codec
     .AsObject
     .from(

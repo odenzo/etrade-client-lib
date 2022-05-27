@@ -7,8 +7,9 @@ import cats.effect.IO
 import com.odenzo.etrade.models.*
 import org.http4s.Method.GET
 import org.http4s.Request
-import com.odenzo.etrade.api.utils.APIHelper
 import com.odenzo.etrade.api.*
+
+import com.odenzo.etrade.models.responses.{LookUpProductRs, QuoteRs}
 
 object MarketApi extends APIHelper {
 
@@ -17,11 +18,7 @@ object MarketApi extends APIHelper {
     * AND the full reponse or not. Could probably punt on either one of them instead of Ior, just to see if QuoteRs | QuoteErrorRs works
     * well enough. But in that case I should raise an ETradeError with messages data.
     */
-  def getEquityQuotesCF(
-      symbols: NonEmptyChain[String],
-      details: QuoteDetail = QuoteDetail.INTRADAY,
-      requireEarnings: Boolean = false
-  ): ETradeCall = {
+def getEquityQuotesCF(symbols: NonEmptyChain[String], details: QuoteDetail, requireEarnings: Boolean): ETradeCall = {
     val moreSymbols: IO[Boolean] =
       symbols.length match {
         case len if len > 50 => IO.raiseError(Throwable(s"# Symbol must be 50 or less but $len"))
@@ -44,6 +41,9 @@ object MarketApi extends APIHelper {
     } yield rq
   }
 
+  def equityQuotesApp(symbols: NonEmptyChain[String], details: QuoteDetail, withEarnings: Boolean): ETradeService[QuoteRs] =
+    standard[QuoteRs](MarketApi.getEquityQuotesCF(symbols, details, withEarnings))
+
   def lookUpProductCF(search: String): ETradeCall = {
     Request[IO](
       GET,
@@ -51,5 +51,7 @@ object MarketApi extends APIHelper {
       headers = acceptJsonHeaders
     ).pure
   }
+
+  def lookUpProductApp(search: String): ETradeService[LookUpProductRs] = standard[LookUpProductRs](MarketApi.lookUpProductCF(search))
 
 }

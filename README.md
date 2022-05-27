@@ -8,21 +8,37 @@
 ![Latest Release](/github/v/release/odenzo/etrade-client-lib?display_name=tag)
 
 This is a simple e-trade oauth client library that I use to query etrade account
-for accounting purposes. It was also a chance to re-write in Scala 3 to try it out.
+for accounting purposes. Scala3 and Scala JS only.
 
-The majority i cross-compiled for Scala 3 and Scala JS (1.9).
-To do etrade oauth, a callback can be used when running on JVM. This opens a HTTP Server. This style
-is only supported on JVM now. (Maybe doable in browser have to try).
+E-Trade requires oauth login (and setting up your account at E-Trade to do so).
+This lib provides a JVM only module to run a webserver to handle the oauth callback.
+This can be used in pure JVM environments in which is opens up a OS Browser window to e-trade, in or ScalaJS front-end/Broswer
+environments in which you have your own Web-Server.
 
-The client lib and everything is on ScalaJS, but untested at this point using "verifier" cut and paste between
-an opened browser window login to e-trade.
+Note: Finally testing in a browser it turns out the E-Trade API is not CORS enabled, so you need to manually disable in your browser.
+Or do all the E-Trade API calls from the JVM. 
+A "message" based interface is provided, using a WebSocket to communicate with backend server and client.
 
 ### Why publish it?
-It is nothing special, but it is tiresome making model classes, and finding
-all the oddities and documentation gaps.
 
-I publish so other people can fork or use, and hopefully fill out the 
-model objects with more of the API.
+Regret it, too much concurrent experimentation, esp with ScalaJS in the browser.
+
+### Call e-trade APIs directly from the browser
+
+- Instead of the Web App calling a back-end server which calls
+e-trade APIs you can eliminate the bridge between front-end and back-end  you can  call e-trade APIs directly from the browser.**
+
+- Build frameworks that are used for visual display and in the JVM to do data collection via e-trade API and 
+
+###  Community effort to fill out the APIs and models objects
+It is nothing special, but it is tiresome making model classes, and finding
+all the oddities and documentation gaps. Also as my first real attempt at a JVM and ScalaJS app in Scala 3 maybe its helpful.
+I hit plenty of "gotcha" problems.
+
+Would also be good to switch to some Tapir or some generator to enable more re-use without binding to implementation.
+
+
+
 
 Also, I think Scala 3 is great, and Context Functions like ETradeService
 and ETradeCall are very useful. Especially in larger programs to
@@ -36,9 +52,12 @@ Scala 3 e-trade web api client. Focussed on Read-Only APIs in Accounts and GetQu
 TLDR:
 
 Scala Project Dependency:
-`libraryDependencies += "com.odenzo" %% "etrade-client" % "0.0.4")`
+`libraryDependencies += "com.odenzo" %%% "etrade-client-api" % "0.0.4")`
+`libraryDependencies += "com.odenzo" %% "etrade-client-server" % "0.0.4")`
 
 + Go to E-Trade and Generate an Indivual User Consumer Key and Secret for "live" and "sandbox" trading.
+
+Probably better to see the etrade-client-demo-app
 
 To use the library you must first made an `OAuthConfig` instance, a crude example:
 

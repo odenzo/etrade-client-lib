@@ -1,7 +1,6 @@
 package com.odenzo.etrade.models
 
 import com.odenzo.etrade.base.CirceUtils
-import com.odenzo.etrade.models.responses.AccountBalances
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.Uri
@@ -12,7 +11,7 @@ import java.time.Instant
 case class Position(
     positionId: Long,
     symbolDescription: String,
-    dateAcquired: EDatestamp,
+    dateAcquired: EDateStamp,
     pricePaid: BigDecimal,
     commissions: BigDecimal,
     otherFees: BigDecimal,

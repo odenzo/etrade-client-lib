@@ -1,8 +1,17 @@
 package com.odenzo.etrade.api.models
 
-import org.http4s.Uri
+import cats.implicits.catsSyntaxOptionId
+import io.circe.*
+import io.circe.syntax.*
+import org.http4s.Uri.*
+import org.http4s.circe.*
 import org.http4s.client.oauth1.Consumer
+import org.http4s.syntax.all.{*, given}
 import org.http4s.syntax.literals.uri
+import org.http4s.{Request, Uri}
+
+import java.time.Instant
+import java.util.UUID
 
 /**
   * e-trade specific configuration. This is used (contextually) in etrade-client module and etrade-oauth module to construct and sign
@@ -21,8 +30,9 @@ import org.http4s.syntax.literals.uri
 case class OAuthConfig(
     apiUrl: Uri,
     consumer: Consumer,
-    callbackUrl: Uri = uri"http://localhost:5555",
-    redirectUrl: Uri
-) {
-  def oauthUrl: Uri = apiUrl / "oauth"
+    callbackUrl: Uri = uri"http://localhost:5555/etrade/oauth_callback",
+    redirectUrl: Uri,
+    postLoginRedirect: Option[Uri] = None // Some( uri"http://localhost:5566/loginComplete")
+) derives Codec.AsObject {
+  val oauthUrl: Uri = apiUrl / "oauth"
 }

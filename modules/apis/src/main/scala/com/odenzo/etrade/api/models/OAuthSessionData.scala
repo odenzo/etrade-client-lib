@@ -19,13 +19,13 @@ import org.http4s.circe.*
   *   - TODO: Probably better to have a facade for this to JSON since it goes between apps, but no Chimney and I am lazy now
   */
 case class OAuthSessionData(
-    accessToken: Token,
+    accessToken: Option[Token],
     rqToken: Token,
     config: OAuthConfig, // Just in case we have some different clients (sandbox / prod) using same system
     created: Instant = Instant.now()
 ) derives Codec.AsObject {
 
-  def setAccessToken(at: Token): OAuthSessionData = this.copy(accessToken = at)
+  def setAccessToken(at: Token): OAuthSessionData = this.copy(accessToken = at.some)
 
 }
 
@@ -33,8 +33,8 @@ object OAuthSessionData {
 
   type Contextual[T] = OAuthSessionData ?=> T
 
-  val baseUri: Contextual[Uri]       = summon[OAuthSessionData].config.apiUrl
-  val accessToken: Contextual[Token] = summon[OAuthSessionData].accessToken
+  val baseUri: Contextual[Uri]               = summon[OAuthSessionData].config.apiUrl
+  val accessToken: Contextual[Option[Token]] = summon[OAuthSessionData].accessToken
   // val authToken: Contextual[Option[Token]]   = summon[OAuthSessionData].authToken
   // def token(ctx: OAuthSessionData): Contextual[Token] = ctx.accessToken.getOrElse(throw Throwable("Hissy Fit"))
 }

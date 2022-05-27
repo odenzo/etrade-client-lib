@@ -3,35 +3,23 @@ import sbt._
 import sbt.util.FileInfo.hash
 
 //ThisBuild / bspEnabled := false
-
+ThisBuild / resolvers += Resolver.mavenLocal
 val javart = "1.11"
 
 ThisBuild / scalaVersion  := "3.1.1"
 ThisBuild / organization  := "com.odenzo"
 ThisBuild / versionScheme := Some("early-semver")
 
-ThisBuild / homepage := Some(url("https://github.com/odenzo/etrade=client-lib"))
-ThisBuild / licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild / homepage := Some(url("https://github.com/odenzo/etrade-client-lib"))
+ThisBuild / licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
-ThisBuild / githubTokenSource.withRank(KeyRanks.Invisible) := TokenSource.Or(
-  TokenSource.Environment("GITHUB_TOKEN"),
-  TokenSource.GitConfig("github.token")
-)
-
+//TokenSource.Environment("GITHUB_TOKEN"),
 ThisBuild / publishMavenStyle.withRank(KeyRanks.Invisible) := true
 
 ThisBuild / githubOwner      := "odenzo"
 ThisBuild / githubRepository := "etrade-client-lib"
 
 resolvers += Resolver.githubPackages("odenzo")
-//Compile / doc / scalacOptions ++= {
-//  Seq(
-//    "-sourcepath",
-//    (LocalRootProject / baseDirectory).value.getAbsolutePath,
-//    "-doc-source-url",
-//    s"https://github.com/sbt/sbt-release/tree/${hash()}€{FILE_PATH}.scala"
-//  )
-//}
 
 root / Compile / mainClass := Some("com.odenzo.etrade.Main")
 Test / fork                := true
@@ -56,7 +44,7 @@ lazy val noPublishSettings = Seq(publishArtifact := false)
 
 lazy val root = project
   .in(file("."))
-  .aggregate(common.js, common.jvm, models.js, models.jvm, client.js, client.jvm, apis.js, apis.jvm, example)
+  .aggregate(common.js, common.jvm, models.js, models.jvm, apis.js, apis.jvm, server.jvm, pureBackend)
   .withId("etrade")
   .settings(
     name           := "etrade",
@@ -82,12 +70,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       XLibs.http4sClient.value,
       XLibs.http4sServer.value,
       XLibs.scalaXML.value,
-      // XLibs.http4sXml.value,
+      XLibs.scalaJavaTime.value,
+      XLibs.scalaJavaTimeTZDB.value,
+      "com.odenzo" %%% "http4s-dom-xml" % "0.0.4",
       XLibs.http4sCirce.value
     )
   )
   .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) // Tesst
-  .jvmSettings().jsSettings()
+  .jsSettings(libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13))
 
 lazy val models = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -104,16 +94,27 @@ lazy val apis = crossProject(JSPlatform, JVMPlatform)
   .dependsOn(common, models)
   .settings(
     name := "etrade-apis",
-    libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.http4sDsl.value, XLibs.http4sCirce.value)
+    libraryDependencies ++= Seq(
+      XLibs.http4sCore.value,
+      XLibs.http4sDsl.value,
+      XLibs.http4sCirce.value,
+      XLibs.munit.value,
+      XLibs.munitCats.value,
+      XLibs.http4sCore.value,
+      XLibs.http4sDsl.value,
+      XLibs.http4sCirce.value
+    )
   )
   .jvmSettings(libraryDependencies ++= Libs.monocle ++ Libs.http4s ++ Libs.catsExtra ++ Libs.fs2)
+  .jvmSettings(libraryDependencies ++= Libs.standard ++ Libs.http4s)
+  .jsSettings(libraryDependencies ++= Seq(JSLibs.http4sDom.value))
 
-lazy val client = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Full)
-  .in(file("modules/client"))
+lazy val server = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/server"))
   .dependsOn(common, models, apis)
   .settings(
-    name := "etrade-client",
+    name := "etrade-server",
     libraryDependencies ++= Seq(
       XLibs.munit.value,
       XLibs.munitCats.value,
@@ -123,16 +124,16 @@ lazy val client = crossProject(JSPlatform, JVMPlatform)
     )
   )
   .jvmSettings(libraryDependencies ++= Libs.standard ++ Libs.http4s)
-  .jsSettings(libraryDependencies ++= Seq(JSLibs.http4sDom.value))
 
-lazy val example = project
-  .in(file("modules/example"))
-  .withId("example")
-  .dependsOn(common.jvm, models.jvm, client.jvm, apis.jvm)
-  .settings(name := "example-usage")
-  .settings(publish / skip := true)
-  .settings(libraryDependencies ++= Libs.testing)
+lazy val pureBackend = project
+  .in(file("app/backend_it"))
+  .dependsOn(common.jvm % "compile->compile;test->test", apis.jvm % "compile->compile;test->test", server.jvm)
+  .settings(
+    libraryDependencies ++= Libs.testing ++ Libs.scribeSLF4J ++ Libs.http4s ++ Libs.standard,
+    mainClass   := Some("com.odenzo.etradeapp.purebackend.PBEnd"),
+    Test / fork := true
+  )
 
 addCommandAlias("make-docs", "clean;")
-addCommandAlias("ci-test", "+clean;+test -- -DCI=true")
+
 addCommandAlias("erun", "example/run")
