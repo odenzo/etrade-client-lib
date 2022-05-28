@@ -23,6 +23,4 @@ case class Values(
 /** E-Treade Catetory  - forget what this i. */
 case class Category(categoryId: String, parentId: String, categoryName: String, parentName: String) derives Codec.AsObject
 
-case class ProductId(symbol: String, typeCode: String) derives Codec.AsObject
-
 case class SalesChargeValues(lowhigh: String, percent: BigDecimal) derives Codec.AsObject

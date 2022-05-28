@@ -1,16 +1,22 @@
 package com.odenzo.etrade.models
 
-import io.circe.{Codec, Decoder, JsonObject}
+import com.odenzo.etrade.base.CirceUtils
+import com.odenzo.etrade.models.responses.TransactionDetailsResponse
+import io.circe.{Codec, Decoder, JsonObject, generic}
 
 import java.time.Instant
 
 case class Brokerage(
-    product: JsonObject,           // This can be weird, including juts an product: { }
+    product: Option[ETProduct],        // Some anamoly. need to upcase product => Product too
     quantity: BigDecimal,
     price: BigDecimal,
-    settlementCurrency: String,    // ISO 3
+    settlementCurrency: String,        // ISO 3
     paymentCurrency: String,
     fee: BigDecimal,
-    displaySymbol: Option[String], // Again some quoted whitespace \n\t\t\t. Missing whenb project is empty ACH IN/Out
-    settlementDate: EDatestamp     // Txn seem to have this in different unit.
-) derives Codec.AsObject
+    displaySymbol: Option[String],     // Again some quoted whitespace \n\t\t\t. Missing whenb project is empty ACH IN/Out
+    settlementDate: Option[EDateStamp] // Txn seem to have this in different unit.
+)
+
+object Brokerage:
+  private val codec: Codec.AsObject[Brokerage] = generic.semiauto.deriveCodec[Brokerage]
+  given Codec.AsObject[Brokerage]              = CirceUtils.renamingCodec(codec, Map("product" -> "Product"))

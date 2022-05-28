@@ -3,35 +3,39 @@ import sbt.{Def, _}
 object V {
 
   val blindSightLog      = "1.4.0"
-  val catsEffect         = "3.3.10"
-  val catsMice           = "1.0.10"
+  val catsEffect         = "3.3.12"
+  val catsMice           = "1.0.11"
   val catsRetry          = "3.1.0"
   val cats               = "2.7.0"
   val catsCollections    = "0.9.3"
-  val circeGenericExtras = "0.15.0-M1"
-  val circeOptics        = "0.15.0-M1"
-  val circe              = "0.15.0-M1"
+  val circeGenericExtras = "0.14.2"
+  val circeOptics        = "0.14.2"
+  val circe              = "0.14.2"
   val doobie             = "1.0.0-RC2"
   val fs2                = "3.2.7"
-  val http4s             = "1.0.0-M32"
+  val http4s             = "1.0.0-M33"
   val logback            = "1.2.11"
   val monocle            = "3.1.0"
   val munitCats          = "1.0.7"
-  val munit              = "1.0.0-M3"
+  val munit              = "1.0.0-M4"
   val oslib              = "0.8.1"
   val pprint             = "0.7.3"
-  val scalaXML           = "2.0.1"
+  val scalaXML           = "2.1.0"
   val scodecBits         = "1.18"
   val scodecCats         = "1.0.0"
   val scodec             = "1.11.7"
-  val scribe             = "3.8.2"
+  val scribe             = "3.8.3"
   val squants            = "1.7.0"
   val sttpClient         = "3.5.1"
   val tapir              = "0.19.3"
   val scalaCache         = "1.0.0-M6"
+  val scalaJavaTime      = "2.3.0"
   val scaffeine          = "5.1.2"
+  val scribeCats         = "3.8.2"
+
 }
 
+//noinspection TypeAnnotation
 object Libs {
 
   val scaffeine = Seq("com.github.blemale" %% "scaffeine" % V.scaffeine % "compile")
@@ -88,16 +92,20 @@ object Libs {
     "com.softwaremill.sttp.client3" %% "circe" % V.sttpClient
   )
 
-  val scribe = Seq("com.outr" %% "scribe-slf4j" % V.scribe)
+  val scribe      = Seq("com.outr" %% "scribe" % V.scribe)
+  val scribeSLF4J = Seq("com.outr" %% "scribe-slf4j" % V.scribe) // Needs LogBack or concrete backend, JVM Only
+  val scribeCats  = Seq("com.outr" %% "scribe-cats" % V.scribeCats)
 
   val circe = Seq(
-    "io.circe" %% "circe-core"    % V.circe,
-    "io.circe" %% "circe-generic" % V.circe,
-    "io.circe" %% "circe-extras"  % V.circe,
-    "io.circe" %% "circe-jawn"    % V.circe,
-    "io.circe" %% "circe-numbers" % V.circe,
-    "io.circe" %% "circe-parser"  % V.circe,
-    "io.circe" %% "circe-pointer" % V.circe
+    "io.circe" %% "circe-core"            % V.circe,
+    "io.circe" %% "circe-generic"         % V.circe,
+    "io.circe" %% "circe-extras"          % V.circe,
+    "io.circe" %% "circe-jawn"            % V.circe,
+    "io.circe" %% "circe-numbers"         % V.circe,
+    "io.circe" %% "circe-parser"          % V.circe,
+    "io.circe" %% "circe-pointer"         % V.circe,
+    "io.circe" %% "circe-pointer-literal" % V.circe,
+    "io.circe" %% "circe-literal"         % V.circe
     //  "io.circe" %% "circe-generic-extras" % circeGenericExtrasVersion,
     // "io.circe" %% "circe-optics" % circeOpticsVersion
     // "io.circe" %% "circe-literal" % circeVersion
@@ -109,8 +117,8 @@ object Libs {
   val http4s = Seq(
     //  "io.circe"       %% "circe-spire"          % "0.1.0",   Meh, stuck at 2.12
     "org.http4s" %% "http4s-dsl"          % V.http4s,
-    "org.http4s" %% "http4s-blaze-server" % V.http4s,
-    "org.http4s" %% "http4s-blaze-client" % V.http4s,
+    "org.http4s" %% "http4s-ember-server" % V.http4s,
+    "org.http4s" %% "http4s-ember-client" % V.http4s,
     "org.http4s" %% "http4s-circe"        % V.http4s,
     "org.http4s" %% "http4s-scala-xml"    % V.http4s
     // "org.http4s" %% "http4s-scalatags" % http4sVersion,
@@ -153,45 +161,47 @@ object XLibs {
   lazy val munitCats       = Def.setting("org.typelevel" %%% "munit-cats-effect-3" % V.munitCats % Test)
   lazy val defaultLibs     = Seq(cats, catsEffect, catsCollections, monocle, scribe, munit, munitCats)
 
-  lazy val circeCore    = Def.setting("io.circe" %%% "circe-core" % V.circe)
-  lazy val circeGeneric = Def.setting("io.circe" %%% "circe-generic" % V.circe)
-  lazy val circePointer = Def.setting("io.circe" %%% "circe-pointer" % V.circe)
-  lazy val circeParser  = Def.setting("io.circe" %%% "circe-parser" % V.circe)
-  lazy val circeNumbers = Def.setting("io.circe" %%% "circe-numbers" % V.circe)
+  val scalaJavaTime     = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
+  val scalaJavaTimeTZDB = Def.setting("io.github.cquiroz" %%% "scala-java-time-tzdb" % V.scalaJavaTime)
+
+  //
+  lazy val circeCore     = Def.setting("io.circe" %%% "circe-core" % V.circe)
+  lazy val circeGeneric  = Def.setting("io.circe" %%% "circe-generic" % V.circe)
+  lazy val circePointer  = Def.setting("io.circe" %%% "circe-pointer" % V.circe)
+  lazy val circeParser   = Def.setting("io.circe" %%% "circe-parser" % V.circe)
+  lazy val circeNumbers  = Def.setting("io.circe" %%% "circe-numbers" % V.circe)
+  lazy val circeListeral = Def.setting("io.circe" %%% "circe-literal" % V.circe)
 //  lazy val lCirceYaml       = Def.setting("io.circe" %%% "circe-yaml" % V.circe)
 //  lazy val lCirceRefined    = Def.setting("io.circe" %%% "circe-refined" % V.circe)
   // lazy val lCirceExtra      = Def.setting("io.circe" %%% "circe-extras" % V.circe)
 
   lazy val fs2 = Def.setting("co.fs2" %%% "fs2-core" % V.fs2) // fs-io is not xplatform, to JS at least.
 
-  lazy val http4sCore = Def.setting("org.http4s" %%% "http4s-core" % V.http4s)
-  lazy val http4sDsl  = Def.setting("org.http4s" %%% "http4s-dsl" % V.http4s)
+  lazy val http4sCore   = Def.setting("org.http4s" %%% "http4s-core" % V.http4s)
+  lazy val http4sClient = Def.setting("org.http4s" %%% "http4s-client" % V.http4s)
+  lazy val http4sServer = Def.setting("org.http4s" %%% "http4s-server" % V.http4s)
+  lazy val http4sDsl    = Def.setting("org.http4s" %%% "http4s-dsl" % V.http4s)
+  lazy val http4sCirce  = Def.setting("org.http4s" %%% "http4s-circe" % V.http4s)
+  lazy val http4sXml    = Def.setting("org.http4s" %%% "http4s-scala-xml" % V.http4s)
 
-  // lazy val http4sClient = Def.setting("org.http4s" %%% "http4s-blaze-client" % V.http4s) .. Bi ScalaJS
-  lazy val http4sEmber = Def.setting("org.http4s" %%% "http4s-ember-client" % V.http4s) // Diff with Blaze, use different on JVM or JS
-  lazy val http4sCirce = Def.setting("org.http4s" %%% "http4s-circe" % V.http4s)
+  /** These only run on JVM and Node not in Browser */
+  lazy val http4sEmberClient = Def.setting("org.http4s" %%% "http4s-ember-client" % V.http4s)
+  lazy val http4sEmberServer = Def.setting("org.http4s" %%% "http4s-ember-server" % V.http4s)
   //  lazy val http4sXml   = Def.setting("org.http4s" %%% "http4s-scala-xml" % V.http4s) // No ScalJS Version of htto4s stuff
 
   // val http4sJS = Seq(XLibs.http4Dsl, XLibs.http4sClient, XLibs.http4sCirce, http4sXml)
 
-  // "org.http4s" %% "http4s-scalatags" % http4sVersion,
-  // "org.http4s" %% "http4s-jdk-http-client" % "0.3.5"
-
-  // val lCirceScodec: Def.setting     = Def.setting("io.circe", "circe-scodec", circeVersion) // There
-  // val lScodecCore = OModule("org.scodec", "scodec-core", scodecV)
   //  val lScodecBits = OModule("org.scodec" , "scodec-bits" , scodecBitsV) // Use this in more places
   //  val lScodecCats = OModule("org.scodec" , "scodec-cats" , scodecCatsV)
   //  lazy val catsRetru: Def.setting = Def.setting("com.github.cb372", "cats-retry", V.catsRetry)
 //  val lSquants = OModule("org.typelevel" %%% "squants" % squantsV)
 
-  //   val lScalaJavaTime     = OModule("io.github.cquiroz" %%% "scala-java-time" % scalaJavaTime)
-  //   val lScalaJavaTimeTZDB = OModule("io.github.cquiroz" %%% "scala-java-time-tzdb" % scalaJavaTime)
-//
+}
 
-  //
-  //
-  //  val lScalaTags    = Def.setting("com.lihaoyi" %%% "scalatags" % scalaTagsV)
-  //  val lScalaCss     = Def.setting("com.github.japgolly.scalacss" %%% "core" % scalaCssV)
-  //  val lScalaTagsCss = Def.setting("com.github.japgolly.scalacss" %%% "ext-scalatags" % scalaCssV)
-  //
+/** ScalaJS Only Libs */
+object JSLibs {
+  import sbt.{Def, _}
+  import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+
+  lazy val http4sDom = Def.setting("org.http4s" %%% "http4s-dom" % V.http4s)
 }

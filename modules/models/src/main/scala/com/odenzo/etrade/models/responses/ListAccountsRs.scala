@@ -1,14 +1,15 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.etrade.models.Account
-
-import io.circe.{Decoder, HCursor, Json}
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.*
+import io.circe.syntax.*
 
 case class ListAccountsRs(accounts: List[Account])
 
 object ListAccountsRs {
 
-  implicit val decoder: Decoder[ListAccountsRs] =
+  private val decoder: Decoder[ListAccountsRs] =
     new Decoder[ListAccountsRs] {
       final def apply(c: HCursor): Decoder.Result[ListAccountsRs] = {
         val l3 = c.downField("AccountListResponse").downField("Accounts").downField("Account")
@@ -18,4 +19,13 @@ object ListAccountsRs {
       }
     }
 
+  private val encoder: Encoder.AsObject[ListAccountsRs] = Encoder
+    .AsObject
+    .instance[ListAccountsRs] { rs =>
+      val accountList: Json = rs.accounts.map(a => JsonObject.singleton("Account", a.asJson)).asJson
+      val accounts          = JsonObject.singleton("Accounts", accountList)
+      JsonObject.singleton("AccountListResponse", accounts.asJson)
+    }
+
+  given Codec.AsObject[ListAccountsRs] = Codec.AsObject.from(decoder, encoder)
 }

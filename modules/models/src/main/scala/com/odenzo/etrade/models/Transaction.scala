@@ -5,8 +5,8 @@ import io.circe.*
 case class Transaction(
     transactionId: String,
     accountId: String,
-    transactionDate: EDatestamp,
-    postDate: EDatestamp,
+    transactionDate: EDateStamp,
+    postDate: EDateStamp,
     amount: BigDecimal,
     description: String,
     description2: Option[String],
@@ -14,7 +14,10 @@ case class Transaction(
     memo: String,               // "" if empty, sometime \n\t\t
     imageFlag: Boolean,
     instType: Option[String],
-    storeId: Long,
+    storeId: StoreId,
     detailsURI: Option[String], // Have seen one of thee yet
     brokerage: Brokerage
-) derives Codec.AsObject
+) derives Codec.AsObject {
+
+  override def toString: String = pprint(this).render
+}
