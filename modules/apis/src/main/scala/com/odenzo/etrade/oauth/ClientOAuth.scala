@@ -113,12 +113,20 @@ object ClientOAuth extends OAuthHelpers {
     ).flatMap { rq => client.run(rq).use { rs => rs.as[UrlForm].flatMap(extractToken) } }
   }
 
-  def refreshAccessToken(config: OAuthConfig, rqToken: Token)(using client: Client[IO]): IO[Token] = {
-    genericSign(
-      Request[IO](uri = config.oauthUrl / "renew_access_token"),
-      config.consumer,
-      rqToken.some
-    ).flatMap { rq => client.run(rq).use(rs => rs.as[UrlForm].flatMap(extractToken)) }
+  /**
+    * Well, this just does a keep alive the docs say. Ensures access token is valid, and makes *same* token valid. Doesn't create a new
+    * token.
+    */
+  def refreshAccessToken(config: OAuthConfig, rqToken: Token, accessToken: Token)(using client: Client[IO]): IO[Unit] = {
+    for {
+      rq <- genericSign(
+              Request[IO](uri = config.oauthUrl / "renew_access_token"),
+              config.consumer,
+              accessToken.some
+            )
+      rs <- client.expect[String](rq)
+      _  <- IO.raiseWhen(rs != "Access Token has been renewed")(Throwable(s"Invalid Refresh Access Rs: $rs"))
+    } yield ()
   }
 
   /** This can be used to sign a request with the given access token. There is also a signing client that will do it automatically. */
