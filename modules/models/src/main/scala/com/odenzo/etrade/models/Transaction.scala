@@ -14,7 +14,10 @@ case class Transaction(
     memo: String,               // "" if empty, sometime \n\t\t
     imageFlag: Boolean,
     instType: Option[String],
-    storeId: Long,
+    storeId: StoreId,
     detailsURI: Option[String], // Have seen one of thee yet
     brokerage: Brokerage
-) derives Codec.AsObject
+) derives Codec.AsObject {
+
+  override def toString: String = pprint(this).render
+}

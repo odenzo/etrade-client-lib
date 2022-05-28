@@ -5,6 +5,8 @@ import io.circe.generic.AutoDerivation
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.pointer.Pointer.Relative.Result.Json
 
+case class ProductId(symbol: String, typeCode: Option[String]) derives Codec.AsObject
+
 /**
   * TODO: Codec dillema, if this is empty structure want to lift it. Maybe every symbol has a securityType I think. ETProduct[T] and
   * T[String] memebers, or an Scala 3 enume for ETProduct with ETNoProduct.type and ETProduct enums

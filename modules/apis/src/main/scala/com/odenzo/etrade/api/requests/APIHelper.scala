@@ -2,12 +2,11 @@ package com.odenzo.etrade.api.requests
 
 import cats.effect.*
 import cats.effect.syntax.all.*
-
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-
 import com.odenzo.etrade.base.OPrint.oprint
+import com.odenzo.etrade.models.StoreId
 import com.odenzo.etrade.models.errors.{ETradeErrorMsg, ETradeErrorRs}
 import com.odenzo.etrade.models.responses.MessageRs
 import io.circe.Decoder
@@ -104,17 +103,16 @@ trait APIHelper {
     * @return
     *   All the paging results as ordered
     */
-  protected def loopingFunction[A, B: Decoder](
+  protected def iteratePages[A, B: Decoder](
       rqFn: Option[A] => IO[Request[IO]],
       shouldLoop: B => Option[A]
   )(cursor: Option[A] = None, acc: Chain[B] = Chain.empty)(using client: Client[IO]): IO[Chain[B]] = {
     val nextRequest: IO[Request[IO]] = rqFn(cursor)
     val nextResult: IO[B]            = standard[B](nextRequest)
-
-    val returning: IO[Chain[B]] = nextResult.flatMap { (result: B) =>
+    val returning: IO[Chain[B]]      = nextResult.flatMap { (result: B) =>
       shouldLoop(result) match {
         case None        => acc.append(result).pure
-        case a @ Some(n) => loopingFunction(rqFn, shouldLoop)(a, acc.append(result))
+        case a @ Some(n) => iteratePages(rqFn, shouldLoop)(a, acc.append(result))
       }
     }
     returning
@@ -151,4 +149,8 @@ trait APIHelper {
     val msg: String = Try { (elem \ "message").text }.getOrElse("No Message Text Found")
     ETradeErrorMsg(code, msg)
   }
+
+  given QueryParamEncoder[com.odenzo.etrade.models.StoreId] = QueryParamEncoder
+    .longQueryParamEncoder
+    .contramap[StoreId]((x: StoreId) => x.toLong)
 }

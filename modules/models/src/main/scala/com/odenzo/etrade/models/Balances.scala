@@ -57,7 +57,7 @@ case class ComputedBalance(
 
 object ComputedBalance {
 
-  def rename                            = Map("openCalls" -> "OpenCalls", "realTimeValues" -> "RealTimeValues")
+  private def rename                    = Map("openCalls" -> "OpenCalls", "realTimeValues" -> "RealTimeValues")
   given Codec.AsObject[ComputedBalance] = CirceUtils.renamingCodec(deriveCodec[ComputedBalance], rename)
 
 }

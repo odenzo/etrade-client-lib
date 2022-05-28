@@ -41,6 +41,7 @@ trait CirceUtils {
     .andThen(json => json.asObject.get)
     .apply(obj)
 
+  /** Map is in form  case class field name => JSON field name (eg product -> Product) */
   def renamingCodec[T](codec: Codec.AsObject[T], rename: Map[String, String]): Codec.AsObject[T] = Codec
     .AsObject
     .from(

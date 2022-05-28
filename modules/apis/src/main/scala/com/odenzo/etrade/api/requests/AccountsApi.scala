@@ -38,9 +38,9 @@ object AccountsApi extends APIHelper {
   def accountBalancesCF(
       accountIdKey: String,
       accountType: Option[String],
-      instType: String,
-      realTimeNAV: Boolean
+      instType: String
   ): ETradeCall =
+    val realTimeNAV: Boolean = true
     Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "balance")
@@ -54,9 +54,8 @@ object AccountsApi extends APIHelper {
   def accountBalanceApp(
       accountIdKey: String,
       accountType: Option[String],
-      instType: String,
-      realTimeNAV: Boolean
-  ): ETradeService[AccountBalanceRs] = standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType, realTimeNAV))
+      instType: String
+  ): ETradeService[AccountBalanceRs] = standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
 
   /**
     * This will automatically page through and accumulate the results. Start date is limited to 90 days in the past? This has paging yet to
@@ -98,13 +97,13 @@ object AccountsApi extends APIHelper {
     import com.odenzo.etrade.models.*
     val rqFn: Option[String] => IO[Request[IO]]        = listTransactionsCF(accountIdKey, startDate, endDate, count, _)
     val extractor: TransactionListRs => Option[String] = (rs: TransactionListRs) => rs.transactionListResponse.marker
-    loopingFunction(rqFn, extractor)(None, Chain.empty).map { (responses: Chain[TransactionListRs]) =>
-      responses.flatMap(rs => rs.transactionListResponse.transaction)
+    iteratePages(rqFn, extractor)(None, Chain.empty).map {
+      (responses: Chain[TransactionListRs]) => responses.flatMap(rs => rs.transactionListResponse.transaction)
     }
   }
 
   /** This endpoint is overloaded a bit much, and response format is too. This can be paging. */
-  def transactionsDetailCF(accountIdKey: String, transactionId: String, storeId: Option[String]): ETradeCall = {
+  def transactionsDetailCF(accountIdKey: String, transactionId: String, storeId: Option[StoreId]): ETradeCall = {
     Request[IO](
       GET,
       (baseUri / "v1" / "accounts" / accountIdKey / "transactions" / transactionId).withOptionQueryParam("storeId", storeId)
@@ -114,7 +113,7 @@ object AccountsApi extends APIHelper {
   def transactionDetailsApp(
       accountIdKey: String,
       txnId: String,
-      storeId: Option[String],
+      storeId: Option[StoreId],
       cat: Option[TransactionCategory]
   ): ETradeService[TransactionDetailsRs] = standard[TransactionDetailsRs](transactionsDetailCF(accountIdKey, txnId, storeId))
 
@@ -151,7 +150,7 @@ object AccountsApi extends APIHelper {
     val extractor: ViewPortfolioRs => Option[String] = (rs: ViewPortfolioRs) => rs.accountPortfolio.head.nextPageNo
     scribe.warn(s"About to call looking function")
 
-    loopingFunction(rqFn, extractor)(None, Chain.empty).map {
+    iteratePages(rqFn, extractor)(None, Chain.empty).map {
       (responses: Chain[ViewPortfolioRs]) => responses
     }
 

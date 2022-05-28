@@ -2,7 +2,7 @@ package com.odenzo.etrade.api.commands
 
 import cats.syntax.all.*
 import cats.data.NonEmptyChain
-import com.odenzo.etrade.models.{MarketSession, PortfolioView, QuoteDetail, QuoteDetails, TransactionCategory}
+import com.odenzo.etrade.models.*
 import io.circe.*
 import io.circe.Decoder.Result
 import io.circe.syntax.*
@@ -66,11 +66,11 @@ object ListAccountsCmd:
   given enc: Encoder.AsObject[ListAccountsCmd]        = deriveEncoder[ListAccountsCmd].mapJsonObject(discriminator)
   given dec: Decoder[ListAccountsCmd]                 = deriveDecoder
 
+/** This always does realTimeNav */
 case class AccountBalancesCmd(
     accountIdKey: String,
     accountType: Option[String] = None,
-    instType: String = "BROKERAGE",
-    realTimeNav: Boolean = true
+    instType: String = "BROKERAGE"
 ) extends ETradeCmd
 
 object AccountBalancesCmd:
@@ -91,11 +91,16 @@ object ListTransactionsCmd:
   given enc: Encoder.AsObject[ListTransactionsCmd]    = deriveEncoder[ListTransactionsCmd].mapJsonObject(discriminator)
   given dec: Decoder[ListTransactionsCmd]             = deriveDecoder
 
-case class TransactionDetailsCmd(accountIdKey: String, transactionId: String, storeId: Option[String], txnType: Option[TransactionCategory])
-    extends ETradeCmd
+case class TransactionDetailsCmd(
+    accountIdKey: String,
+    transactionId: String,
+    storeId: Option[StoreId],
+    txnType: Option[TransactionCategory]
+) extends ETradeCmd
 
 object TransactionDetailsCmd:
   private val discriminator: JsonObject => JsonObject = ETradeCmd.postAddDiscriminator(this.toString)
+  import com.odenzo.etrade.models.given
   given enc: Encoder.AsObject[TransactionDetailsCmd]  = deriveEncoder[TransactionDetailsCmd].mapJsonObject(discriminator)
   given dec: Decoder[TransactionDetailsCmd]           = deriveDecoder
 
