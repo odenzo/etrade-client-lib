@@ -34,7 +34,7 @@ import java.time.Instant
   * care about speed (over a web wervice!) Then just do one symbol type at a time and chnage the Model object to have only the fields you
   * care about (or JsonObject it and extract from there with pointer) Also has Option Messages on error?
   */
-case class QuoteRs(quotes: List[Quote])
+case class QuoteRs(quotes: List[Quote]) // Array QuoteData and a messages:Messages
 object QuoteRs {
   given decoder: Decoder[QuoteRs] = {
     val baseDecoder: Decoder[List[Quote]] = decodeList[Quote]
@@ -78,7 +78,7 @@ object Quote:
           case "Intraday"    => hcursor.downField("Intraday").as[IntraDayQuoteDetails]
           case "Week52"      => hcursor.downField("Week52").as[Week52]
           case "Fundamental" => hcursor.downField("Fundamental").as[FundamentalQuoteDetails]
-          case "All"         => hcursor.downField("All").as[AllDetails]
+          case "All"         => hcursor.downField("All").as[AllQuoteDetails]
         }
         .getOrElse(DecodingFailure("No Matching Detail Type in Quote", null).asLeft)
     }

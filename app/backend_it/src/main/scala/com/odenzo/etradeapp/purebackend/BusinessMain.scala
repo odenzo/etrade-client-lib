@@ -62,6 +62,12 @@ object BusinessMain {
     }
 
   }
+  
+  
+  def getSomeQuotes(account:Account)(using Client[IO], ETradeContext) = {
+    
+    EquityQuoteCmd(NonEmptyChain("NVDIA"), )
+  }
 
   def tryAllPortfolioViews(account: Account)(using Client[IO], ETradeContext) = {
     val base = ViewPortfolioCmd(

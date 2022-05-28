@@ -188,7 +188,7 @@ case class IntraDayQuoteDetails(
     // Price adjusted for CA or Dividends
 ) extends QuoteDetails derives Codec.AsObject
 
-case class AllDetails(
+case class AllQuoteDetails(
     adjustedFlag: Option[Boolean],
     ask: BigDecimal,                   // 	number (double)	The current ask price for a security
     askSize: Long,

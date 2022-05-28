@@ -118,8 +118,13 @@ object ViewPortfolioCmd:
   given enc: Encoder.AsObject[ViewPortfolioCmd]       = deriveEncoder[ViewPortfolioCmd].mapJsonObject(discriminator)
   given dec: Decoder[ViewPortfolioCmd]                = deriveDecoder
 
-case class EquityQuoteCmd(symbols: NonEmptyChain[String], details: QuoteDetail = QuoteDetail.INTRADAY, requireEarnings: Boolean = false)
-    extends ETradeCmd
+/** TODO: Change to one, varargs still to symbols (1+) */
+case class EquityQuoteCmd(
+    symbols: NonEmptyChain[String],
+    details: QuoteDetail = QuoteDetail.INTRADAY,
+    requireEarnings: Boolean = false,
+    skipMiniOptionsCheck: Boolean = true
+) extends ETradeCmd
 
 object EquityQuoteCmd:
   private val discriminator: JsonObject => JsonObject = ETradeCmd.postAddDiscriminator(this.toString)
