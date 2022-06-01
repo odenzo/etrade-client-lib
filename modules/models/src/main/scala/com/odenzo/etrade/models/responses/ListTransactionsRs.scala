@@ -1,17 +1,19 @@
 package com.odenzo.etrade.models.responses
 
 import cats.data.Chain
-import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.opaques.NEString
+import com.odenzo.etrade.models.utils.CirceUtils
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 
 import javax.lang.model.element.NestingKind
 
-case class TransactionListRs(transactionListResponse: TransactionListResponse)
-object TransactionListRs:
-  given codec: Codec.AsObject[TransactionListRs] = CirceUtils.capitalizeCodec(deriveCodec[TransactionListRs])
+case class ListTransactionsRs(transactionListResponse: TransactionListResponse) {
+  def transactions: Chain[Transaction] = transactionListResponse.transaction
+}
+object ListTransactionsRs:
+  given codec: Codec.AsObject[ListTransactionsRs] = CirceUtils.capitalizeCodec(deriveCodec[ListTransactionsRs])
   // Perhaps worth having a special case for this since its standard approach often and in etrade.
 
 case class TransactionListResponse(
@@ -26,5 +28,6 @@ case class TransactionListResponse(
 
 object TransactionListResponse:
   import com.odenzo.etrade.models.codecs.given
-  val rename                                           = Map("transaction" -> "Transaction")
-  given codec: Codec.AsObject[TransactionListResponse] = CirceUtils.renamingCodec(deriveCodec[TransactionListResponse], rename)
+
+  given codec: Codec.AsObject[TransactionListResponse] = CirceUtils
+    .renamingCodec(deriveCodec[TransactionListResponse], Map("transaction" -> "Transaction"))

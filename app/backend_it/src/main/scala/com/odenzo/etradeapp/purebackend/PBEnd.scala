@@ -15,9 +15,8 @@ import com.odenzo.etrade.oauth.server.*
 import org.http4s.client.Client
 
 /**
-  * A Pure Backend App that uses etrade-client-lib to do login (and popup browser) Just a quick have to demonstrate logging in and pulling
-  * some info. This has the default mode to load an access token from disk. Check if it works, if not, create a new one and override the one
-  * on disk. Meh.... some autologin browser scraping thing better but I am sure its not straight forward.
+  * A Pure Backend App that uses etrade-client-lib to do login (and popup browser). This has a very insecure hack of caching the tokens on
+  * disk so you can run multiple times w/o logging in again. More of a demo on the command based way to run things.
   */
 object PBEnd extends IOApp {
   val browserOpen = com.odenzo.etrade.oauth.server.BrowserLaunchFn.macMicrosoftEdge
@@ -36,10 +35,7 @@ object PBEnd extends IOApp {
         given Client[IO] = baseClient
         for {
           framework   <- OAuthFramework(config)
-          sessionData <- validateCachedTokens(config).flatMap {
-                           case Some(value) => IO.pure(value)
-                           case None        => doManualLogin(framework)
-                         }
+          sessionData <- sessionFromValidatedCachedTokens(config).redeemWith(_ => doManualLogin(framework), bind => bind.pure)
           context      = new ETradeContext(config.apiUrl)
           clientR      = framework.constructSigningMiddlewareClient(sessionData)
           resource     = clientR.map(c => (c, context))
@@ -50,17 +46,16 @@ object PBEnd extends IOApp {
   }
 
   /** This is not part of the package reall,y just a dev hack. */
-  def validateCachedTokens(config: OAuthConfig)(using client: Client[IO]): IO[Option[OAuthSessionData]] = {
-    CachedAccessTokens
-      .read()
-      .redeem(err => Option.empty, tokens => tokens.some)
-      .flatMap {
-        case None                                           => Option.empty[OAuthSessionData].pure
-        case Some(CachedAccessTokens(rqToken, accessToken)) =>
-          for {
-            _ <- ClientOAuth.refreshAccessToken(config, rqToken, accessToken)
-          } yield Some(OAuthSessionData(accessToken.some, rqToken, config))
-      }
+  def sessionFromValidatedCachedTokens(config: OAuthConfig)(using client: Client[IO]): IO[OAuthSessionData] = {
+    val prog =
+      for {
+        tokens <- CachedAccessTokens.read()
+        session = OAuthSessionData(tokens.access.some, tokens.request, config)
+        _      <- ClientOAuth.refreshAccessToken(session)
+      } yield session
+
+    prog.onError(_ => CachedAccessTokens.clearCache())
+
   }
 
   def doManualLogin(framework: OAuthFramework)(using Client[IO]): IO[OAuthSessionData] = {

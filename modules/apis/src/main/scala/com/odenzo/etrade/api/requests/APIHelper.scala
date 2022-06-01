@@ -5,7 +5,7 @@ import cats.effect.syntax.all.*
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import com.odenzo.etrade.base.OPrint.oprint
+import com.odenzo.etrade.models.utils.OPrint.oprint
 import com.odenzo.etrade.models.StoreId
 import com.odenzo.etrade.models.errors.{ETradeErrorMsg, ETradeErrorRs}
 import com.odenzo.etrade.models.responses.MessageRs
@@ -49,29 +49,29 @@ trait APIHelper {
 
   /** Standard expects JSON respone UNLESS 400 then expects XML Error which it throws */
   protected def standard[T: Decoder](rqIO: IO[Request[IO]])(using c: Client[IO]): IO[T] = {
-    import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
-    rqIO.flatMap { rq =>
-      scribe.info(s"Doing Stndard Call for $rq")
-      c.run(rq)
-        .use { rs =>
-          scribe.warn(s"Response: $rs")
-          val rsCode      = rs.status.code
-          val contentType = rs.contentType
-          scribe.info(s"Code $rsCode Family: ${rs.status.responseClass}")
-          // Expand to all cases that give XML errors
-          rs.status.responseClass match {
-            case org.http4s.Status.ClientError => // if contentType is XML otherwise try Json Messages
-              IO.raiseError(Throwable(s"ClientError: ${rs.status} not dealing with XML again yet. "))
-            //              import org.http4s.scalaxml.*
-            //              rs.as[Elem].map(elem => errorXmlRsFromXml(rq, rs, elem)).flatMap(err => IO.raiseError(err))
-            case org.http4s.Status.ServerError =>
-              rs.as[String] *> IO.raiseError(ETradeErrorRs(rq.toString, List.empty)) // Actually  its text/html,
+    rqIO.flatMap((rq: Request[IO]) => standardV2[T](rq))
+  }
 
-            case org.http4s.Status.Informational => rs.as[T]
-            case _                               => rs.as[T]
-          }
+  protected def standardV2[T: Decoder](rq: Request[IO])(using c: Client[IO]): IO[T] = {
+    import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
+
+    c.run(rq)
+      .use { rs =>
+
+        val rsCode      = rs.status.code
+        val contentType = rs.contentType
+        rs.status.responseClass match {
+          case org.http4s.Status.ClientError => // if contentType is XML otherwise try Json Messages
+            IO.raiseError(Throwable(s"ClientError: ${rs.status} not dealing with XML again yet. "))
+          //              import org.http4s.scalaxml.*
+          //              rs.as[Elem].map(elem => errorXmlRsFromXml(rq, rs, elem)).flatMap(err => IO.raiseError(err))
+          case org.http4s.Status.ServerError =>
+            rs.as[String] *> IO.raiseError(ETradeErrorRs(rq.toString, List.empty)) // Actually  its text/html,
+
+          case org.http4s.Status.Informational => rs.as[T]
+          case _                               => rs.as[T]
         }
-    }
+      }
   }
 
   protected def withMessages[T: Decoder](rqIO: IO[Request[IO]])(using c: Client[IO]): IO[Ior[MessageRs, T]] = {
@@ -116,6 +116,27 @@ trait APIHelper {
       }
     }
     returning
+  }
+
+  protected def iterateReducingPages[A, B: Decoder: Semigroup](
+      rqFn: Option[A] => IO[Request[IO]],
+      shouldLoop: B => Option[A]
+  )(using client: Client[IO]) = {
+
+    def looper(cursor: Option[A], acc: Option[B]): IO[B] = {
+      for {
+        rq      <- rqFn(cursor)
+        result  <- standardV2[B](rq)
+        nextPage = shouldLoop(result)
+        folded   =
+          acc match {
+            case None    => result
+            case Some(p) => Semigroup[B].combine(p, result)
+          }
+        cont    <- if nextPage.isEmpty then IO.pure(folded) else looper(nextPage, Some(folded))
+      } yield cont
+    }
+    looper(None, None)
   }
 
   // https://github.com/precog/matryoshka not updated yet,

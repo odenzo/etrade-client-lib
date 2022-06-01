@@ -44,18 +44,20 @@ lazy val noPublishSettings = Seq(publishArtifact := false)
 
 lazy val root = project
   .in(file("."))
-  .aggregate(common.js, common.jvm, models.js, models.jvm, apis.js, apis.jvm, server.jvm, pureBackend)
+  .aggregate(models.js, models.jvm, apis.js, apis.jvm, server.jvm, pureBackend)
   .withId("etrade")
   .settings(
     name           := "etrade",
     publish / skip := true
   )
 
-lazy val common = crossProject(JSPlatform, JVMPlatform)
+lazy val models = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
-  .in(file("modules/common"))
+  .in(file("modules/models"))
+  // .withId("models")
+  .settings(name := "etrade-models", libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.http4sCirce.value))
   .settings(
-    name := "etrade-common",
+    libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value),
     libraryDependencies ++= Seq(
       XLibs.circeCore.value,
       XLibs.circeParser.value,
@@ -75,23 +77,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "com.odenzo" %%% "http4s-dom-xml" % "0.0.4",
       XLibs.http4sCirce.value
     )
-  )
-  .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) // Tesst
+  ) //
+  .jvmSettings()
   .jsSettings(libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13))
 
-lazy val models = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/models"))
-  // .withId("models")
-  .dependsOn(common)
-  .settings(name := "etrade-models", libraryDependencies ++= Seq(XLibs.http4sCore.value, XLibs.http4sCirce.value))
-  .settings(libraryDependencies ++= Seq(XLibs.munit.value, XLibs.munitCats.value)) //
-  .jvmSettings().jsSettings()
-
-lazy val apis = crossProject(JSPlatform, JVMPlatform)
+lazy val apis = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/apis"))
-  .dependsOn(common, models)
+  .dependsOn(models)
   .settings(
     name := "etrade-apis",
     libraryDependencies ++= Seq(
@@ -112,7 +105,7 @@ lazy val apis = crossProject(JSPlatform, JVMPlatform)
 lazy val server = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/server"))
-  .dependsOn(common, models, apis)
+  .dependsOn(models, apis)
   .settings(
     name := "etrade-server",
     libraryDependencies ++= Seq(
@@ -127,7 +120,7 @@ lazy val server = crossProject(JVMPlatform)
 
 lazy val pureBackend = project
   .in(file("app/backend_it"))
-  .dependsOn(common.jvm % "compile->compile;test->test", apis.jvm % "compile->compile;test->test", server.jvm)
+  .dependsOn(apis.jvm % "compile->compile;test->test", server.jvm)
   .settings(
     libraryDependencies ++= Libs.testing ++ Libs.scribeSLF4J ++ Libs.http4s ++ Libs.standard,
     mainClass   := Some("com.odenzo.etradeapp.purebackend.PBEnd"),

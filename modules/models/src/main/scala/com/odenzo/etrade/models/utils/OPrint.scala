@@ -1,14 +1,9 @@
-package com.odenzo.etrade.base
-import io.circe.syntax.*
-import cats.effect.*
-import cats.effect.syntax.all.*
-
-import cats.*
-import cats.data.*
-import cats.syntax.all.*
+package com.odenzo.etrade.models.utils
 
 import io.circe.{Json, JsonObject}
 import pprint.{PPrinter, Tree}
+import io.circe.syntax.*
+import cats.syntax.all.*
 
 object OPrint {
   def oprint[A](a: A): String = pp.apply(a, 120, 10000).render

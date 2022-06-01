@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
-import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
+import com.odenzo.etrade.models.utils.CirceUtils
 import io.circe.*
 
 import java.time.Instant

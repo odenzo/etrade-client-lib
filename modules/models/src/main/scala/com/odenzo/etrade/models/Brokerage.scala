@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models
 
-import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.responses.TransactionDetailsResponse
+import com.odenzo.etrade.models.utils.CirceUtils
 import io.circe.{Codec, Decoder, JsonObject, generic}
 
 import java.time.Instant

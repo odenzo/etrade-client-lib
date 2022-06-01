@@ -1,7 +1,6 @@
-package com.odenzo.etrade.base
+package com.odenzo.etrade.models.utils
 
-import com.odenzo.etrade.base.OPrint.oprint
-import scribe.filter.{FilterBuilder, PackageNameFilter, select}
+import scribe.filter.*
 import scribe.format.*
 import scribe.modify.LevelFilter
 import scribe.*
@@ -20,7 +19,7 @@ object ScribeConfig extends Logger {
     * @return
     */
   def setupRoot(initialLevel: Level = Level.Debug, onlyWarnings: List[String] = List("com.odenzo.foo")): Logger = {
-    scribe.warn(s"Setting ALL Logging to $initialLevel and muting ${oprint(onlyWarnings)}")
+    scribe.warn(s"Setting ALL Logging to $initialLevel and muting ${pprint(onlyWarnings)}")
 
     val myFormatter: Formatter = formatter"->>  [$dateFull] $levelPaddedRight $threadName $position $newLine--   $messages$newLine"
 

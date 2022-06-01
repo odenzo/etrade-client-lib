@@ -1,6 +1,5 @@
-package com.odenzo.etrade.base
+package com.odenzo.etrade.models.utils
 
-import com.odenzo.etrade.base.CirceUtils
 import io.circe.*
 import io.circe.Decoder.{Result, const}
 import io.circe.JsonObject.*

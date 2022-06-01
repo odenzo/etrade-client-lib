@@ -1,6 +1,6 @@
 package com.odenzo.etrade.models.responses
 
-import com.odenzo.etrade.base.OPrint.oprint
+import com.odenzo.etrade.models.utils.OPrint.oprint
 import io.circe.Decoder.Result
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, Json, JsonObject, ParsingFailure}

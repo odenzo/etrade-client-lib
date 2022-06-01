@@ -21,23 +21,11 @@ object OAuthStaticSigner {
       case None              => IO(scribe.warn("No Access Token to SIGN Request - Not Signing")).as(rq)
   }
 
-//  def apply[IO](
-//      session: OAuthSessionData
-//  )(client: Client[IO]): Client[IO] = {
-//    // Request[F] => Resource[F,Response[F]]
-//    Client[IO] { (rq: Request[IO]) => Resource.eval(patchHeader(session)(rq)).flatMap(modRq => client.run(modRq)) }
-//
-//  }
-
   def apply(session: OAuthSessionData)(client: Client[IO]): Client[IO] = {
-    scribe.info(s"Contructing Signer with $session")
     def fn(rq: Request[IO]): Resource[IO, Response[IO]] = {
-      scribe.info(s"Signing Middleware Function with Session Access Token: ${session.accessToken}")
       val resourced: Resource[IO, Request[IO]] = Resource.eval(patchHeader(session)(rq))
       val response: Resource[IO, Response[IO]] = resourced.flatMap { (nrq: Request[IO]) =>
-        scribe.info(s"OH, doing a client run on Sifned $nrq")
         val firstRs: Resource[IO, Response[IO]] = client.run(nrq)
-        scribe.info("RUN Completed into resource.")
         firstRs
       }
 

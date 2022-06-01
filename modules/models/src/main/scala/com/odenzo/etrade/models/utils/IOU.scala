@@ -1,4 +1,4 @@
-package com.odenzo.etrade.base
+package com.odenzo.etrade.models.utils
 
 import cats.*
 import cats.data.*
@@ -8,6 +8,17 @@ import cats.syntax.all.*
 
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Future
+
+/**
+  * '''This is code block?''' \``` val x = ?:("hel")(_ + "lo ")(_ * 2)(_ + "world")() x: java.lang.String = hello hello world``` Will work
+  * \``` val x = ?:("hel")(_ + "lo * ")(_ => (null: String))(_ + "world")() x: java.lang.String = null ````
+  * @param x
+  * @tparam T
+  */
+case class ?:[T](x: T) {
+  def apply(): T                         = x
+  def apply[U >: Null](f: T => U): ?:[U] = if x == null then ?:[U](null) else ?:[U](f(x))
+}
 
 /** This can go away and FU used instead */
 trait IOU {

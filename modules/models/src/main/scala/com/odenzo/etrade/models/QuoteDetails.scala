@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models
 
 import cats.data.Chain
-import com.odenzo.etrade.base.CirceUtils
+import com.odenzo.etrade.models.utils.CirceUtils
 
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
@@ -81,11 +81,12 @@ case class MutualFundQuoteDetails(
 
 object MutualFundQuoteDetails:
   import com.odenzo.etrade.models.codecs.given
-  val rename                                          = Map("netAssets" -> "NetAssets")
-  given codec: Codec.AsObject[MutualFundQuoteDetails] = CirceUtils.renamingCodec(deriveCodec[MutualFundQuoteDetails], rename)
+
+  given codec: Codec.AsObject[MutualFundQuoteDetails] = CirceUtils
+    .renamingCodec(deriveCodec[MutualFundQuoteDetails], Map("netAssets" -> "NetAssets"))
 
 /**
-  * Before or After Hourss, this is embedded not top level?
+  * Before or After Hourss,
   *
   * @param lastPrice
   * @param change
@@ -291,29 +292,26 @@ case class AllQuoteDetails(
           }
  */
 case class OptionQuoteDetails(
-    // "Option" : {
-    //  "ask" : 102.0,
-    //  "askSize" : 500,
-    //  "bid" : 100.25,
-    //  "bidSize" : 100,
-    //  "companyName" : "CLOUDFLARE INC CL A COM",
-    //  "daysToExpiration" : 0,
-    //  "lastTrade" : 101.21,
-    //  "openInterest" : 0,
-    //  "optionPreviousBidPrice" : 0,
-    //  "optionPreviousAskPrice" : 0,
-    //  "osiKey" : "",
-    //  "intrinsicValue" : 0.0,
-    //  "timePremium" : 0.0,
-    //  "optionMultiplier" : 0.0,
-    //  "contractSize" : 0.0,
-    //  "symbolDescription" : "CLOUDFLARE INC CL A COM"
-    // },
-
+    ask: BigDecimal,
+    askSize: Long,
+    bid: BigDecimal,
+    bidSize: Long,
+    companyName: String,
+    daysToExpiration: Long,
+    lastTrade: BigDecimal,
+    openInterest: Long,
+    optionPreviousBidPrice: BigDecimal,
+    optionPreviousAskPrice: BigDecimal,
+    osiKey: String,
+    intrinsicValue: BigDecimal,
+    timePremium: BigDecimal,
+    optionMultiplier: BigDecimal, // Double?
+    contractSize: BigDecimal,
+    symbolDescription: String
 ) extends QuoteDetails derives Codec.AsObject
 
 /** Looks OK for stocks, low52 is zero though */
-case class Week52(
+case class Week52QuoteDetails(
     companyName: String,
     high52: BigDecimal,        //  (double)	The highest price at which a security has traded during the current day
     lastTrade: BigDecimal,     //  (double)	The price of the last trade

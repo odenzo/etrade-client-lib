@@ -1,29 +1,29 @@
 package com.odenzo.etrade.models.responses
 
+import cats.Semigroup
 import cats.data.NonEmptyList
-import com.odenzo.etrade.base.CirceUtils
+import com.odenzo.etrade.models.utils.CirceUtils
 import com.odenzo.etrade.models.{PortfolioTotals, Position}
 import io.circe.*
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
+import monocle.*
+import monocle.syntax.all.*
 
-/** @param totals Is optional I think, if not requeted */
-case class ViewPortfolioRs(totals: Option[PortfolioTotals], accountPortfolio: NonEmptyList[AccountPortfolio])
+/** @param totals Is optional */
+case class ViewPortfolioRs(totals: Option[PortfolioTotals], accountPortfolio: List[AccountPortfolio])
 
 object ViewPortfolioRs {
   import com.odenzo.etrade.models.codecs.given
-  private val c1: Codec.AsObject[ViewPortfolioRs] = CirceUtils.capitalizeCodec(deriveCodec[ViewPortfolioRs])
-  given Codec.AsObject[ViewPortfolioRs]           = Codec
-    .AsObject
-    .from(
-      decodeA = c1.at("PortfolioResponse"),
-      encodeA = (c1: Encoder.AsObject[ViewPortfolioRs])
-        .mapJsonObject(jo => JsonObject.singleton("PortfolioResponse", Json.fromJsonObject(jo)))
-    )
+  given Codec.AsObject[ViewPortfolioRs] = CirceUtils.nestedCapitalizeCodec(deriveCodec[ViewPortfolioRs], "PortfolioResponse")
 
+  given Semigroup[ViewPortfolioRs] with {
+    override def combine(x: ViewPortfolioRs, y: ViewPortfolioRs): ViewPortfolioRs = x
+      .focus(_.accountPortfolio)
+      .modify(_ ++ y.accountPortfolio)
+  }
 }
 
-// Need to upcase position
 case class AccountPortfolio(
     accountId: String,
     position: List[Position],
@@ -32,12 +32,8 @@ case class AccountPortfolio(
     totalPages: Option[Long]
 )
 
-// Really need to deal with { PortfolioResponse { AccountPortfolio [ { List(AccountPortfilio }}
-// CIRCE Decoder something like
-
 object AccountPortfolio {
 
   import com.odenzo.etrade.models.codecs.given
-  val rename                                    = Map("position" -> "Position")
-  given codec: Codec.AsObject[AccountPortfolio] = CirceUtils.renamingCodec(deriveCodec[AccountPortfolio], rename)
+  given codec: Codec.AsObject[AccountPortfolio] = CirceUtils.renamingCodec(deriveCodec[AccountPortfolio], Map("position" -> "Position"))
 }

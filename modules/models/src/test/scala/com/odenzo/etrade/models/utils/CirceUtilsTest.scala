@@ -1,7 +1,7 @@
-package com.odenzo.base
+package com.odenzo.etrade.models.utils
 
-import munit.FunSuite
 import io.circe.*
+import munit.FunSuite
 
 object ElseWhere {
 

@@ -1,4 +1,4 @@
-package com.odenzo.etrade.base
+package com.odenzo.etrade.models.utils
 
 import io.circe.*
 import io.circe.Decoder.decodeString
@@ -29,6 +29,10 @@ trait CirceUtils {
     mapping.toList.map(_.swap).to(Map)
   }
 
+  def liftJsonObject(to: String)(obj: JsonObject): JsonObject = {
+    JsonObject.singleton(to, Json.fromJsonObject(obj))
+  }
+
   /** Applies fn to all keys in the Json which should be a JsonObject */
   def transformKeys(fn: String => String)(obj: Json): Json = obj.mapObject { o =>
     JsonObject.fromIterable(o.toIterable.map((k, v) => fn(k) -> v))
@@ -56,6 +60,18 @@ trait CirceUtils {
       decodeA = codec.prepare(prepareKeys(unCaptialize)),
       encodeA = codec.mapJsonObject(encoderTransformKey(capitalize))
     )
+
+  /** Converts all case class fields to Upper-Case Json Field Names */
+  def nestedCapitalizeCodec[T](codec: Codec.AsObject[T], at: String): Codec.AsObject[T] = Codec
+    .AsObject
+    .from(
+      decodeA = codec.prepare(prepareKeys(unCaptialize)).at(at),
+      encodeA = {
+        val mapper: JsonObject => JsonObject = encoderTransformKey(capitalize) andThen liftJsonObject(at)
+        codec.mapJsonObject(mapper)
+      }
+    )
+
 // TODO: Stuck on generic enum codec for simple Value
 //  def stringEnumCodec[T <: Product]                                   = {
 //    Codec.from[T](

@@ -1,7 +1,6 @@
-package com.odenzo.etrade.base
+package com.odenzo.etrade.models.utils
 
 import cats.effect.IO
-import com.odenzo.etrade.base.ScribeConfig
 import munit.FunSuite
 import scribe.Level
 class ScribeConfigTest extends FunSuite {

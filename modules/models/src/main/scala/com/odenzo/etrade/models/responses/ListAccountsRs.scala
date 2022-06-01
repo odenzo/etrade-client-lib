@@ -1,7 +1,8 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.etrade.models.Account
-import io.circe.generic.semiauto.deriveEncoder
+import com.odenzo.etrade.models.utils.CirceUtils
+import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
 import io.circe.*
 import io.circe.syntax.*
 
@@ -9,6 +10,7 @@ case class ListAccountsRs(accounts: List[Account])
 
 object ListAccountsRs {
 
+  /* Caution, only test for one account but goofy format, { AccountListResponse { Accounts { Account [ <AccountObj> ] .. */
   private val decoder: Decoder[ListAccountsRs] =
     new Decoder[ListAccountsRs] {
       final def apply(c: HCursor): Decoder.Result[ListAccountsRs] = {

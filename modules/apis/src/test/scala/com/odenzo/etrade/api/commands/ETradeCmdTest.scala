@@ -3,7 +3,10 @@ package com.odenzo.etrade.api.commands
 import io.circe.*
 import io.circe.syntax.{*, given}
 import com.odenzo.etrade.api.commands.*
-import com.odenzo.etrade.api.commands.ETradeCmd.*
+import com.odenzo.etrade.api.commands.given
+import com.odenzo.etrade.models.Account
+
+import scala.reflect.Typeable
 
 class ETradeCmdTest extends munit.FunSuite {
 
@@ -13,6 +16,13 @@ class ETradeCmdTest extends munit.FunSuite {
 
     scribe.info(s"ListAccounts JSON>>\n${cmd.asJson.spaces4}")
     scribe.info(s"Lookup JSON>>\n${cmdK.asJson.spaces4}")
+
+    val foo: AnyVal                                = 123: Long
+    def filterWhen[T: Typeable](a: Any): Option[T] =
+      a match {
+        case sa: T => Some(sa)
+        case _     => Option.empty[T]
+      }
 
   }
 
@@ -64,4 +74,5 @@ class ETradeCmdTest extends munit.FunSuite {
 
   }
 
+  test("Encoder All") {}
 }
