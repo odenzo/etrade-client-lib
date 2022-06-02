@@ -3,6 +3,7 @@ package com.odenzo.etrade.api.commands
 import cats.Eq
 import com.odenzo.etrade.api.commands.SampleCommands.*
 import com.odenzo.etrade.api.commands.{*, given}
+import com.odenzo.etrade.api.requests.{ListAccountsCmd, ListTransactionsCmd}
 import com.odenzo.etrade.models.{Account, EDateStamp, ETimestamp}
 import io.circe.*
 import io.circe.syntax.{*, given}

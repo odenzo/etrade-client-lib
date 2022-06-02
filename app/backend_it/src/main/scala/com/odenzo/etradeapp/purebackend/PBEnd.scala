@@ -5,12 +5,11 @@ import cats.effect.syntax.all.*
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import com.odenzo.etrade.api.ETradeContext
+import com.odenzo.etrade.api.{ETradeApis, ETradeAuth, ETradeCallback, ETradeConfig, ETradeContext}
 import com.odenzo.etrade.api.commands.{*, given}
-import com.odenzo.etrade.api.models.{ETradeApis, ETradeAuth, ETradeCallback, ETradeConfig, OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.models.Account
 import com.odenzo.etrade.models.responses.ListAccountsRs
-import com.odenzo.etrade.oauth.{ClientOAuth, OAuthClientMiddleware}
+import com.odenzo.etrade.oauth.{ClientOAuth, OAuthClientMiddleware, OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.oauth.server.*
 import org.http4s.client.Client
 

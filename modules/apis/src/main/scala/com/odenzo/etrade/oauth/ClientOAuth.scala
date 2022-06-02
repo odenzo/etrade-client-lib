@@ -6,15 +6,14 @@ import cats.effect.*
 import cats.effect.kernel.Outcome.{Canceled, Errored, Succeeded}
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
-import com.odenzo.etrade.api.models.{OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.models.utils.OPrint.oprint
 import fs2.concurrent.SignallingRef
 import org.http4s.Uri.*
 import org.http4s.client.oauth1.ProtocolParameter.Verifier
-import org.http4s.client.{Client, oauth1}
 import org.http4s.client.oauth1.{Consumer, ProtocolParameter, Token}
+import org.http4s.client.{Client, oauth1}
 import org.http4s.syntax.literals.uri
-import org.http4s.{HttpRoutes, ParseFailure, Request, Uri, UrlForm}
+import org.http4s.*
 
 import java.util.UUID
 import scala.concurrent.duration.*

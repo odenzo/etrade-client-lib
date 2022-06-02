@@ -7,6 +7,7 @@ import cats.effect.syntax.all.*
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
+import com.odenzo.etrade.api.requests.ListAccountsCmd
 
 class CommandExecutorTest extends munit.FunSuite {
 

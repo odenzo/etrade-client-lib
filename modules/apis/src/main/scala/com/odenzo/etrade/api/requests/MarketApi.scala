@@ -49,7 +49,7 @@ object MarketApi extends APIHelper {
                 (baseUri / "v1" / "market" / "quote" / csv)
                   .withQueryParam("overrideSymbolCount", over)
                   .withQueryParam("detailFlag", details.toString)
-                  .withQueryParam("skipMiniOptionsCheck", requireEarnings)
+                  .withQueryParam("skipMiniOptionsCheck", skipMiniOptionCheck)
                   .withQueryParam("requireEarningsDate", requireEarnings),
                 headers = acceptJsonHeaders
               )

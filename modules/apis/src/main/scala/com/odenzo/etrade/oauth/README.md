@@ -1,39 +1,30 @@
 # Client Usage
 
+This is a custom OAuth to deal with e-trade APIs.
+Its pretty much OAuth 1.
+Request Tokens have TTL around 5-10 minutes
+Access Tokens having a couple hours TTL, and can be refreshed.
+At End-of-Day New York time they are cancelled and a new login must be done.
 
-Version 1.0 Approach:
+Login is always manual with the pseudo-flow:
 
-Everything in APIs module to use once have a signed on Client/Access Token.
+1. Get Request Token for Sandbox or Prod (using Consumer Keys)
+2. With request token, open e-trade login URL in browser, user does a few steps to login
+3. The account MUST be setup, and the setup defined an OAuth callback or no callback. I always use callback,
+4. The callback receives Auth and Verify values, which are then exhanged for access token.
 
-Three possible ways to get access token:
-1. Callback to JVM HTTP Server
-2. Callback to Browser based HTTP Server
-3. Cut and paste Verifier from whatever method needed.
+If no callback is used, then cut-paste of the VERIFIER token to use API to fetch access token.
 
-#3 I don't care about, since I have callback configured on my account.
-Try and put it in anyway, as shared JVM/JS and leverage that as single source of truth from the other servers.
+These library can be used in a "total backend" mode, in which case it pops open a browser window to redirect URL, and runs a WebServer that
+handles the callback URL.
 
+If used in a front-end/back-end way, it is designed to work with just one user now, basically the browser as a UI style.
+You could do API calls to e-trade from front-end ScalaJS but CORS prevents this.
 
+So, the approach then would be to have a long-running back-end server and initiate the login from the front-end redirect.
+There are lots of approaches so not much direct support is provided here.
 
-Configure the case class ETradeConfig from its components and your values.
-
-The e-trade client can be run solely from the browser, or with a JVM backend and (optional) front end components.
-
-The primary/only real different is how the login is accomplished. Once authaorized e-trade calls are made the same way.
-An HTTP4S client is provided with middle-ware that automatically handled the authentication for API calls once logged in.
-So, you just choose one of the two ways to get the initial authentication:
-
-For both methods you first have to setup the configuration, if not using callback just make something up:
-
-```scala
-    import com.odenzo.etrade.client.engine.ETradeContext
-import com.odenzo.etrade.models.OAuthConfig
-
-val config = ETradeConfig(useSandbox = true, callback = ???, auth = ???)
-val oauthConfig: OAuthConfig = config.asOAuthConfig()
-val context: ETradeContext = config.asContext()
-
-```
+The focus is on executing e-trade API via "Command Approach".
 
 
 ## Authentication via E-Trade Callback

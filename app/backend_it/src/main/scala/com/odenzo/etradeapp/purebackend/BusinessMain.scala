@@ -7,13 +7,21 @@ import cats.effect.*
 import cats.effect.syntax.all.*
 import com.odenzo.etrade.api.ETradeContext
 import com.odenzo.etrade.api.commands.{*, given}
-import com.odenzo.etrade.api.models.*
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.responses.*
 import com.odenzo.etrade.oauth.server.*
 import com.odenzo.etrade.oauth.{ClientOAuth, OAuthClientMiddleware}
 import org.http4s.client.Client
 import com.odenzo.etrade.api.commands.{CommandRunner, given}
+import com.odenzo.etrade.api.requests.{
+  AccountBalancesCmd,
+  EquityQuoteCmd,
+  ListAccountsCmd,
+  ListTransactionsCmd,
+  LookupProductCmd,
+  TransactionDetailsCmd,
+  ViewPortfolioCmd
+}
 
 import java.time.LocalDate
 import scala.annotation.unused

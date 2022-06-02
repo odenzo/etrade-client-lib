@@ -8,7 +8,10 @@ import cats.syntax.all.*
 import org.http4s.client.Client
 import org.http4s.{Request, Uri}
 
-/** Context needed to create HTTPRequests */
+/**
+  * Context needed to create HTTPRequests to ETrade and ensure Client[IO] is available. This was an experiment in context functions for late
+  * binding, not sure its worth it really, but OK.
+  */
 case class ETradeContext(apiUrl: Uri)
 
 /**

@@ -6,12 +6,22 @@ import cats.*
 import cats.data.*
 import cats.syntax.all.*
 import com.odenzo.etrade.api.{ETradeContext, ETradeService}
-import com.odenzo.etrade.api.requests.{MarketApi, AccountsApi}
-
-import com.odenzo.etrade.api.commands.ETradeCmd.given
+import com.odenzo.etrade.api.requests.{
+  AccountBalancesCmd,
+  AccountsApi,
+  ETradeCmd,
+  EquityQuoteCmd,
+  ListAccountsCmd,
+  ListTransactionsCmd,
+  LookupProductCmd,
+  MarketApi,
+  TransactionDetailsCmd,
+  ViewPortfolioCmd
+}
+import com.odenzo.etrade.api.requests.ETradeCmd.given
 import com.odenzo.etrade.models.responses.*
 import com.odenzo.etrade.models.Transaction
-import com.odenzo.etrade.models.{given, *}
+import com.odenzo.etrade.models.{*, given}
 import io.circe.*
 import io.circe.Codec.*
 import io.circe.Encoder.*

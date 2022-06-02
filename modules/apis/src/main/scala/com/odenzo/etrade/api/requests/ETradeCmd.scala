@@ -1,33 +1,23 @@
-package com.odenzo.etrade.api.commands
+package com.odenzo.etrade.api.requests
 
-import cats.syntax.all.*
 import cats.data.NonEmptyChain
-
+import cats.syntax.all.*
+import com.odenzo.etrade.api.commands.*
 import com.odenzo.etrade.models.*
-import com.odenzo.etrade.models.responses.{
-  AccountBalanceRs,
-  ListAccountsRs,
-  ListTransactionsRs,
-  LookupProductRs,
-  QuoteRs,
-  TransactionDetailsRs,
-  ViewPortfolioRs
-}
+import com.odenzo.etrade.models.responses.*
+import com.odenzo.etrade.models.utils.*
 import io.circe.*
-import io.circe.Encoder.*
 import io.circe.Decoder.*
+import io.circe.Encoder.*
+import io.circe.generic.semiauto.*
 import io.circe.syntax.*
 
 import java.time.LocalDate
-import io.circe.generic.semiauto.*
-
+import scala.annotation.unused
 import scala.compiletime.constValue
 import scala.deriving.Mirror
 import scala.reflect.Typeable
 import scala.util.chaining.*
-import com.odenzo.etrade.models.utils.*
-
-import scala.annotation.unused
 
 /**
   * No strict reason to make this a sealed trait other than easy generation of matches etc. Each command just has to be a case class with a

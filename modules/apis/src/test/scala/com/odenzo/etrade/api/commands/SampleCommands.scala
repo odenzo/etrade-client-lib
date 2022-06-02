@@ -2,6 +2,7 @@ package com.odenzo.etrade.api.commands
 
 import cats.effect.IO
 import com.odenzo.etrade.api.ETradeContext
+import com.odenzo.etrade.api.requests.{AccountBalancesCmd, ETradeCmd, ListAccountsCmd, ListTransactionsCmd}
 import com.odenzo.etrade.models.{Account, ETimestamp}
 import org.http4s.*
 import org.http4s.client.Client

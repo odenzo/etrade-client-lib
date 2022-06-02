@@ -1,28 +1,25 @@
-package com.odenzo.etrade.api.models
+package com.odenzo.etrade.oauth
 
-import org.http4s.client.oauth1.{Consumer, Token}
 import cats.conversions.all.autoWidenFunctor
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
-import org.http4s.{Request, Uri}
+import io.circe.*
 import org.http4s.Uri.*
-
+import org.http4s.circe.*
+import org.http4s.client.oauth1.{Consumer, Token}
 import org.http4s.implicits.uri
 import org.http4s.{Request, Uri}
-import io.circe.*
+
 import java.time.Instant
 import java.util.UUID
-import org.http4s.circe.*
 
-/**
-  * SOAuthSession data needs to store information that the e-trade client will use to make calls to e-trade from exisintg Requests.
-  *   - TODO: Probably better to have a facade for this to JSON since it goes between apps, but no Chimney and I am lazy now
-  */
+/** Session Data determines both URL endpoints and the signing of packets */
 case class OAuthSessionData(
     accessToken: Option[Token],
     rqToken: Token,
     config: OAuthConfig, // Just in case we have some different clients (sandbox / prod) using same system
-    created: Instant = Instant.now()
+    created: Instant = Instant.now(),
+    maybeUrl: Option[Uri] = None
 ) derives Codec.AsObject {
 
   def setAccessToken(at: Token): OAuthSessionData = this.copy(accessToken = at.some)

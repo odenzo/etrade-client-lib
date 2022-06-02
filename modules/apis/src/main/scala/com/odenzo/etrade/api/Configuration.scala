@@ -1,14 +1,14 @@
-package com.odenzo.etrade.api.models
+package com.odenzo.etrade.api
 
 import com.odenzo.etrade.api.ETradeContext
+
+import com.odenzo.etrade.oauth.*
+import io.circe.*
 import org.http4s.Uri
 import org.http4s.client.oauth1.Consumer
 import org.http4s.syntax.all.*
-import io.circe.*
 
 import scala.util.Try
-import com.odenzo.etrade.api.models.*
-import com.odenzo.etrade.api.models.OAuthConfig
 
 private val encodeUri = Encoder[String].contramap[Uri](uri => uri.renderString)
 private val decodeUri = Decoder[String].emapTry[Uri](s => Try(Uri.unsafeFromString(s)))
@@ -24,13 +24,17 @@ case class ETradeConfig(
 ) derives Codec.AsObject {
   val apiEndpoint: Uri = if useSandbox then apis.sandbox else apis.prod
 
-  def asOAuthConfig: OAuthConfig = OAuthConfig(
-    apiEndpoint,
-    Consumer(auth.key, auth.secret),
-    callback.callback,
-    apis.redirect,
-    localCallback
-  )
+  def asOAuthConfig: OAuthConfig = com
+    .odenzo
+    .etrade
+    .oauth
+    .OAuthConfig(
+      apiEndpoint,
+      Consumer(auth.key, auth.secret),
+      callback.callback,
+      apis.redirect,
+      localCallback
+    )
   def asContext: ETradeContext   = com.odenzo.etrade.api.ETradeContext(apiEndpoint)
 
 }

@@ -3,7 +3,6 @@ package com.odenzo.etrade.oauth
 import cats.effect.*
 import cats.effect.std.Hotswap
 import cats.syntax.all.*
-import com.odenzo.etrade.api.models.OAuthSessionData
 import org.http4s.client.Client
 import org.http4s.{Headers, Request, Response}
 import org.typelevel.ci.CIString

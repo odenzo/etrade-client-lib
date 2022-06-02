@@ -3,7 +3,6 @@ package com.odenzo.etrade.oauth
 import cats.effect.*
 import cats.effect.implicits.*
 import cats.syntax.all.*
-import com.odenzo.etrade.api.models.OAuthSessionData
 import org.http4s.*
 import org.http4s.circe.middleware.JsonDebugErrorHandler
 import org.http4s.client.*

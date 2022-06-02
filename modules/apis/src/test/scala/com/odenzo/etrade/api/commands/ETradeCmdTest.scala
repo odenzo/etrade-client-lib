@@ -4,6 +4,7 @@ import io.circe.*
 import io.circe.syntax.{*, given}
 import com.odenzo.etrade.api.commands.*
 import com.odenzo.etrade.api.commands.given
+import com.odenzo.etrade.api.requests.{ETradeCmd, ListAccountsCmd, LookupProductCmd}
 import com.odenzo.etrade.models.Account
 
 import scala.reflect.Typeable
