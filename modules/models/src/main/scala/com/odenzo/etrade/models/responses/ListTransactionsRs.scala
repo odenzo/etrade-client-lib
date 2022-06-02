@@ -1,12 +1,13 @@
 package com.odenzo.etrade.models.responses
 
-import cats.data.Chain
+import cats.*
+import cats.data.*
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.opaques.NEString
 import com.odenzo.etrade.models.utils.CirceUtils
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
-
+import monocle.syntax.all.*
 import javax.lang.model.element.NestingKind
 
 case class ListTransactionsRs(transactionListResponse: TransactionListResponse) {
@@ -15,6 +16,10 @@ case class ListTransactionsRs(transactionListResponse: TransactionListResponse) 
 object ListTransactionsRs:
   given codec: Codec.AsObject[ListTransactionsRs] = CirceUtils.capitalizeCodec(deriveCodec[ListTransactionsRs])
   // Perhaps worth having a special case for this since its standard approach often and in etrade.
+  given Semigroup[ListTransactionsRs] with
+    def combine(a: ListTransactionsRs, b: ListTransactionsRs): ListTransactionsRs = a
+      .focus(_.transactionListResponse.transaction)
+      .modify(_ ++ b.transactionListResponse.transaction)
 
 case class TransactionListResponse(
     next: Option[String],           // Empty String to None, and field not present if no more scrolling

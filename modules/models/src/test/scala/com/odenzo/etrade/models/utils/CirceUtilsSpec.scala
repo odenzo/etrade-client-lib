@@ -7,7 +7,27 @@ import io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import munit.FunSuite
 
+sealed trait FooBase derives Codec.AsObject
+case class FooA(a: Int)    extends FooBase derives Codec.AsObject
+case class FooB(b: String) extends FooBase derives Codec.AsObject
+
 class CirceUtilsSpec extends munit.CatsEffectSuite with CirceUtils {
+
+  test("AutoSealed") {
+    val a: FooA    = FooA(12)
+    val b: FooB    = FooB("Buzzz")
+    val g: FooBase = a
+
+    scribe.info(s"FooA: ${a.asJson}")
+    scribe.info(s"FooB: ${b.asJson}")
+    scribe.info(s"BaseA: ${g.asJson}")
+
+    scribe.info(s"FooA: ${a.asJson.as[FooA]}")
+    scribe.info(s"FooB: ${b.asJson.as[FooB]}")
+    scribe.info(s"BaseA: ${g.asJson.as[FooBase]}")
+    scribe.info(s"BaseA: ${g.asJson.as[FooA]}")
+
+  }
 
   test("Capitalize") {
     assertEquals(capitalize("foo"), "Foo")

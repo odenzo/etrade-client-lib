@@ -57,7 +57,6 @@ object AccountsApi extends APIHelper {
       instType: String
   ): ETradeService[AccountBalanceRs] = {
     // S3 now generlized compose and andThen:https://docs.scala-lang.org/scala3/reference/experimental/tupled-function.html#
-
     standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
   }
 
@@ -103,15 +102,9 @@ object AccountsApi extends APIHelper {
   ): ETradeService[ListTransactionsRs] = {
     import com.odenzo.etrade.models.*
     import monocle.syntax.all.*
-    val rqFn: Option[String] => IO[Request[IO]]                = listTransactionsCF(accountIdKey, startDate, endDate, count, _)
-    val extractor: ListTransactionsRs => Option[String]        = (rs: ListTransactionsRs) => rs.transactionListResponse.marker
-    def reduceFn(a: ListTransactionsRs, b: ListTransactionsRs) = a
-      .focus(_.transactionListResponse.transaction)
-      .modify(_ ++ b.transactionListResponse.transaction)
-
-    iteratePages(rqFn, extractor)(None, Chain.empty).map {
-      (responses: Chain[ListTransactionsRs]) => responses.toList.reduceLeft(reduceFn)
-    }
+    val rqFn: Option[String] => IO[Request[IO]]         = listTransactionsCF(accountIdKey, startDate, endDate, count, _)
+    val extractor: ListTransactionsRs => Option[String] = (rs: ListTransactionsRs) => rs.transactionListResponse.marker
+    iterateReducingPages(rqFn, extractor)
   }
 
   /** This endpoint is overloaded a bit much, and response format is too. This can be paging. */

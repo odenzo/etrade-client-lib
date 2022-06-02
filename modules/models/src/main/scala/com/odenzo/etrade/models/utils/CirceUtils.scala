@@ -14,12 +14,10 @@ trait CirceUtils {
 
   /** This must be inline or Mirror can't get a constant T */
   inline def deriveDiscCodec[T](d: String)(using m: Mirror.Of[T]): Codec.AsObject[T] = {
-    scribe.info(s"Deriving Codec Disc with $d")
-    val dec                  = deriveDecoder[T]
-    val enc                  = deriveEncoder[T].mapJsonObject(jo => JsonObject.singleton(discriminatorKey, Json.fromString(d)))
-    val c: Codec.AsObject[T] = Codec.AsObject.from(dec, enc)
-    scribe.info(s"Completed CODEC AS OBJECT Derivation")
-    c
+    scribe.info(s"WhatHappened: $d")
+    val dec: Decoder[T]          = deriveDecoder[T] // Note: This doesn't care if discriminator is there or not intentionally
+    val enc: Encoder.AsObject[T] = deriveEncoder[T].mapJsonObject(jo => jo.add(discriminatorKey, Json.fromString(d)))
+    Codec.AsObject.from(dec, enc)
   }
 
   /**

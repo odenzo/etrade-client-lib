@@ -62,6 +62,8 @@ lazy val models = crossProject(JVMPlatform, JSPlatform)
       XLibs.circeCore.value,
       XLibs.circeParser.value,
       XLibs.circeGeneric.value,
+      // XLibs.circeGenericExtras.value,
+      // XLibs.circeGenericSimple.value,
       XLibs.circePointer.value,
       XLibs.circeTest.value,
       XLibs.monocle.value,

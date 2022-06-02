@@ -6,19 +6,9 @@ import cats.*
 import cats.data.*
 import cats.syntax.all.*
 import com.odenzo.etrade.api.{ETradeContext, ETradeService}
-import com.odenzo.etrade.api.requests.{
-  AccountBalancesCmd,
-  AccountsApi,
-  ETradeCmd,
-  EquityQuoteCmd,
-  ListAccountsCmd,
-  ListTransactionsCmd,
-  LookupProductCmd,
-  MarketApi,
-  TransactionDetailsCmd,
-  ViewPortfolioCmd
-}
-import com.odenzo.etrade.api.requests.ETradeCmd.given
+import com.odenzo.etrade.api.requests.{AccountsApi, ETradeCmd, MarketApi}
+
+import com.odenzo.etrade.api.requests.*
 import com.odenzo.etrade.models.responses.*
 import com.odenzo.etrade.models.Transaction
 import com.odenzo.etrade.models.{*, given}
@@ -37,7 +27,9 @@ import org.http4s.client.Client
   *
   * The goal here is to have different execution based on imports different set of TC implementations, one set for back-end, one set for
   * front end. This is for back-end, or direct usage of APIs without proxying from front to back. Can also be used in front=end if CORS not
-  * an issue, so its left in this cross plaform area.
+  * an issue, so its left in this cross plaform area. You could also make another set with more debugging etc. Would be nice to just define
+  * the Worker and the ETradeCmd and make sure the tupled parametes from command match the tuple of the Worker. For another day. This is
+  * really "shape matching" instead of type matching. Could move to type matching by making the *App(x,y,z) just *App(someCmd)
   */
 trait CommandRunner[A <: ETradeCmd] {
   def fetch(a: A): ETradeService[a.RESULT]
@@ -52,23 +44,19 @@ def fetch(a: ListAccountsCmd): ETradeService[a.RESULT]    = AccountsApi.listAcco
 def fetch(a: AccountBalancesCmd): ETradeService[a.RESULT] = AccountsApi.accountBalanceApp.tupled(Tuple.fromProductTyped(a))
 
 given lac: CommandRunner[ListAccountsCmd] with
-
   override def fetch(a: ListAccountsCmd): ETradeService[ListAccountsRs] = AccountsApi.listAccountsApp()
 
 given CommandRunner[AccountBalancesCmd] with
-
   override def fetch(a: AccountBalancesCmd): ETradeService[AccountBalanceRs] = AccountsApi
     .accountBalanceApp
     .tupled(Tuple.fromProductTyped(a))
 
 given lcc: CommandRunner[ListTransactionsCmd] with
-
   override def fetch(a: ListTransactionsCmd): ETradeService[ListTransactionsRs] = AccountsApi
     .listTransactionsApp
     .tupled(Tuple.fromProductTyped(a))
 
 given CommandRunner[TransactionDetailsCmd] with
-
   override def fetch(a: TransactionDetailsCmd): ETradeService[TransactionDetailsRs] = AccountsApi
     .transactionDetailsApp
     .tupled(Tuple.fromProductTyped(a))

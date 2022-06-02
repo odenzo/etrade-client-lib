@@ -6,17 +6,70 @@ import com.odenzo.etrade.api.commands.*
 import com.odenzo.etrade.api.commands.given
 import com.odenzo.etrade.api.requests.{ETradeCmd, ListAccountsCmd, LookupProductCmd}
 import com.odenzo.etrade.models.Account
-
+import io.circe.Encoder.*
 import scala.reflect.Typeable
 
 class ETradeCmdTest extends munit.FunSuite {
+  val lookupZoo: LookupProductCmd = LookupProductCmd("zoo")
+
+  test("ConcretetEncodeConcereteDecode") {
+    val a: ETradeCmd = lookupZoo
+    val json         = lookupZoo.asJson
+    scribe.info(s"${pprint(a)} : ${json.spaces4}")
+    val back         = json.as[LookupProductCmd]
+    scribe.info(s"Back: ${pprint(back)}")
+    assert(back.isRight)
+  }
+
+  test("ConcretetEncodeTraitDecode") {
+    val a: ETradeCmd = lookupZoo
+    val json         = lookupZoo.asJson
+    scribe.info(s"${pprint(a)} : ${json.spaces4}")
+    val back         = json.as[ETradeCmd]
+    scribe.info(s"Back: ${pprint(back)}")
+    assert(back.isRight)
+  }
+
+  test("TraitEncodeConcreteDecode") {
+    val a: ETradeCmd = lookupZoo
+    val json         = a.asJson
+    scribe.info(s"${pprint(a)} : ${json.spaces4}")
+    val back         = json.as[LookupProductCmd]
+    scribe.info(s"Back: ${pprint(back)}")
+    assert(back.isRight)
+  }
+
+  test("TraitEncodeTraitDecode") {
+    val a: ETradeCmd = lookupZoo
+    val json         = a.asJson
+    scribe.info(s"${pprint(a)} : ${json.spaces4}")
+    val back         = json.as[ETradeCmd]
+    scribe.info(s"Back: ${pprint(back)}")
+    assert(back.isRight)
+  }
 
   test("Specific asJson") {
+
     val cmd: ListAccountsCmd   = ListAccountsCmd()
     val cmdK: LookupProductCmd = LookupProductCmd("zoo")
 
-    scribe.info(s"ListAccounts JSON>>\n${cmd.asJson.spaces4}")
-    scribe.info(s"Lookup JSON>>\n${cmdK.asJson.spaces4}")
+    val json    = cmd.asJson
+    val jsonObj = cmd.asJsonObject
+
+    val jsonK           = cmdK.asJson
+    val joK             = cmdK.asJsonObject
+    val first           = false
+    val ecmd: ETradeCmd = if first then cmd else cmdK
+
+    val jsonE = ecmd.asJson
+    val joE   = ecmd.asJsonObject
+
+    scribe.info(s"CMD:\n${json.spaces4} \n ${jsonObj.asJson.spaces4}")
+    scribe.info(s"CMDK:\n${jsonK.spaces4} \n ${joK.asJson.spaces4}")
+    scribe.info(s"ECMD:\n${jsonE.spaces4} \n ${joE.asJson.spaces4}")
+
+    val back = jsonE.as[ETradeCmd]
+    scribe.info(s"Back from $back")
 
     val foo: AnyVal                                = 123: Long
     def filterWhen[T: Typeable](a: Any): Option[T] =
