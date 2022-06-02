@@ -35,7 +35,7 @@ case class ListAccountsCmdV2() extends ETradeCmdV2 {
 }
 
 object ListAccountsCmdV2:
-  given codec: Codec.AsObject[ListAccountsCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[ListAccountsCmdV2] = CirceUtils.deriveDiscCodec[ListAccountsCmdV2](this.toString)
 
 /** This always does realTimeNav */
 
@@ -130,11 +130,16 @@ object ETradeCmdV2 {
       }
   }
 
-  /** Encoding that delegates. Don't really have to, since I control the format. But in case some specific work needed. */
+  /**
+    * Encoding that delegates. Don't really have to, since I control the format. But in case some specific work needed. This is really just
+    * a narrowing then delegating to the encoder of narrowed type. Typeable help here? This definately should be doable in a macro maybe
+    * inline def simply. First get the discriminator automatically created.
+    */
   given enc: Encoder.AsObject[ETradeCmdV2] = Encoder
     .AsObject
     .instance { (cmd: ETradeCmdV2) =>
       scribe.info(s"V2Trait Encoding $cmd")
+
       cmd match
         case a: ListAccountsCmdV2       => a.asJsonObject
         case a: AccountBalancesCmdV2    => a.asJsonObject

@@ -6,7 +6,9 @@ import io.circe.Encoder.encodeString
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
 
+import scala.compiletime.constValue
 import scala.deriving.Mirror
+import scala.quoted.Type
 
 trait CirceUtils {
 
@@ -14,7 +16,13 @@ trait CirceUtils {
 
   /** This must be inline or Mirror can't get a constant T */
   inline def deriveDiscCodec[T](d: String)(using m: Mirror.Of[T]): Codec.AsObject[T] = {
-    scribe.info(s"WhatHappened: $d")
+    // val autoDisc = this.toString // This is CirceUtils not the embedded
+    // type X        = scala.compiletime.erasedValue[T].getClass
+    // scala.compiletime.error("Copmile Time Error")
+    // inline val tBased: T = constValue[T]
+    // inline val tName     = tBased.toString
+    // scala.compiletime.error(s"Type  ${Type.show[T]} not dealt with")
+    scribe.info(s"WhatHappened: $d ==?")
     val dec: Decoder[T]          = deriveDecoder[T] // Note: This doesn't care if discriminator is there or not intentionally
     val enc: Encoder.AsObject[T] = deriveEncoder[T].mapJsonObject(jo => jo.add(discriminatorKey, Json.fromString(d)))
     Codec.AsObject.from(dec, enc)
