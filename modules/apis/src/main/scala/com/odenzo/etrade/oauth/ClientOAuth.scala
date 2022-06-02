@@ -6,15 +6,14 @@ import cats.effect.*
 import cats.effect.kernel.Outcome.{Canceled, Errored, Succeeded}
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
-import com.odenzo.etrade.api.models.{OAuthConfig, OAuthSessionData}
-import com.odenzo.etrade.base.OPrint.oprint
+import com.odenzo.etrade.models.utils.OPrint.oprint
 import fs2.concurrent.SignallingRef
 import org.http4s.Uri.*
 import org.http4s.client.oauth1.ProtocolParameter.Verifier
-import org.http4s.client.{Client, oauth1}
 import org.http4s.client.oauth1.{Consumer, ProtocolParameter, Token}
+import org.http4s.client.{Client, oauth1}
 import org.http4s.syntax.literals.uri
-import org.http4s.{HttpRoutes, ParseFailure, Request, Uri, UrlForm}
+import org.http4s.*
 
 import java.util.UUID
 import scala.concurrent.duration.*
@@ -114,15 +113,15 @@ object ClientOAuth extends OAuthHelpers {
   }
 
   /**
-    * Well, this just does a keep alive the docs say. Ensures access token is valid, and makes *same* token valid. Doesn't create a new
-    * token.
+    * Does a refresh/keep-alive with given session request and access tokens. If successful can keep using, on failure generally will need a
+    * new request token and relogin
     */
-  def refreshAccessToken(config: OAuthConfig, rqToken: Token, accessToken: Token)(using client: Client[IO]): IO[Unit] = {
+  def refreshAccessToken(session: OAuthSessionData)(using client: Client[IO]): IO[Unit] = {
     for {
       rq <- genericSign(
-              Request[IO](uri = config.oauthUrl / "renew_access_token"),
-              config.consumer,
-              accessToken.some
+              Request[IO](uri = session.config.oauthUrl / "renew_access_token"),
+              session.config.consumer,
+              session.accessToken
             )
       rs <- client.expect[String](rq)
       _  <- IO.raiseWhen(rs != "Access Token has been renewed")(Throwable(s"Invalid Refresh Access Rs: $rs"))
@@ -131,7 +130,6 @@ object ClientOAuth extends OAuthHelpers {
 
   /** This can be used to sign a request with the given access token. There is also a signing client that will do it automatically. */
   def sign(rq: Request[IO], accessToken: Token, consumerKeys: Consumer): IO[Request[IO]] = {
-    scribe.info(s"Signing Request with $accessToken $consumerKeys")
     oauth1.signRequest[IO](
       req = rq,
       consumer = ProtocolParameter.Consumer(consumerKeys.key, consumerKeys.secret),

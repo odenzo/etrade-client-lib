@@ -33,7 +33,7 @@ object AccountsApi extends APIHelper {
     Request[IO](GET, baseUri / "v1" / "accounts" / "list", headers = acceptJsonHeaders).pure
   }
 
-  def listAccountsApp(): ETradeService[List[Account]] = standard[ListAccountsRs](listAccountsCF()).map(_.accounts)
+  def listAccountsApp(): ETradeService[ListAccountsRs] = standard[ListAccountsRs](listAccountsCF())
 
   def accountBalancesCF(
       accountIdKey: String,
@@ -55,7 +55,10 @@ object AccountsApi extends APIHelper {
       accountIdKey: String,
       accountType: Option[String],
       instType: String
-  ): ETradeService[AccountBalanceRs] = standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
+  ): ETradeService[AccountBalanceRs] = {
+    // S3 now generlized compose and andThen:https://docs.scala-lang.org/scala3/reference/experimental/tupled-function.html#
+    standard[AccountBalanceRs](accountBalancesCF(accountIdKey, accountType, instType))
+  }
 
   /**
     * This will automatically page through and accumulate the results. Start date is limited to 90 days in the past? This has paging yet to
@@ -87,19 +90,21 @@ object AccountsApi extends APIHelper {
     ).addHeader(Accept(MediaType.application.json)).pure
   }
 
-  /** Gets txns in range, automatically paging through and returning aggregated results. 4xs gives me XML error */
+  /**
+    * Iterates through and then folds the paging 'transactions' into the first response. Thus only the trasaction field is worth anything,
+    * but I try and stick to the xxxxRs pattern for now.
+    */
   def listTransactionsApp(
       accountIdKey: String,
       startDate: Option[LocalDate],
       endDate: Option[LocalDate],
       count: Int
-  ): ETradeService[Chain[Transaction]] = {
+  ): ETradeService[ListTransactionsRs] = {
     import com.odenzo.etrade.models.*
-    val rqFn: Option[String] => IO[Request[IO]]        = listTransactionsCF(accountIdKey, startDate, endDate, count, _)
-    val extractor: TransactionListRs => Option[String] = (rs: TransactionListRs) => rs.transactionListResponse.marker
-    iteratePages(rqFn, extractor)(None, Chain.empty).map {
-      (responses: Chain[TransactionListRs]) => responses.flatMap(rs => rs.transactionListResponse.transaction)
-    }
+    import monocle.syntax.all.*
+    val rqFn: Option[String] => IO[Request[IO]]         = listTransactionsCF(accountIdKey, startDate, endDate, count, _)
+    val extractor: ListTransactionsRs => Option[String] = (rs: ListTransactionsRs) => rs.transactionListResponse.marker
+    iterateReducingPages(rqFn, extractor)
   }
 
   /** This endpoint is overloaded a bit much, and response format is too. This can be paging. */
@@ -145,16 +150,11 @@ object AccountsApi extends APIHelper {
       totals: Boolean = true,
       marketSession: MarketSession = MarketSession.REGULAR,
       count: Int
-  ): ETradeService[Chain[ViewPortfolioRs]] = {
+  ): ETradeService[ViewPortfolioRs] = {
     val rqFn: Option[String] => IO[Request[IO]]      = viewPortfolioCF(accountIdKey, lots, view, totals, marketSession, count, _)
     val extractor: ViewPortfolioRs => Option[String] = (rs: ViewPortfolioRs) => rs.accountPortfolio.head.nextPageNo
-    scribe.warn(s"About to call looking function")
-
-    iteratePages(rqFn, extractor)(None, Chain.empty).map {
-      (responses: Chain[ViewPortfolioRs]) => responses
-    }
+    iterateReducingPages(rqFn, extractor)
 
   }
 
-  case class FullPortfolio(totals: Option[PortfolioTotals], portfolio: List[AccountPortfolio]),
 }

@@ -3,8 +3,7 @@ package com.odenzo.etrade.oauth.server.routes
 import cats.effect.IO.{IOCont, Uncancelable}
 import cats.syntax.all.*
 import cats.effect.{Deferred, IO}
-import com.odenzo.etrade.api.models.{OAuthConfig, OAuthSessionData}
-import com.odenzo.etrade.oauth.ClientOAuth
+import com.odenzo.etrade.oauth.{ClientOAuth, OAuthConfig, OAuthSessionData}
 import org.http4s.*
 import org.http4s.client.Client
 import org.http4s.client.oauth1.Token
@@ -17,7 +16,6 @@ import org.http4s.syntax.all.*
 
 import java.time.Instant
 import cats.effect.{Deferred, IO}
-import com.odenzo.etrade.api.models.{OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.oauth.ClientOAuth
 import org.http4s.{HttpApp, HttpRoutes}
 import org.http4s.client.Client
@@ -35,8 +33,6 @@ object OAuthCallbackServerApp {
   def route(config: OAuthConfig, rqToken: Token, sessionD: Deferred[IO, Either[Throwable, OAuthSessionData]])(using
   Client[IO]): HttpRoutes[IO] = {
     val configuredETradeCallback: Path = config.callbackUrl.path
-
-    import com.odenzo.etrade.api.models.{given, *}
 
     HttpRoutes.of[IO] {
       case GET -> Root / "ping" => Ok("Alive")

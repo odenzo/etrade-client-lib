@@ -10,27 +10,49 @@
 This is a simple e-trade oauth client library that I use to query etrade account
 for accounting purposes. Scala3 and Scala JS only.
 
-E-Trade requires oauth login (and setting up your account at E-Trade to do so).
-This lib provides a JVM only module to run a webserver to handle the oauth callback.
-This can be used in pure JVM environments in which is opens up a OS Browser window to e-trade, in or ScalaJS front-end/Broswer
-environments in which you have your own Web-Server.
+Its small scope so have been using to see if I can design a better in-house framework that allows for
+mixing and matching of calling third-party API front front end (ScalaJS) or backend (JVM) with same user code.
 
-Note: Finally testing in a browser it turns out the E-Trade API is not CORS enabled, so you need to manually disable in your browser.
-Or do all the E-Trade API calls from the JVM. 
-A "message" based interface is provided, using a WebSocket to communicate with backend server and client.
+- Deals with OAuth semi-specifically for e-trade.
+- For cases where the APIs have no CORS support (e.g. e-trade) allows proxying the calls through the backend
+
+## Status
+
++ Settling on approach, or at least the exposed appraoch, which is Commands with exec extension for back-end. Working OK, reasonable to 
+  add new APIs.
+
++ Want to proof of concept a front-end proxy with front-end making  command and calling  POST http://backend/doCommand (JSON Command 
+  Body) and having the dependant type of the command returned. Not sure much advantage is using WebSocket for this, given we have a pool 
+  of client HTTP connections, and would have to deal with FIFO or correlation of the websocket. So, X.parDo and monad sequencing over HTTP.
+
++ Cleanup a lot of cruft from experiments.
+
+So, after going done many paths of the maze I still haven't fully back-tracked (e.g. still using context-dependant functions) but
+the basic approach is:
+  + e-trade APIs based on request builders
+  + Command Pattern - with each command have a type RESULT saying what the expected result type is (psudeo-existential type I guess)
+  + e-trade "apps" (aka service) that takes parameters to build a request, and function to return Command.RESULT
+  + No Direct Binding of Command implementation to commands.
+  + A backend-binding using TypeClasses for back-end calling of e-trade APIs.
+  + Soon a front-end binding using TypeClasses that sends (via HTTP) command to backend and executes via backend binding, returning 
+    result to front-end.
+  + If I still refuse to do productive work try and make a serializable DSL consisting of Command Graphs to send to backend (unlikely!)
+
+
 
 ### Why publish it?
 
 Regret it, too much concurrent experimentation, esp with ScalaJS in the browser.
+Wanted to see Scala 3 new features (Context Functions, Dependant Type Functions, Matchable, Meta-Programming, Tuples, Typeable etc)
+can be put to good use making 3rd API calls. Painful using both Metals and IJ to be honest.
 
-### Call e-trade APIs directly from the browser
+Also, using opaque types and enums for better model building. Partial on that.
 
-- Instead of the Web App calling a back-end server which calls
-e-trade APIs you can eliminate the bridge between front-end and back-end  you can  call e-trade APIs directly from the browser.**
-
-- Build frameworks that are used for visual display and in the JVM to do data collection via e-trade API and 
+Circe Codecs were also a pain due, especially for e-trade JSON formats.
 
 ###  Community effort to fill out the APIs and models objects
+The main reason, god its tedious reverse engineering APIs even for simple implementation, especially error handling.
+
 It is nothing special, but it is tiresome making model classes, and finding
 all the oddities and documentation gaps. Also as my first real attempt at a JVM and ScalaJS app in Scala 3 maybe its helpful.
 I hit plenty of "gotcha" problems.

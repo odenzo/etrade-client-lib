@@ -1,8 +1,7 @@
 package com.odenzo.etrade.models.responses
 
-import com.odenzo.etrade.base.CirceUtils
 import com.odenzo.etrade.models.*
-import com.odenzo.etrade.models.responses.AccountBalances.rename
+import com.odenzo.etrade.models.utils.CirceUtils
 import io.circe.*
 import io.circe.Codec.*
 import io.circe.Decoder.Result
@@ -30,8 +29,7 @@ case class AccountBalances(
 )
 
 object AccountBalances {
-
-  def rename                                   = Map("cash" -> "Cash", "computed" -> "Computed")
-  given codec: Codec.AsObject[AccountBalances] = CirceUtils.renamingCodec(deriveCodec[AccountBalances], rename)
+  given codec: Codec.AsObject[AccountBalances] = CirceUtils
+    .renamingCodec(deriveCodec[AccountBalances], Map("cash" -> "Cash", "computed" -> "Computed"))
 
 }

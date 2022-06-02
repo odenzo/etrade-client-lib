@@ -2,9 +2,8 @@ package com.odenzo.etrade.oauth.server
 import cats.syntax.all.*
 import cats.effect.kernel.{Outcome, Resource}
 import cats.effect.{Deferred, FiberIO, IO}
-import com.odenzo.etrade.api.models.{OAuthConfig, OAuthSessionData}
 import com.odenzo.etrade.oauth.server.routes.OAuthCallbackServerApp
-import com.odenzo.etrade.oauth.{ClientOAuth, OAuthClientMiddleware}
+import com.odenzo.etrade.oauth.{ClientOAuth, OAuthClientMiddleware, OAuthConfig, OAuthSessionData}
 import fs2.concurrent.SignallingRef
 import org.http4s.{HttpApp, Uri}
 import org.http4s.server.*
