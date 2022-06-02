@@ -10,6 +10,27 @@ import scala.deriving.Mirror
 
 trait CirceUtils {
 
+  final val discriminatorKey = "_I_AM_"
+
+  /** This must be inline or Mirror can't get a constant T */
+  inline def deriveDiscCodec[T](d: String)(using m: Mirror.Of[T]): Codec.AsObject[T] = {
+    scribe.info(s"Deriving Codec Disc with $d")
+    val dec                  = deriveDecoder[T]
+    val enc                  = deriveEncoder[T].mapJsonObject(jo => JsonObject.singleton(discriminatorKey, Json.fromString(d)))
+    val c: Codec.AsObject[T] = Codec.AsObject.from(dec, enc)
+    scribe.info(s"Completed CODEC AS OBJECT Derivation")
+    c
+  }
+
+  /**
+    * Allows the embedding of subtype discruminators. The auto X derives Codec.AsObject doesn't seem to do this as of 14.2 I also want the
+    * discriminator in (wether x:ETradeCmd).asJsonObject or (x:ListAccounts).asJsonObject
+    */
+
+  def postAddDiscriminator(myName: String)(obj: JsonObject): JsonObject = {
+    obj.add(CirceUtils.discriminatorKey, Json.fromString(myName))
+  }
+
   val unCaptialize: String => String =
     s =>
       if s == null then null

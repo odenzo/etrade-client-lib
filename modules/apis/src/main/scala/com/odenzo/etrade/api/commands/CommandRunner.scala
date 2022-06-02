@@ -19,7 +19,16 @@ import io.circe.Decoder.*
 import io.circe.syntax.*
 import org.http4s.client.Client
 
-/** There can be a command runner for ANY command. This is not sealed. Thus we don't need */
+/**
+  * There can be a command runner for ANY command. This is not sealed. Thus we don't need
+  *
+  * It smells like this can be better. Look at https://docs.scala-lang.org/scala3/reference/new-types/dependent-function-types-spec.html
+  * until more blood from nose.
+  *
+  * The goal here is to have different execution based on imports different set of TC implementations, one set for back-end, one set for
+  * front end. This is for back-end, or direct usage of APIs without proxying from front to back. Can also be used in front=end if CORS not
+  * an issue, so its left in this cross plaform area.
+  */
 trait CommandRunner[A <: ETradeCmd] {
   def fetch(a: A): ETradeService[a.RESULT]
 

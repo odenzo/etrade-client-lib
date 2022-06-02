@@ -7,4 +7,4 @@ opaque type StoreId <: Long = Long
 object StoreId:
   def apply(l: Long): StoreId = l: StoreId
 
-given codecStoreId: Codec[StoreId] = Codec.from(decodeLong.map(l => StoreId(l)), encodeLong.contramap(_.toLong))
+  given codecStoreId: Codec[StoreId] = Codec.from(decodeLong.map(l => StoreId(l)), encodeLong.contramap(_.toLong))

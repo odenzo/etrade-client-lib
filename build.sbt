@@ -51,7 +51,7 @@ lazy val root = project
     publish / skip := true
   )
 
-lazy val models = crossProject(JSPlatform, JVMPlatform)
+lazy val models = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/models"))
   // .withId("models")
@@ -63,6 +63,7 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
       XLibs.circeParser.value,
       XLibs.circeGeneric.value,
       XLibs.circePointer.value,
+      XLibs.circeTest.value,
       XLibs.monocle.value,
       XLibs.scribe.value,
       XLibs.pPrint.value,
@@ -84,7 +85,7 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
 lazy val apis = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/apis"))
-  .dependsOn(models)
+  .dependsOn(models % "compile->compile;test->test")
   .settings(
     name := "etrade-apis",
     libraryDependencies ++= Seq(

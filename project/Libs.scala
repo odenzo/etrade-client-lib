@@ -171,6 +171,7 @@ object XLibs {
   lazy val circeParser   = Def.setting("io.circe" %%% "circe-parser" % V.circe)
   lazy val circeNumbers  = Def.setting("io.circe" %%% "circe-numbers" % V.circe)
   lazy val circeListeral = Def.setting("io.circe" %%% "circe-literal" % V.circe)
+  lazy val circeTest     = Def.setting("io.circe" %%% "circe-testing" % V.circe % Test)
 //  lazy val lCirceYaml       = Def.setting("io.circe" %%% "circe-yaml" % V.circe)
 //  lazy val lCirceRefined    = Def.setting("io.circe" %%% "circe-refined" % V.circe)
   // lazy val lCirceExtra      = Def.setting("io.circe" %%% "circe-extras" % V.circe)

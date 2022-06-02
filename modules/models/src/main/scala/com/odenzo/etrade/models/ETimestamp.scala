@@ -8,12 +8,12 @@ import java.time.{Instant, ZoneId}
 
 /** int64 secoond since epoch (confirmed) TODO: opaque type ot an anyval style */
 case class ETimestamp(click: Instant) {
-  def isDefined: Boolean = click != ETimestamp.ZERO
+  def isDefined: Boolean = this != ETimestamp.ZERO
 }
 
 object ETimestamp:
 
-  val ZERO: Instant = Instant.EPOCH
+  val ZERO: ETimestamp = ETimestamp(Instant.EPOCH)
 
   given codec: Codec[ETimestamp] = Codec.from(
     decodeLong.map(tick => ETimestamp(Instant.ofEpochSecond(tick))), // .prepare(_.up), // AnyVal Hack
