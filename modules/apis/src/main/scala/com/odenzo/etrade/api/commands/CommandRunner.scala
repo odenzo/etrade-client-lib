@@ -30,6 +30,9 @@ import org.http4s.client.Client
   * an issue, so its left in this cross plaform area. You could also make another set with more debugging etc. Would be nice to just define
   * the Worker and the ETradeCmd and make sure the tupled parametes from command match the tuple of the Worker. For another day. This is
   * really "shape matching" instead of type matching. Could move to type matching by making the *App(x,y,z) just *App(someCmd)
+  *
+  * WTF: This should allow be to say val x:ETradeService[ListAccountsRs] = ListAccountsCmd().exec even when there are no ContextFunction
+  * this.
   */
 trait CommandRunner[A <: ETradeCmd] {
   def fetch(a: A): ETradeService[a.RESULT]

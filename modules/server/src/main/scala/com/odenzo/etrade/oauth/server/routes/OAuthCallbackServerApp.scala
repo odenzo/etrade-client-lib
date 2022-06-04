@@ -16,6 +16,7 @@ import org.http4s.syntax.all.*
 
 import java.time.Instant
 import cats.effect.{Deferred, IO}
+import com.odenzo.etrade.models.LoginStatus
 import com.odenzo.etrade.oauth.ClientOAuth
 import org.http4s.{HttpApp, HttpRoutes}
 import org.http4s.client.Client
@@ -36,6 +37,20 @@ object OAuthCallbackServerApp {
 
     HttpRoutes.of[IO] {
       case GET -> Root / "ping" => Ok("Alive")
+
+      case GET -> Root / "isLoggedIn" =>
+        import org.http4s.circe.CirceEntityCodec.*
+        for {
+          session <- sessionD.tryGet
+          st       =
+            session match {
+              case Some(Right(sess)) if sess.accessToken.isDefined => LoginStatus.LOGGED_IN
+              case Some(Right(sess))                               => LoginStatus.LOGGED_OUT
+              case Some(Left(err))                                 => LoginStatus.FAILED(err.getMessage)
+              case None                                            => LoginStatus.PENDING
+            }
+          res     <- Ok(st)
+        } yield res
 
       case GET -> Root / "config" =>
         import OAuthConfig.derived$AsObject

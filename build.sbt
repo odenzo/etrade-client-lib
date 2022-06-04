@@ -2,11 +2,13 @@ import sbt.Keys.packageSrc
 import sbt._
 import sbt.util.FileInfo.hash
 
+val inProgDomXml = Def.setting("com.odenzo" %%% "http4s-dom-xml" % "0.0.4")
+
 //ThisBuild / bspEnabled := false
 ThisBuild / resolvers += Resolver.mavenLocal
 val javart = "1.11"
 
-ThisBuild / scalaVersion  := "3.1.1"
+ThisBuild / scalaVersion  := "3.1.2"
 ThisBuild / organization  := "com.odenzo"
 ThisBuild / versionScheme := Some("early-semver")
 
