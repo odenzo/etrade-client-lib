@@ -23,9 +23,12 @@ object PBEnd extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     scribe.info("PURE BACKEND RUNNING")
 
-    lazy val authEnv: ETradeAuth = ETradeAuth(scala.sys.env("ETRADE_LIVE_KEY"), scala.sys.env("ETRADE_LIVE_SECRET"))
-    val etradeConfig             = ETradeConfig(true, ETradeCallback.default, localCallback = None, auth = authEnv, ETradeApis.defaultApis)
-    val config                   = etradeConfig.asOAuthConfig
+    lazy val authEnvProd: ETradeAuth = ETradeAuth(scala.sys.env("ETRADE_LIVE_KEY"), scala.sys.env("ETRADE_LIVE_SECRET"))
+    lazy val authEnvSB: ETradeAuth   = ETradeAuth(scala.sys.env("ETRADE_SANDBOX_KEY"), scala.sys.env("ETRADE_SANDBOX_SECRET"))
+    val useSandbox                   = true
+    val authEnv                      = if useSandbox then authEnvSB else authEnvProd
+    val etradeConfig                 = ETradeConfig(useSandbox, ETradeCallback.default, localCallback = None, auth = authEnv, ETradeApis.defaultApis)
+    val config                       = etradeConfig.asOAuthConfig
 
     WebFactory
       .baseClientR[IO]
