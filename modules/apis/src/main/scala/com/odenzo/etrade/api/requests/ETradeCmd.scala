@@ -1,6 +1,6 @@
 package com.odenzo.etrade.api.requests
 
-import cats.data.NonEmptyChain
+import cats.data.*
 import cats.syntax.all.*
 import com.odenzo.etrade.api.commands.*
 import com.odenzo.etrade.models.*
@@ -39,7 +39,7 @@ case class ListAccountsCmd() extends ETradeCmd derives Codec.AsObject {
 
 /** This always does realTimeNav */
 
-case class AccountBalancesCmd(
+case class FetchAccountBalancesCmd(
     accountIdKey: String,
     accountType: Option[String] = None,
     instType: String = "BROKERAGE"
@@ -63,7 +63,7 @@ case class ListTransactionsCmd(
 //object ListTransactionsCmd:
 //  given codec: Codec.AsObject[ListTransactionsCmd] = CirceUtils.deriveDiscCodec(this.toString)
 
-case class TransactionDetailsCmd(
+case class FetchTxnDetailsCmd(
     accountIdKey: String,
     transactionId: String,
     storeId: Option[StoreId],
@@ -90,7 +90,7 @@ case class ViewPortfolioCmd(
 //  given codec: Codec.AsObject[ViewPortfolioCmd] = CirceUtils.deriveDiscCodec(this.toString)
 
 /** TODO: Change to one, varargs still to symbols (1+) Note that you cannot use MF_DETAIL on anything that is not a mutual fund. */
-case class EquityQuoteCmd(
+case class FetchQuoteCmd(
     symbols: NonEmptyChain[String],
     details: QuoteDetail = QuoteDetail.INTRADAY,
     requireEarnings: Boolean = false,
@@ -104,6 +104,100 @@ case class EquityQuoteCmd(
 
 case class LookupProductCmd(searchFragment: String) extends ETradeCmd derives Codec.AsObject {
   override type RESULT = LookupProductRs
+}
+
+/**
+  * List the alerts for the user logged in, paged with 300 per page reduced.
+  * @param catagory
+  *   defaults to Stock and Account
+  * @param status
+  *   Defaults to READ and UNREAD
+  * @param search
+  *   Keyword to search the alert subject on.
+  */
+case class ListAlertsCmd(catagory: Option[AlertCategory], status: Option[AlertStatus], search: Option[String]) extends ETradeCmd
+    derives Codec.AsObject {
+  override type RESULT = ListAlertsRs
+}
+
+/**
+  * Details about the given alert.
+  * @param alertId
+  */
+case class ListAlertDetailsCmd(alertId: Long, htmlTags: Boolean = false) extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = ListAlertDetailsRs
+}
+
+/**
+  * Deletes all the listed alerts
+  * @param alertIds
+  */
+case class DeleteAlertsCmd(alertIds: List[Long]) extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = DeleteAlertsRs
+}
+
+case class GetOptionChainsCmd(
+    symbol: String,
+    expiryYear: Option[String],             //	query	no	Indicates the expiry year corresponding to which the optionchain
+    // needs to be                             fetched
+    expiryMonth: Option[String],            // query	no	Indicates the expiry month corresponding to which the optionchain needs to be fetched
+    expiryDay: Option[String],              // query	no	Indicates the expiry day corresponding to which the optionchain needs to be fetched
+    strikePriceNear: Option[Amount],        //	query	no	The optionchians fetched will have strike price nearer to this value
+    noOfStrikes: Option[Int],               //	query	no	Indicates number of strikes for which the optionchain needs to be fetched
+    includeWeekly: Option[Boolean],         //	query	no	The include weekly options request. Default: false.	true, false
+    skipAdjusted: Option[Boolean],          // 	query	no	The skip adjusted request. Default: true.	true, false
+    optionCategory: Option[OptionCategory], //	query	no	The option category. Default: STANDARD.	STANDARD, ALL, MINI
+    chainType: Option[OptionsChainType],    //	query	no	The type of option chain. Default: CALLPUT.	CALL, PUT, CALLPUT
+    priceType: Option[OptionsPriceType]     //	query	no	The price type. Default: ATNM.	ATNM, ALL
+) extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = GetOptionChainsRs
+}
+
+case class GetOptionExpiryCmd(symbol: String, expireType: Option[String]) extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = GetOptionExpiryRs
+}
+
+/**
+  * @param accountIdKey
+  *   TODO: OT
+  * @param dateRange
+  *   case class
+  * @param status
+  *   // TODO: OrderStatus enum
+  * @param symbols
+  *   List of up to 25 symbols TODO: Opaque string type
+  * @param securityType
+  *   TODO: enum
+  */
+case class ListOrdersCmd(
+    accountIdKey: String,
+    dateRange: Option[(LocalDate, LocalDate)],
+    status: Option[OrderStatus],
+    symbols: Option[NonEmptyList[String]], // vararg this and internal NonEmptyList it?
+    securityType: Option[String],
+    txnType: Option[TransactionType],
+    marketSession: Option[MarketSession],
+    marker: Option[String] = None,
+    count: Long = 0
+) extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = ListOrdersRs
+}
+case class PreviewOrderCmd(accountIdKey: String, previewOrderRequest: PreviewOrderRequest) extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = PreviewOrderRs
+}
+case class PlaceOrderCmd(accountIdKey: String, placeOrderRequest: PlaceOrderRequest)       extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = PlaceOrderRs
+}
+case class CancelOrderCmd(accountIdKey: String, cancelOrderRequest: CancelOrderRequest)    extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = CancelOrderRs
+}
+case class ChangePreviewedOrderCmd(accountIdKey: String, orderId: Long, previewOrderRequest: PreviewOrderRequest)
+    extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = ChangePreviewOrderRs
+}
+case class PlaceChangedOrderCmd(accountIdKey: String, orderId: Long, placeOrderRequest: PlaceOrderRequest)
+    extends ETradeCmd derives Codec.AsObject {
+  override type RESULT = PlaceChangedOrderRs
 }
 
 //object LookupProductCmd:

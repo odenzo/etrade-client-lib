@@ -13,15 +13,7 @@ import com.odenzo.etrade.oauth.server.*
 import com.odenzo.etrade.oauth.{ClientOAuth, OAuthClientMiddleware}
 import org.http4s.client.Client
 import com.odenzo.etrade.api.commands.{CommandRunner, given}
-import com.odenzo.etrade.api.requests.{
-  AccountBalancesCmd,
-  EquityQuoteCmd,
-  ListAccountsCmd,
-  ListTransactionsCmd,
-  LookupProductCmd,
-  TransactionDetailsCmd,
-  ViewPortfolioCmd
-}
+import com.odenzo.etrade.api.requests.*
 import io.circe.syntax.{*, given}
 
 import java.time.LocalDate
@@ -48,7 +40,8 @@ object BusinessMain {
       .use { (client: Client[IO], context: ETradeContext) =>
         given ETradeContext = context
         given Client[IO]    = client
-        incremental()
+        // alertsApi()
+        orderApi()
       }
       .onError {
         err =>
@@ -66,7 +59,7 @@ object BusinessMain {
       account     = accountsRs.accounts.head
       accountId   = account.accountIdKey
       _           = scribe.info(s"Your Account: ${pprint(account)}")
-      balancesRs <- AccountBalancesCmd(accountId, account.accountType.some, account.institutionType).exec()
+      balancesRs <- FetchAccountBalancesCmd(accountId, account.accountType.some, account.institutionType).exec()
       _          <- IO.fromEither(balancesRs.asJson.as[com.odenzo.etrade.models.responses.AccountBalanceRs])
       _           = scribe.info(s"Balances: ${pprint(balancesRs)}")
       listTxnsRs <- ListTransactionsCmd(accountId, LocalDate.of(2021, 1, 1).some, LocalDate.of(2022, 5, 25).some, 45).exec()
@@ -76,7 +69,7 @@ object BusinessMain {
       _           = scribe.info(s"Unique Transaction Types: ${pprint(txnByType.keys)}")
       oneOfEach   = txnByType.values.map(_.head).toList
       _           = scribe.info(s"OneOfEach ${pprint(oneOfEach)}")
-      detailsRs  <- oneOfEach.traverse { txn => TransactionDetailsCmd(accountId, txn.transactionId, txn.storeId.some, None).exec() }
+      detailsRs  <- oneOfEach.traverse { txn => FetchTxnDetailsCmd(accountId, txn.transactionId, txn.storeId.some, None).exec() }
       _          <- detailsRs.traverse { rs => IO.fromEither(rs.asJson.as[TransactionDetailsRs]) }
       _           = scribe.info(s"Transaction Details, one per Category ${pprint(detailsRs)}")
 
@@ -127,7 +120,7 @@ object BusinessMain {
     val cmds = cartesion
       .toList
       .map { case (d, e, o) =>
-        EquityQuoteCmd(
+        FetchQuoteCmd(
           symbols = NonEmptyChain("FUV", "AAPL"),
           details = d,
           requireEarnings = e,
@@ -142,13 +135,13 @@ object BusinessMain {
     result
   }
 
-  val acctId                                                                                                                   = "666"
-  val commands: (ListAccountsCmd, AccountBalancesCmd, LookupProductCmd, EquityQuoteCmd, ListTransactionsCmd, ViewPortfolioCmd) =
+  val acctId                                                                                                                       = "666"
+  val commands: (ListAccountsCmd, FetchAccountBalancesCmd, LookupProductCmd, FetchQuoteCmd, ListTransactionsCmd, ViewPortfolioCmd) =
     (
       ListAccountsCmd(),
-      AccountBalancesCmd(acctId, None),
+      FetchAccountBalancesCmd(acctId, None),
       LookupProductCmd("APPLE"),
-      EquityQuoteCmd(symbols = NonEmptyChain("AAPL"), details = QuoteDetail.ALL, true, true),
+      FetchQuoteCmd(symbols = NonEmptyChain("AAPL"), details = QuoteDetail.ALL, true, true),
       ListTransactionsCmd(acctId, LocalDate.of(2022, 1, 1).some, LocalDate.of(2022, 5, 25).some, 45),
       //            TransactionDetailsCmd(acctId, txn.transactionId, None, None) // Need to find a txn first :-/
       ViewPortfolioCmd(
@@ -160,5 +153,34 @@ object BusinessMain {
         count = 250
       )
     )
+  end commands
+  def alertsApi()(using Client[IO], ETradeContext): IO[Unit]                                                                       =
+    for {
+      _                  <- IO(scribe.info(s"Exercising Alerts API"))
+      listAlertsRs       <- ListAlertsCmd(None, None, None).exec()
+      _                  <- IO.fromEither(listAlertsRs.asJson.as[ListAlertsRs])
+      _                   = scribe.info(s"ListAlertsRs: ${pprint(listAlertsRs)}")
+      listAlertDetailsRs <- ListAlertDetailsCmd(listAlertsRs.alertsResponse.alert.head.id).exec()
+      _                  <- IO.fromEither(listAlertDetailsRs.asJson.as[ListAlertDetailsRs])
+      deleteAlertsRs     <- DeleteAlertsCmd(List(840)).exec()
+      _                  <- IO.fromEither(deleteAlertsRs.asJson.as[DeleteAlertsRs])
+    } yield ()
+
+  def orderApi()(using Client[IO], ETradeContext): IO[Unit] =
+    for {
+      accountsRs   <- ListAccountsCmd().exec()
+      accountId     = accountsRs.accounts.head.accountIdKey
+      _            <- IO(scribe.info(s"Exercising Orders API"))
+      listOrdersRs <- ListOrdersCmd(accountId, None, None, None, None, None, None, None).exec()
+      _            <- IO.fromEither(listOrdersRs.asJson.as[ListOrdersRs])
+      _             = scribe.info(s"ListOrdersRs: ${pprint(listOrdersRs)}")
+//        previewOrderRs         <- PreviewOrderCmd(listAlertsRs.alertsResponse.alert.head.id).exec()
+//        _                      <- IO.fromEither(listAlertDetailsRs.asJson.as[ListAlertDetailsRs])
+//        changePreviewedOrderRs <- ChangePreviewedOrderCmd().exec()
+//        placeOrderRs           <- PlaceOrderCmd(List(840)).exec()
+//        _                      <- IO.fromEither(deleteAlertsRs.asJson.as[DeleteAlertsRs])
+//        cancelOrderRs          <- CancelOrderCmd().exec()
+
+    } yield ()
 
 }

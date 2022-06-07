@@ -57,7 +57,8 @@ trait APIHelper {
 
     c.run(rq)
       .use { rs =>
-
+        // TODO: ListOrders is giving 204 (maybe no orders, maybe some bug as session closed)
+        // TODO: Status 401 should get here, but has no body
         val rsCode      = rs.status.code
         val contentType = rs.contentType
         rs.status.responseClass match {

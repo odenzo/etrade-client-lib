@@ -34,7 +34,7 @@ case class Position(
     lotsDetails: String,                  // uri has codecs but try to minimize pollution
     quoteDetails: String,
     product: ETProduct,
-    quick: Option[QuickView],             // quick / complete /
+    quick: Option[QuickView],             // Really a OneOfN but Complete at least needs to be capitlized.
     complete: Option[CompleteView],       // Performance, Fundamental, Option Views too. These are really Either[] or is there a oneOf since
     performance: Option[PerformanceView], // Performance, Fundamental, Option Views too. These are really Either[] or is there a oneOf
     fundamental: Option[FundamentalView]

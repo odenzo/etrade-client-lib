@@ -24,7 +24,7 @@ object PBEnd extends IOApp {
     scribe.info("PURE BACKEND RUNNING")
 
     lazy val authEnv: ETradeAuth = ETradeAuth(scala.sys.env("ETRADE_LIVE_KEY"), scala.sys.env("ETRADE_LIVE_SECRET"))
-    val etradeConfig             = ETradeConfig(false, ETradeCallback.default, localCallback = None, auth = authEnv, ETradeApis.defaultApis)
+    val etradeConfig             = ETradeConfig(true, ETradeCallback.default, localCallback = None, auth = authEnv, ETradeApis.defaultApis)
     val config                   = etradeConfig.asOAuthConfig
 
     WebFactory

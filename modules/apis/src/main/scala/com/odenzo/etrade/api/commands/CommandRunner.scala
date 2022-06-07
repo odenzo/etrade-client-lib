@@ -43,14 +43,14 @@ trait CommandRunner[A <: ETradeCmd] {
 
 type WORKER = (e: ETradeCmd) => e.RESULT
 
-def fetch(a: ListAccountsCmd): ETradeService[a.RESULT]    = AccountsApi.listAccountsApp()
-def fetch(a: AccountBalancesCmd): ETradeService[a.RESULT] = AccountsApi.accountBalanceApp.tupled(Tuple.fromProductTyped(a))
+def fetch(a: ListAccountsCmd): ETradeService[a.RESULT]         = AccountsApi.listAccountsApp()
+def fetch(a: FetchAccountBalancesCmd): ETradeService[a.RESULT] = AccountsApi.accountBalanceApp.tupled(Tuple.fromProductTyped(a))
 
 given lac: CommandRunner[ListAccountsCmd] with
   override def fetch(a: ListAccountsCmd): ETradeService[ListAccountsRs] = AccountsApi.listAccountsApp()
 
-given CommandRunner[AccountBalancesCmd] with
-  override def fetch(a: AccountBalancesCmd): ETradeService[AccountBalanceRs] = AccountsApi
+given CommandRunner[FetchAccountBalancesCmd] with
+  override def fetch(a: FetchAccountBalancesCmd): ETradeService[AccountBalanceRs] = AccountsApi
     .accountBalanceApp
     .tupled(Tuple.fromProductTyped(a))
 
@@ -59,8 +59,8 @@ given lcc: CommandRunner[ListTransactionsCmd] with
     .listTransactionsApp
     .tupled(Tuple.fromProductTyped(a))
 
-given CommandRunner[TransactionDetailsCmd] with
-  override def fetch(a: TransactionDetailsCmd): ETradeService[TransactionDetailsRs] = AccountsApi
+given CommandRunner[FetchTxnDetailsCmd] with
+  override def fetch(a: FetchTxnDetailsCmd): ETradeService[TransactionDetailsRs] = AccountsApi
     .transactionDetailsApp
     .tupled(Tuple.fromProductTyped(a))
 
@@ -70,5 +70,32 @@ given CommandRunner[ViewPortfolioCmd] with
 given CommandRunner[LookupProductCmd] with
   override def fetch(a: LookupProductCmd): ETradeService[LookupProductRs] = MarketApi.lookUpProductApp(a.searchFragment)
 
-given CommandRunner[EquityQuoteCmd] with
-  override def fetch(a: EquityQuoteCmd): ETradeService[a.RESULT] = MarketApi.equityQuotesApp.tupled(Tuple.fromProductTyped(a))
+given CommandRunner[FetchQuoteCmd] with
+  override def fetch(a: FetchQuoteCmd): ETradeService[a.RESULT] = MarketApi.equityQuotesApp.tupled(Tuple.fromProductTyped(a))
+
+given CommandRunner[ListAlertsCmd] with
+  override def fetch(a: ListAlertsCmd): ETradeService[a.RESULT] = AlertsApi.listAlertsApp(a)
+
+given CommandRunner[ListAlertDetailsCmd] with
+  override def fetch(a: ListAlertDetailsCmd): ETradeService[a.RESULT] = AlertsApi.listAlertDetailsApp(a)
+
+given CommandRunner[DeleteAlertsCmd] with
+  override def fetch(a: DeleteAlertsCmd): ETradeService[a.RESULT] = AlertsApi.deleteAlertApp(a)
+
+given CommandRunner[ListOrdersCmd] with
+  override def fetch(a: ListOrdersCmd): ETradeService[a.RESULT] = OrdersApi.listOrdersApp(a)
+
+given CommandRunner[PreviewOrderCmd] with
+  override def fetch(a: PreviewOrderCmd): ETradeService[a.RESULT] = OrdersApi.previewOrderApp(a)
+
+given CommandRunner[PlaceOrderCmd] with
+  override def fetch(a: PlaceOrderCmd): ETradeService[a.RESULT] = OrdersApi.placeOrderApp(a)
+
+given CommandRunner[CancelOrderCmd] with
+  override def fetch(a: CancelOrderCmd): ETradeService[a.RESULT] = OrdersApi.cancelOrderApp(a)
+
+given CommandRunner[ChangePreviewedOrderCmd] with
+  override def fetch(a: ChangePreviewedOrderCmd): ETradeService[a.RESULT] = OrdersApi.changePreviewedOrderApp(a)
+
+given CommandRunner[PlaceChangedOrderCmd] with
+  override def fetch(a: PlaceChangedOrderCmd): ETradeService[a.RESULT] = OrdersApi.placeChangedOrderApp(a)

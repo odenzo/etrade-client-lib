@@ -3,7 +3,7 @@ package com.odenzo.etrade.api.commands
 import cats.effect.IO
 import com.odenzo.etrade.api.ETradeContext
 import com.odenzo.etrade.api.requests.ETradeCmd
-import com.odenzo.etrade.api.requests.{AccountBalancesCmd, ETradeCmd, ListAccountsCmd, ListTransactionsCmd}
+import com.odenzo.etrade.api.requests.{FetchAccountBalancesCmd, ETradeCmd, ListAccountsCmd, ListTransactionsCmd}
 import com.odenzo.etrade.models.{Account, ETimestamp}
 import org.http4s.*
 import org.http4s.client.Client
@@ -35,10 +35,10 @@ object SampleCommands {
       count <- Gen.chooseNum(1, 50)
     } yield ListTransactionsCmd(key, None, None, count)
 
-  val accountsCmd: ListAccountsCmd = ListAccountsCmd()
-  val balances: AccountBalancesCmd = AccountBalancesCmd("key", None, "BROKERAGE")
+  val accountsCmd: ListAccountsCmd      = ListAccountsCmd()
+  val balances: FetchAccountBalancesCmd = FetchAccountBalancesCmd("key", None, "BROKERAGE")
 
-  val tupledAll: (ListAccountsCmd, AccountBalancesCmd) = (accountsCmd, balances)
+  val tupledAll: (ListAccountsCmd, FetchAccountBalancesCmd) = (accountsCmd, balances)
 
   val listAll: List[ETradeCmd] = List(accountsCmd, balances)
 

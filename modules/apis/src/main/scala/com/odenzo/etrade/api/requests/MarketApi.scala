@@ -9,7 +9,6 @@ import com.odenzo.etrade.models.*
 import org.http4s.Method.GET
 import org.http4s.Request
 import com.odenzo.etrade.api.*
-
 import com.odenzo.etrade.models.responses.{LookupProductRs, QuoteRs}
 
 object MarketApi extends APIHelper {
@@ -62,5 +61,44 @@ object MarketApi extends APIHelper {
       withEarnings: Boolean,
       skipMiniOptionCheck: Boolean
   ): ETradeService[QuoteRs] = standard[QuoteRs](MarketApi.getEquityQuotesCF(symbols, details, withEarnings, skipMiniOptionCheck))
+
+  def optionChainsCF(
+      symbol: String,
+      expiryYear: Option[String],
+      expiryMonth: Option[String],
+      expiryDay: Option[String],
+      strikePriceNear: Option[Amount],
+      noOfStrikes: Option[Int],
+      includeWeekly: Option[Boolean],
+      skipAdjusted: Option[Boolean],
+      optionCategory: Option[OptionCategory],
+      chainType: Option[OptionsChainType],
+      priceType: Option[OptionsPriceType]
+  ): ETradeCall = {
+    IO.pure {
+      Request[IO](
+        GET,
+        (baseUri / "v1" / "market" / "optionChains").withQueryParam("symbol", symbol),
+        headers = acceptJsonHeaders
+      )
+    }
+  }
+
+  def optionChainsApp(cmd: GetOptionChainsCmd): ETradeService[cmd.RESULT] = {
+    val rqIO = optionChainsCF.tupled(Tuple.fromProductTyped(cmd))
+    standard[cmd.RESULT](rqIO)
+  }
+
+  def optionChainExpiryCF(symbol: String, expireType: Option[String]): ETradeCall = IO.pure(
+    Request[IO](
+      GET,
+      (baseUri / "v1" / "market" / "optionexpiredata").withQueryParam("symbol", symbol),
+      headers = acceptJsonHeaders
+    )
+  )
+
+  def optionChainExpiryApp(cmd: GetOptionExpiryCmd): ETradeService[cmd.RESULT] =
+    val rqIO = optionChainExpiryCF.tupled(Tuple.fromProductTyped(cmd))
+    standard[cmd.RESULT](rqIO)
 
 }

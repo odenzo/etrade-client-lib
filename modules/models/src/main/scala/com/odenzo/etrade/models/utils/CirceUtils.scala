@@ -39,12 +39,15 @@ trait CirceUtils {
 
   val unCaptialize: String => String =
     s =>
-      if s == null then null
-      else
-        s.headOption match {
-          case Some(v) if v.isUpper => s.drop(1).prepended(v.toLower)
-          case _                    => s
-        }
+      val res =
+        if s == null then null
+        else
+          s.headOption match {
+            case Some(v) if v.isUpper => s.drop(1).prepended(v.toLower)
+            case _                    => s
+          }
+      scribe.info(s"Uncapitalized Key: $s => $res")
+      res
 
   val capitalize: String => String = (s: String) => s.capitalize
 

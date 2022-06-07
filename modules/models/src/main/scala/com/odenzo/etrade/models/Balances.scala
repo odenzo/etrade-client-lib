@@ -4,6 +4,8 @@ import com.odenzo.etrade.models.utils.CirceUtils
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 
+final val ZERO_AMOUNT = BigDecimal(0, 4)
+
 case class OpenCalls(minEquityCall: Option[BigDecimal], fedCall: Option[BigDecimal], cashCall: BigDecimal, houseCall: Option[BigDecimal])
     derives Codec.AsObject
 
@@ -18,8 +20,12 @@ case class RealTimeValues(totalAccountValue: BigDecimal, netMv: BigDecimal, netM
     derives Codec.AsObject
 
 case class Cash(fundsForOpenOrdersCash: BigDecimal, moneyMktBalance: BigDecimal) derives Codec.AsObject
+object Cash:
+  val EMPTY: Cash = Cash(ZERO_AMOUNT, ZERO_AMOUNT)
 
 case class Margin(dtCashOpenOrderReserve: BigDecimal, dtMarginOpenOrderReserver: BigDecimal) derives Codec.AsObject
+object Margin:
+  val EMPTY: Margin = Margin(ZERO_AMOUNT, ZERO_AMOUNT)
 
 case class Lending(
     currBalance: BigDecimal,

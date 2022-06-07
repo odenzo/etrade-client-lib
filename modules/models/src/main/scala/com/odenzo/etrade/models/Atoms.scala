@@ -24,3 +24,6 @@ case class Values(
 case class Category(categoryId: String, parentId: String, categoryName: String, parentName: String) derives Codec.AsObject
 
 case class SalesChargeValues(lowhigh: String, percent: BigDecimal) derives Codec.AsObject
+
+type Amount  = BigDecimal
+type Percent = BigDecimal
