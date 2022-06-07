@@ -9,14 +9,8 @@ import java.time.Instant
 case class TransactionDetailsRs(transactionDetailsResponse: TransactionDetailsResponse)
 
 object TransactionDetailsRs:
-
-  given Decoder[TransactionDetailsRs] = Decoder[TransactionDetailsResponse]
-    .map(res => TransactionDetailsRs(res))
-    .at("TransactionDetailsResponse")
-
-  given Encoder[TransactionDetailsRs] = Encoder
-    .AsObject[TransactionDetailsResponse]
-    .contramapObject[TransactionDetailsRs](rs => rs.transactionDetailsResponse)
+  private val codec: Codec.AsObject[TransactionDetailsRs] = generic.semiauto.deriveCodec[TransactionDetailsRs]
+  given Codec.AsObject[TransactionDetailsRs]              = CirceUtils.capitalizeCodec[TransactionDetailsRs](codec)
 
 case class TransactionDetailsResponse(
     transactionId: Long,

@@ -18,13 +18,13 @@ import org.http4s.client.Client
   * disk so you can run multiple times w/o logging in again. More of a demo on the command based way to run things.
   */
 object PBEnd extends IOApp {
-  val browserOpen = com.odenzo.etrade.oauth.server.BrowserLaunchFn.macMicrosoftEdge
+  val browserOpen: BrowserLaunchFn = com.odenzo.etrade.oauth.server.BrowserLaunchFn.macMicrosoftEdge
 
-  def run(args: List[String]) = {
+  def run(args: List[String]): IO[ExitCode] = {
     scribe.info("PURE BACKEND RUNNING")
 
     lazy val authEnv: ETradeAuth = ETradeAuth(scala.sys.env("ETRADE_LIVE_KEY"), scala.sys.env("ETRADE_LIVE_SECRET"))
-    val etradeConfig             = ETradeConfig(false, ETradeCallback.default, localCallback = None, auth = authEnv, ETradeApis.defaultApis)
+    val etradeConfig             = ETradeConfig(true, ETradeCallback.default, localCallback = None, auth = authEnv, ETradeApis.defaultApis)
     val config                   = etradeConfig.asOAuthConfig
 
     WebFactory
@@ -35,7 +35,7 @@ object PBEnd extends IOApp {
         for {
           framework   <- OAuthFramework(config)
           sessionData <- sessionFromValidatedCachedTokens(config).redeemWith(_ => doManualLogin(framework), bind => bind.pure)
-          context      = new ETradeContext(config.apiUrl)
+          context      = ETradeContext(config.apiUrl)
           clientR      = framework.constructSigningMiddlewareClient(sessionData)
           resource     = clientR.map(c => (c, context))
           _            = scribe.info("Authenticated and Running Business Logic")

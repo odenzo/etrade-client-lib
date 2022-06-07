@@ -14,6 +14,7 @@ case class ETimestamp(click: Instant) {
 object ETimestamp:
 
   val ZERO: ETimestamp = ETimestamp(Instant.EPOCH)
+  def NOW: ETimestamp  = ETimestamp(Instant.now())
 
   given codec: Codec[ETimestamp] = Codec.from(
     decodeLong.map(tick => ETimestamp(Instant.ofEpochSecond(tick))), // .prepare(_.up), // AnyVal Hack

@@ -14,6 +14,7 @@ object V {
   val doobie             = "1.0.0-RC2"
   val fs2                = "3.2.7"
   val http4s             = "1.0.0-M33"
+  val http4sDom          = "0.0.4"
   val logback            = "1.2.11"
   val monocle            = "3.1.0"
   val munitCats          = "1.0.7"
@@ -29,7 +30,7 @@ object V {
   val sttpClient         = "3.5.1"
   val tapir              = "0.19.3"
   val scalaCache         = "1.0.0-M6"
-  val scalaJavaTime      = "2.3.0"
+  val scalaJavaTime      = "2.4.0"
   val scaffeine          = "5.1.2"
   val scribeCats         = "3.8.2"
 
