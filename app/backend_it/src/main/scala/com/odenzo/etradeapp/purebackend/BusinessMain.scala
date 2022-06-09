@@ -40,8 +40,9 @@ object BusinessMain {
       .use { (client: Client[IO], context: ETradeContext) =>
         given ETradeContext = context
         given Client[IO]    = client
-        // alertsApi()
-        orderApi()
+        alertsApi()
+        //  orderApi()
+      // fetchAccount().map(acc => OrdersUsage(acc)).flatMap(ou => ou.exercise())
       }
       .onError {
         err =>
@@ -50,13 +51,20 @@ object BusinessMain {
       }
 
   }
-  def incremental()(using Client[IO], ETradeContext): IO[Unit] = {
 
+  /** Little cheat to get the first account in the list of accounts for current user */
+  def fetchAccount()(using Client[IO], ETradeContext): IO[Account] =
     for {
       accountsRs <- ListAccountsCmd().exec()
       _           = scribe.info(s"Accounts: ${pprint(accountsRs)}")
       _          <- IO.fromEither(accountsRs.asJson.as[ListAccountsRs])
       account     = accountsRs.accounts.head
+    } yield account
+
+  def incremental()(using Client[IO], ETradeContext): IO[Unit] = {
+
+    for {
+      account    <- fetchAccount()
       accountId   = account.accountIdKey
       _           = scribe.info(s"Your Account: ${pprint(account)}")
       balancesRs <- FetchAccountBalancesCmd(accountId, account.accountType.some, account.institutionType).exec()
@@ -174,7 +182,13 @@ object BusinessMain {
       listOrdersRs <- ListOrdersCmd(accountId, None, None, None, None, None, None, None).exec()
       _            <- IO.fromEither(listOrdersRs.asJson.as[ListOrdersRs])
       _             = scribe.info(s"ListOrdersRs: ${pprint(listOrdersRs)}")
-//        previewOrderRs         <- PreviewOrderCmd(listAlertsRs.alertsResponse.alert.head.id).exec()
+
+      // First Step it to Preview an Order, then Change, Cancel, or Place. Guess can change N Times.
+      // Can Cancel at any stage (until executed).
+//      previewOrderReq = PreviewOrderRequest(
+//        OrderType.EQ, order:List(OrderDetail(), "unqiuqForPreview" )
+//                        )
+      // previewOrderRs <- PreviewOrderCmd(accountId, previewOrderReq).exec()
 //        _                      <- IO.fromEither(listAlertDetailsRs.asJson.as[ListAlertDetailsRs])
 //        changePreviewedOrderRs <- ChangePreviewedOrderCmd().exec()
 //        placeOrderRs           <- PlaceOrderCmd(List(840)).exec()

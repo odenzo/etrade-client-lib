@@ -8,27 +8,29 @@
 ![Latest Release](/github/v/release/odenzo/etrade-client-lib?display_name=tag)
 
 This is a simple e-trade oauth client library that I use to query etrade account
-for accounting purposes. Scala3 and Scala JS only.
+for accounting purposes.
 
-Its small scope so have been using to see if I can design a better in-house framework that allows for
-mixing and matching of calling third-party API front front end (ScalaJS) or backend (JVM) with same user code.
+Scala3 and Scala JS only.
+
 
 - Deals with OAuth semi-specifically for e-trade.
-- For cases where the APIs have no CORS support (e.g. e-trade) allows proxying the calls through the backend
+- Has a mini-dsl based on Context Functions composed of::
+  - XXCmd -- case class with all API request parameters
+  - XXRs  -- case class that consumes the JSON response from each API
+  - XXCF methods take parameters from (or XXCmd) to convert to canonical Request[IO] (HTTP4S)
+  - XXApp methods: XXCmd => XXRs
+  - Command Typeclass that adds extension method on XXCmd called "exec()". Concrete types that:
+    - Invoke the XXApp methods OR
+    - For Front-End, invokes a Bridge function that calls the backend with the command, executes and returns response
+
+- Has ETradeCmd ETradeService[<ResponseType>] Context Functions to inject into XXCF Request building, and XXApp type functions respectively.
+
+This was all just an experiment to use Scala 3, trimmed down the most overboard things and works pretty well.
 
 ## Status
 
-+ Settling on approach, or at least the exposed appraoch, which is Commands with exec extension for back-end. Working OK, reasonable to 
-  add new APIs.
-
-+ Want to proof of concept a front-end proxy with front-end making  command and calling  POST http://backend/doCommand (JSON Command 
-  Body) and having the dependant type of the command returned. Not sure much advantage is using WebSocket for this, given we have a pool 
-  of client HTTP connections, and would have to deal with FIFO or correlation of the websocket. So, X.parDo and monad sequencing over HTTP.
-
-+ Cleanup a lot of cruft from experiments.
-
-So, after going done many paths of the maze I still haven't fully back-tracked (e.g. still using context-dependant functions) but
-the basic approach is:
++ APIs all implemented and working except OrderAPIs which are half-baked.
+  + 
   + e-trade APIs based on request builders
   + Command Pattern - with each command have a type RESULT saying what the expected result type is (psudeo-existential type I guess)
   + e-trade "apps" (aka service) that takes parameters to build a request, and function to return Command.RESULT
@@ -38,17 +40,15 @@ the basic approach is:
     result to front-end.
   + If I still refuse to do productive work try and make a serializable DSL consisting of Command Graphs to send to backend (unlikely!)
 
+### TODOs
 
+- Codec improvements, inline macros or real macros, including for opaque types (enums implemented as function, renaming implementing as 
+  inline style macro now.)
+- More fine grained typing, most enums handled but a lot more stuff needs opaque types or refined types to disambiguate
+- Deal with List[A|B] and A|B CODECs
 
-### Why publish it?
+- Finish off Orders
 
-Regret it, too much concurrent experimentation, esp with ScalaJS in the browser.
-Wanted to see Scala 3 new features (Context Functions, Dependant Type Functions, Matchable, Meta-Programming, Tuples, Typeable etc)
-can be put to good use making 3rd API calls. Painful using both Metals and IJ to be honest.
-
-Also, using opaque types and enums for better model building. Partial on that.
-
-Circe Codecs were also a pain due, especially for e-trade JSON formats.
 
 ###  Community effort to fill out the APIs and models objects
 The main reason, god its tedious reverse engineering APIs even for simple implementation, especially error handling.

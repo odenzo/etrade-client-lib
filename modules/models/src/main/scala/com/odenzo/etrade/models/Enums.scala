@@ -1,14 +1,21 @@
 package com.odenzo.etrade.models
 
 import cats.data.Chain
-import com.odenzo.etrade.models.utils.CirceCodecs.*
+
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.Decoder.*
 import io.circe.Encoder.*
 import io.circe.Codec.*
-
+import com.odenzo.etrade.models.utils.CirceCodecs.*
 import scala.util.Try
+
+/** Overlaps OrderType not sure this is complete. (MMF?) */
+enum SecutiyType:
+  case EQ, OPTN, MF, MMF
+
+object SecutiyType:
+  given Codec[SecutiyType] = Codec.from(stringCIEnumDecoder[SecutiyType], stringCIEnumEncoder[SecutiyType])
 
 enum ETResult:
   case SUCCESS, ERROR
@@ -107,7 +114,8 @@ object OrderStatus:
   given Codec[OrderStatus] = Codec.from(stringCIEnumDecoder[OrderStatus], stringCIEnumEncoder[OrderStatus])
 
 enum OrderType:
-  case EQ, OPTN, SPREADS, BUY_WRITES, BUTTERFLY, IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF
+  case EQ, OPTN, SPREADS, BUY_WRITES, BUTTERFLY, IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF, ONE_CANCELS_ALL
+
 object OrderType:
   given Codec[OrderType] = Codec.from(stringCIEnumDecoder[OrderType], stringCIEnumEncoder[OrderType])
 

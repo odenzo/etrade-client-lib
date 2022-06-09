@@ -51,7 +51,7 @@ trait CirceUtils {
 
   val capitalize: String => String = (s: String) => s.capitalize
 
-  def mapKeys(mapping: Map[String, String])(s: String): String = mapping.get(s).fold(s)(n => n)
+  def mapKeys(mapping: Map[String, String])(s: String): String = mapping.getOrElse(s, s) // mapped(s) or s
 
   /** Make sure this is done eagerly, the inverse used for changing from Json Key Names to case class field names */
   def reverse(mapping: Map[String, String]): Map[String, String] = {

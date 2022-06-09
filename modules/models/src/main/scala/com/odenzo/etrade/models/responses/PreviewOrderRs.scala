@@ -13,11 +13,11 @@ object PreviewOrderRs:
 
 case class PreviewOrderResponse(
     orderType: OrderType,                              //	string	The type of order being placed	EQ, OPTN, SPREADS, BUY_WRITES, BUTTERFLY,
-//IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF
+    // IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF
     messageList: Messages,                             //	The object for the message list
     totalOrderValue: Amount,                           //	number	The total order value
     totalCommission: Amount,                           //	number	The total commission
-    order: List[OrderDetail],                          //	The details of the order
+    order: List[Detail],                               //	The details of the order
     previewIds: List[PreviewId],                       //	This parameter is required and must specify the numeric preview ID from the preview and the other
     // parameters of this request must match the parameters of the preview.
     previewTime: ETimestamp,                           // 	integer (int64)	The preview time

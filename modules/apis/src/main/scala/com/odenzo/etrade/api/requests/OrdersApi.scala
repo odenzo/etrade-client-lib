@@ -11,6 +11,9 @@ import com.odenzo.etrade.models.responses.{LookupProductRs, QuoteRs}
 import org.http4s.Method.{DELETE, GET, POST, PUT}
 import org.http4s.Request
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
+import _root_.io.circe.*
+import _root_.io.circe.syntax.{given, *}
+
 object OrdersApi extends APIHelper {
 
   def listOrdersCF(cmd: ListOrdersCmd): ETradeCall = IO.pure {
@@ -36,11 +39,13 @@ object OrdersApi extends APIHelper {
   }
 
   def previewOrderCF(cmd: PreviewOrderCmd): ETradeCall = IO.pure {
+    val rq: Json = cmd.asJson.deepDropNullValues
+    scribe.info(s"NoNulls Rq: ${rq.spaces4}")
     Request[IO](
       POST,
       (baseUri / "v1" / "accounts" / cmd.accountIdKey / "orders" / "preview"),
       headers = acceptJsonHeaders
-    ).withEntity(cmd.previewOrderRequest)
+    ).withEntity(rq)
   }
 
   def previewOrderApp(cmd: PreviewOrderCmd): ETradeService[cmd.RESULT] = {

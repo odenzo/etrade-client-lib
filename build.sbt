@@ -34,7 +34,7 @@ ThisBuild / autoAPIMappings := true
 
 ThisBuild / scalacOptions := Seq("-release", "11")
 ThisBuild / scalacOptions ++= Scala3Settings.settings
-ThisBuild / scalacOptions ++= Seq("-Xmax-inlines", "512")
+ThisBuild / scalacOptions ++= Seq("-Xmax-inlines", "1024")
 
 val publishSettings = Seq(
   Test / packageBin / publishArtifact := false,

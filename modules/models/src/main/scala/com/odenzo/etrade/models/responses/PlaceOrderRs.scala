@@ -12,12 +12,12 @@ object PlaceOrderRs:
 
 case class PlaceOrderResponse(
     orderType: OrderType,    //	string	The type of order being placed	EQ, OPTN, SPREADS, BUY_WRITES, BUTTERFLY,
-//IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF
+    // IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF
     messageList: Messages,   //	The object for the message list
     totalOrderValue: Amount, //	number	The total order value
     totalCommission: Amount, //	number	The total commission
 
-    order: List[OrderDetail],         //	The details of the order
+    order: List[Detail],              //	The details of the order
     dstFlag: Option[Boolean],         //	boolean	Indicator flag identifying whether daylight savings time is applicable or not
     optionLevelCd: Option[Int],       //	integer (int32)	The code that designates the applicable options level
     marginLevelCd: MarginLevel,       // 	string	The code that designates the applicable margin level
