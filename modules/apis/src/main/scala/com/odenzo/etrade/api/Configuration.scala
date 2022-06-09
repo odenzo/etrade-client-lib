@@ -24,17 +24,13 @@ case class ETradeConfig(
 ) derives Codec.AsObject {
   val apiEndpoint: Uri = if useSandbox then apis.sandbox else apis.prod
 
-  def asOAuthConfig: OAuthConfig = com
-    .odenzo
-    .etrade
-    .oauth
-    .OAuthConfig(
-      apiEndpoint,
-      Consumer(auth.key, auth.secret),
-      callback.callback,
-      apis.redirect,
-      localCallback
-    )
+  def asOAuthConfig: OAuthConfig = OAuthConfig(
+    apiEndpoint,
+    Consumer(auth.key, auth.secret),
+    callback.callback,
+    apis.redirect,
+    localCallback
+  )
   def asContext: ETradeContext   = com.odenzo.etrade.api.ETradeContext(apiEndpoint)
 
 }

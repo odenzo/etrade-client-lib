@@ -11,3 +11,6 @@ object ListOrdersRs:
   given Codec.AsObject[ListOrdersRs] = CirceUtils.capitalizeCodec(deriveCodec)
 
 case class OrdersResponse(marker: Option[String], next: String, order: List[ETOrder], messages: Option[Messages])
+
+object OrdersResponse:
+  given Codec[OrdersResponse] = CirceUtils.renamingCodec[OrdersResponse](deriveCodec[OrdersResponse], Map("order" -> "Order"))

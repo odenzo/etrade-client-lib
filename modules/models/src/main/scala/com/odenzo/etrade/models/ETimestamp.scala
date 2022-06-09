@@ -12,7 +12,6 @@ case class ETimestamp(click: Instant) {
 }
 
 object ETimestamp:
-
   val ZERO: ETimestamp = ETimestamp(Instant.EPOCH)
   def NOW: ETimestamp  = ETimestamp(Instant.now())
 
