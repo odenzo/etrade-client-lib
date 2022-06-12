@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.orderwriting
 
 import com.odenzo.etrade.models.{OrderTerm, *}
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 //import io.circe.generic.semiauto.deriveCodec
@@ -58,5 +58,5 @@ case class DetailForEquityOrder(
 ) //derives // Codec.AsObject //  (Inlines over 1024!)
 
 object DetailForEquityOrder:
-  private val base: Codec.AsObject[DetailForEquityOrder] = deriveCodec[DetailForEquityOrder]
-  given Codec.AsObject[DetailForEquityOrder]             = CirceUtils.renamingCodec[DetailForEquityOrder](base, Map("instrument" -> "Instrument"))
+
+  given Codec.AsObject[DetailForEquityOrder] = CirceCodecs.renamingCodec(Map("instrument" -> "Instrument"))

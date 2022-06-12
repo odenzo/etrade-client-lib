@@ -1,6 +1,6 @@
 package com.odenzo.etrade.models
 
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.Uri
@@ -45,4 +45,4 @@ case class Position(
 object Position:
 
   def rename: Map[String, String]       = List("product", "quick", "complete", "performance", "fundamental").map(lc => lc -> lc.capitalize).toMap
-  given codec: Codec.AsObject[Position] = CirceUtils.renamingCodec(deriveCodec[Position], rename)
+  given codec: Codec.AsObject[Position] = CirceCodecs.renamingCodec(rename)

@@ -19,8 +19,8 @@ import io.circe.*
   */
 case class Account(
     intNo: Option[Int],
-    accountId: String,
-    accountIdKey: String,
+    accountId: AccountId,
+    accountIdKey: AccountIdKey,
     accountMode: String,
     accountDesc: String,
     accountName: String,

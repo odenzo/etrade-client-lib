@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.odenzo.etrade.api.ETradeContext
 import com.odenzo.etrade.api.requests.ETradeCmd
 import com.odenzo.etrade.api.requests.{FetchAccountBalancesCmd, ETradeCmd, ListAccountsCmd, ListTransactionsCmd}
-import com.odenzo.etrade.models.{Account, ETimestamp}
+import com.odenzo.etrade.models.*
 import org.http4s.*
 import org.http4s.client.Client
 import org.http4s.syntax.all.*
@@ -13,13 +13,15 @@ import org.scalacheck.Gen
 /** Sample commands which may have non-sensical values, not non-integration testing. */
 object SampleCommands {
 
-  val genAccountId: Gen[String]    = Gen.alphaNumStr.map(a => a)
-  val genAccountIdKey: Gen[String] = Gen.alphaNumStr.map(a => a)
+  val genAccountId: Gen[AccountId]       = {
+    Gen.alphaNumStr.map((a: String) => AccountId(a))
+  }
+  val genAccountIdKey: Gen[AccountIdKey] = Gen.alphaNumStr.map(a => AccountIdKey(a))
 
   val genAccount: Gen[Account] =
     for {
-      acctId     <- Gen.alphaNumStr
-      acctKey    <- Gen.alphaNumStr
+      acctId     <- genAccountId
+      acctKey    <- genAccountIdKey
       mode       <- Gen.oneOf("ModeA", "ModeB", "ModeC")
       desc       <- Gen.alphaNumStr
       name       <- Gen.alphaNumStr
@@ -27,7 +29,18 @@ object SampleCommands {
       instType   <- Gen.alphaNumStr
       acctStatus <- Gen.alphaNumStr
       closed     <- Gen.const(ETimestamp.ZERO)
-    } yield Account(None, acctId, acctKey, mode, desc, name, acctType, instType: String, acctStatus: String, closed)
+    } yield Account(
+      None,
+      acctId,
+      acctKey,
+      mode,
+      desc,
+      name,
+      acctType,
+      instType: String,
+      acctStatus: String,
+      closed
+    )
 
   val genListTransactionCmd: Gen[ListTransactionsCmd] =
     for {

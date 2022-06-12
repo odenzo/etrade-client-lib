@@ -1,8 +1,7 @@
 package com.odenzo.etrade.models
 
 import cats.data.Chain
-import com.odenzo.etrade.models.utils.CirceUtils
-
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -82,8 +81,7 @@ case class MutualFundQuoteDetails(
 object MutualFundQuoteDetails:
   import com.odenzo.etrade.models.codecs.given
 
-  given codec: Codec.AsObject[MutualFundQuoteDetails] = CirceUtils
-    .renamingCodec(deriveCodec[MutualFundQuoteDetails], Map("netAssets" -> "NetAssets"))
+  given codec: Codec.AsObject[MutualFundQuoteDetails] = CirceCodecs.renamingCodec(Map("netAssets" -> "NetAssets"))
 
 /**
   * Before or After Hourss,

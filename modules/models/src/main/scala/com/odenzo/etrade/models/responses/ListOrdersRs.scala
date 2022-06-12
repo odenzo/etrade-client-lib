@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.etrade.models.{Account, ETOrder, Messages}
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
 import io.circe.syntax.*
@@ -13,4 +13,4 @@ object ListOrdersRs:
 case class OrdersResponse(marker: Option[String], next: String, order: List[ETOrder], messages: Option[Messages])
 
 object OrdersResponse:
-  given Codec[OrdersResponse] = CirceUtils.renamingCodec[OrdersResponse](deriveCodec[OrdersResponse], Map("order" -> "Order"))
+  given Codec[OrdersResponse] = CirceCodecs.renamingCodec[OrdersResponse](Map("order" -> "Order"))

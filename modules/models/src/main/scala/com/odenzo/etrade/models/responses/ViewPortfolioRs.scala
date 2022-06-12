@@ -2,7 +2,7 @@ package com.odenzo.etrade.models.responses
 
 import cats.Semigroup
 import cats.data.NonEmptyList
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import com.odenzo.etrade.models.{PortfolioTotals, Position}
 import io.circe.*
 import io.circe.generic.semiauto.*
@@ -35,5 +35,5 @@ case class AccountPortfolio(
 object AccountPortfolio {
 
   import com.odenzo.etrade.models.codecs.given
-  given codec: Codec.AsObject[AccountPortfolio] = CirceUtils.renamingCodec(deriveCodec[AccountPortfolio], Map("position" -> "Position"))
+  given codec: Codec.AsObject[AccountPortfolio] = CirceCodecs.renamingCodec(Map("position" -> "Position"))
 }

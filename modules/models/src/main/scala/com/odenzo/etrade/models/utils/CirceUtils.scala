@@ -12,29 +12,20 @@ import scala.quoted.Type
 
 trait CirceUtils {
 
-  final val discriminatorKey = "_I_AM_"
-
-  /** This must be inline or Mirror can't get a constant T */
-  inline def deriveDiscCodec[T](d: String)(using m: Mirror.Of[T]): Codec.AsObject[T] = {
-    // val autoDisc = this.toString // This is CirceUtils not the embedded
-    // type X        = scala.compiletime.erasedValue[T].getClass
-    // scala.compiletime.error("Copmile Time Error")
-    // inline val tBased: T = constValue[T]
-    // inline val tName     = tBased.toString
-    // scala.compiletime.error(s"Type  ${Type.show[T]} not dealt with")
-    scribe.info(s"WhatHappened: $d ==?")
-    val dec: Decoder[T]          = deriveDecoder[T] // Note: This doesn't care if discriminator is there or not intentionally
-    val enc: Encoder.AsObject[T] = deriveEncoder[T].mapJsonObject(jo => jo.add(discriminatorKey, Json.fromString(d)))
-    Codec.AsObject.from(dec, enc)
-  }
+  // val autoDisc = this.toString // This is CirceUtils not the embedded
+  // type X        = scala.compiletime.erasedValue[T].getClass
+  // scala.compiletime.error("Copmile Time Error")
+  // inline val tBased: T = constValue[T]
+  // inline val tName     = tBased.toString
+  // scala.compiletime.error(s"Type  ${Type.show[T]} not dealt with")
 
   /**
     * Allows the embedding of subtype discruminators. The auto X derives Codec.AsObject doesn't seem to do this as of 14.2 I also want the
     * discriminator in (wether x:ETradeCmd).asJsonObject or (x:ListAccounts).asJsonObject
     */
 
-  def postAddDiscriminator(myName: String)(obj: JsonObject): JsonObject = {
-    obj.add(CirceUtils.discriminatorKey, Json.fromString(myName))
+  def postAddDiscriminator(key: String, myName: String)(obj: JsonObject): JsonObject = {
+    obj.add(key, Json.fromString(myName))
   }
 
   val unCaptialize: String => String =
@@ -75,14 +66,6 @@ trait CirceUtils {
     .andThen(json => json.asObject.get)
     .apply(obj)
 
-  /** Map is in form  case class field name => JSON field name (eg product -> Product) */
-  def renamingCodec[T](codec: Codec.AsObject[T], rename: Map[String, String]): Codec.AsObject[T] = Codec
-    .AsObject
-    .from(
-      codec.prepare(prepareKeys(mapKeys(reverse(rename)))),
-      codec.mapJsonObject(encoderTransformKey(mapKeys(rename)))
-    )
-
   /** Converts all case class fields to Upper-Case Json Field Names */
   def capitalizeCodec[T](codec: Codec.AsObject[T]): Codec.AsObject[T] = Codec
     .AsObject
@@ -101,16 +84,6 @@ trait CirceUtils {
         codec.mapJsonObject(mapper)
       }
     )
-
-// TODO: Stuck on generic enum codec for simple Value
-//  def stringEnumCodec[T <: Product]                                   = {
-//    Codec.from[T](
-//      decodeString.emapTry(s => scala.util.Try { T.valueOf(s) }),
-//      encodeString.contramap(en => en.toString)
-//    )
-//  }
-//
-  /* EnumValues.scala */
 
 }
 

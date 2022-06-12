@@ -20,19 +20,20 @@ import io.circe.syntax.*
 import org.http4s.client.Client
 
 /**
-  * There can be a command runner for ANY command. This is not sealed. Thus we don't need
-  *
-  * It smells like this can be better. Look at https://docs.scala-lang.org/scala3/reference/new-types/dependent-function-types-spec.html
-  * until more blood from nose.
-  *
-  * The goal here is to have different execution based on imports different set of TC implementations, one set for back-end, one set for
-  * front end. This is for back-end, or direct usage of APIs without proxying from front to back. Can also be used in front=end if CORS not
-  * an issue, so its left in this cross plaform area. You could also make another set with more debugging etc. Would be nice to just define
-  * the Worker and the ETradeCmd and make sure the tupled parametes from command match the tuple of the Worker. For another day. This is
-  * really "shape matching" instead of type matching. Could move to type matching by making the *App(x,y,z) just *App(someCmd)
+  * We use TypeClass here because the action is different based on the type A. The goal here is to have different execution based on imports
+  * different set of TC implementations, one set for back-end, one set for front end. This is for back-end, or direct usage of APIs without
+  * proxying from front to back. Can also be used in front=end if CORS not an issue, so its left in this cross plaform area. You could also
+  * make another set with more debugging etc. Would be nice to just define the Worker and the ETradeCmd and make sure the tupled parametes
+  * from command match the tuple of the Worker. For another day. This is really "shape matching" instead of type matching. Could move to
+  * type matching by making the *App(x,y,z) just *App(someCmd)
   *
   * WTF: This should allow be to say val x:ETradeService[ListAccountsRs] = ListAccountsCmd().exec even when there are no ContextFunction
-  * this.
+  * this. Hmm, if we have a default action (we don't as encoded now, but most App as the same standard(...) then can we use import
+  * scala.compiletime.summonFrom
+  *
+  * inline def setFor[T]: Set[T] = summonFrom { case ord: Ordering[T] => new TreeSet[T]()(using ord) case _ => new HashSet[T] } on the level
+  * above this to check basically is there is a COmmandRunner then do this, else do default this. Meh, not really I think, since we have no
+  * binding to making the request.
   */
 trait CommandRunner[A <: ETradeCmd] {
   def fetch(a: A): ETradeService[a.RESULT]
@@ -72,6 +73,12 @@ given CommandRunner[LookupProductCmd] with
 
 given CommandRunner[FetchQuoteCmd] with
   override def fetch(a: FetchQuoteCmd): ETradeService[a.RESULT] = MarketApi.equityQuotesApp.tupled(Tuple.fromProductTyped(a))
+
+given CommandRunner[GetOptionExpiryCmd] with
+  override def fetch(a: GetOptionExpiryCmd): ETradeService[a.RESULT] = MarketApi.optionChainExpiryApp(a)
+
+given CommandRunner[GetOptionChainsCmd] with
+  override def fetch(a: GetOptionChainsCmd): ETradeService[a.RESULT] = MarketApi.optionChainsApp(a)
 
 given CommandRunner[ListAlertsCmd] with
   override def fetch(a: ListAlertsCmd): ETradeService[a.RESULT] = AlertsApi.listAlertsApp(a)
