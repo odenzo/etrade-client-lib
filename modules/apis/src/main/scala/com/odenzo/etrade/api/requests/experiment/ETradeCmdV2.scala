@@ -30,12 +30,13 @@ sealed trait ETradeCmdV2 {
   type RESULT
 }
 
+// This gets an error if an emptytuple
 case class ListAccountsCmdV2() extends ETradeCmdV2 {
   override type RESULT = ListAccountsRs
 }
 
 object ListAccountsCmdV2:
-  given codec: Codec.AsObject[ListAccountsCmdV2] = CirceUtils.deriveDiscCodec[ListAccountsCmdV2](this.toString)
+  given codec: Codec.AsObject[ListAccountsCmdV2] = CirceCodecs.deriveDiscCodec()
 
 /** This always does realTimeNav */
 
@@ -48,7 +49,7 @@ case class AccountBalancesCmdV2(
 }
 
 object AccountBalancesCmdV2:
-  given codec: Codec.AsObject[AccountBalancesCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[AccountBalancesCmdV2] = CirceCodecs.deriveDiscCodec()
 
 /** This will do paging automatically */
 case class ListTransactionsCmdV2(
@@ -61,7 +62,7 @@ case class ListTransactionsCmdV2(
 }
 
 object ListTransactionsCmdV2:
-  given codec: Codec.AsObject[ListTransactionsCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[ListTransactionsCmdV2] = CirceCodecs.deriveDiscCodec()
 
 case class TransactionDetailsCmdV2(
     accountIdKey: String,
@@ -73,7 +74,7 @@ case class TransactionDetailsCmdV2(
 }
 
 object TransactionDetailsCmdV2:
-  given codec: Codec.AsObject[TransactionDetailsCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[TransactionDetailsCmdV2] = CirceCodecs.deriveDiscCodec()
 
 case class ViewPortfolioCmdV2(
     accountIdKey: String,
@@ -87,7 +88,7 @@ case class ViewPortfolioCmdV2(
 }
 
 object ViewPortfolioCmdV2:
-  given codec: Codec.AsObject[ViewPortfolioCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[ViewPortfolioCmdV2] = CirceCodecs.deriveDiscCodec()
 
 /** TODO: Change to one, varargs still to symbols (1+) Note that you cannot use MF_DETAIL on anything that is not a mutual fund. */
 case class EquityQuoteCmdV2(
@@ -100,19 +101,19 @@ case class EquityQuoteCmdV2(
 }
 
 object EquityQuoteCmdV2:
-  given codec: Codec.AsObject[EquityQuoteCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[EquityQuoteCmdV2] = CirceCodecs.deriveDiscCodec()
 
 case class LookupProductCmdV2(searchFragment: String) extends ETradeCmdV2 {
   override type RESULT = LookupProductRs
 }
 
 object LookupProductCmdV2:
-  given codec: Codec.AsObject[LookupProductCmdV2] = CirceUtils.deriveDiscCodec(this.toString)
+  given codec: Codec.AsObject[LookupProductCmdV2] = CirceCodecs.deriveDiscCodec()
 
 object ETradeCmdV2 {
   given dec: Decoder[ETradeCmdV2] = Decoder[ETradeCmdV2] { hc =>
     // Unfortunately we cannot automatically generate the list?
-    hc.getOrElse[String](CirceUtils.discriminatorKey)("NO_DISCRIMINATOR")
+    hc.getOrElse[String](CirceCodecs.DiscCodec.discriminatorKey)("NO_DISCRIMINATOR")
       .flatMap { discVal =>
         val decoder: Decoder[ETradeCmdV2] =
           discVal match {

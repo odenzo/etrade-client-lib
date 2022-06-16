@@ -2,7 +2,7 @@ package com.odenzo.etrade.models.responses
 
 import cats.Semigroup
 import com.odenzo.etrade.models.{Account, Alert, ETOrder, Messages}
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
 import io.circe.syntax.*
@@ -22,4 +22,4 @@ object ListAlertsRs {
 case class AlertsResponse(totalAlerts: Long, alert: List[Alert])
 
 object AlertsResponse:
-  given Codec[AlertsResponse] = CirceUtils.renamingCodec(deriveCodec[AlertsResponse], Map("alert" -> "Alert"))
+  given Codec[AlertsResponse] = CirceCodecs.renamingCodec(Map("alert" -> "Alert"))

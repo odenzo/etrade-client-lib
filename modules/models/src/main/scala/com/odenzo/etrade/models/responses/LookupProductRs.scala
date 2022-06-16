@@ -3,8 +3,7 @@ package com.odenzo.etrade.models.responses
 import cats.data.*
 import cats.syntax.all.*
 import com.odenzo.etrade.models.*
-import com.odenzo.etrade.models.utils.CirceUtils
-
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 import io.circe.Decoder.Result
 import io.circe.Encoder.*
@@ -26,4 +25,4 @@ case class ProductData(symbol: String, description: String, tipe: String)
 
 object ProductData:
 
-  given codec: Codec.AsObject[ProductData] = CirceUtils.renamingCodec(deriveCodec[ProductData], Map("tipe" -> "type"))
+  given codec: Codec.AsObject[ProductData] = CirceCodecs.renamingCodec(Map("tipe" -> "type"))

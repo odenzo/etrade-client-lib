@@ -1,6 +1,6 @@
 package com.odenzo.etrade.models
 
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 
@@ -64,6 +64,6 @@ case class ComputedBalance(
 object ComputedBalance {
 
   private def rename                    = Map("openCalls" -> "OpenCalls", "realTimeValues" -> "RealTimeValues")
-  given Codec.AsObject[ComputedBalance] = CirceUtils.renamingCodec(deriveCodec[ComputedBalance], rename)
+  given Codec.AsObject[ComputedBalance] = CirceCodecs.renamingCodec(rename)
 
 }

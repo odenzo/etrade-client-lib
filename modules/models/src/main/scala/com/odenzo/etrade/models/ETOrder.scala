@@ -1,6 +1,6 @@
 package com.odenzo.etrade.models
 
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -16,4 +16,4 @@ case class ETOrder(
 )
 
 object ETOrder:
-  given Codec[ETOrder] = CirceUtils.renamingCodec(deriveCodec[ETOrder], Map("orderDetail" -> "OrderDetail"))
+  given Codec[ETOrder] = CirceCodecs.renamingCodec(Map("orderDetail" -> "OrderDetail"))

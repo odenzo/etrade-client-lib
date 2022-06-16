@@ -1,8 +1,7 @@
 package com.odenzo.etrade.models
 
 import com.odenzo.etrade.models.*
-
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -61,4 +60,4 @@ case class Detail(
 )
 
 object Detail:
-  given Codec[Detail] = CirceUtils.renamingCodec[Detail](deriveCodec, Map("instrument" -> "Instrument"))
+  given Codec.AsObject[Detail] = CirceCodecs.renamingCodec[Detail](Map("instrument" -> "Instrument"))

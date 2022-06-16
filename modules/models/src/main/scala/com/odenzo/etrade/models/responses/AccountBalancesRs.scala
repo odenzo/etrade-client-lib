@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.etrade.models.*
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 import io.circe.Codec.*
 import io.circe.Decoder.Result
@@ -29,7 +29,5 @@ case class AccountBalances(
 )
 
 object AccountBalances {
-  given codec: Codec.AsObject[AccountBalances] = CirceUtils
-    .renamingCodec(deriveCodec[AccountBalances], Map("cash" -> "Cash", "computed" -> "Computed"))
-
+  given codec: Codec.AsObject[AccountBalances] = CirceCodecs.renamingCodec(Map("cash" -> "Cash", "computed" -> "Computed"))
 }

@@ -4,10 +4,7 @@ import cats.data.Chain
 
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
-import io.circe.Decoder.*
-import io.circe.Encoder.*
-import io.circe.Codec.*
-import com.odenzo.etrade.models.utils.CirceCodecs.*
+import com.odenzo.etrade.models.utils.CirceCodecs.{given, *}
 import scala.util.Try
 
 /** Overlaps OrderType not sure this is complete. (MMF?) */
@@ -15,116 +12,99 @@ enum SecutiyType:
   case EQ, OPTN, MF, MMF
 
 object SecutiyType:
-  given Codec[SecutiyType] = Codec.from(stringCIEnumDecoder[SecutiyType], stringCIEnumEncoder[SecutiyType])
+  given Codec[SecutiyType] = enumCaseCICodec()
+
+  // Codec.from(stringCIEnumDecoder[SecutiyType], stringCIEnumEncoder[SecutiyType])
 
 enum ETResult:
   case SUCCESS, ERROR
 
 object ETResult:
-  given Codec[ETResult] = Codec.from(stringCIEnumDecoder[ETResult], stringCIEnumEncoder[ETResult])
+  given Codec[ETResult] = enumCaseCICodec()
 
 /** MF_DETAIL can only be used on valid mutual funds apparently */
 enum QuoteDetail:
   case ALL, FUNDAMENTAL, INTRADAY, OPTIONS, WEEK_52, MF_DETAIL
 
 object QuoteDetail:
-  given Codec[QuoteDetail] = Codec.from(stringCIEnumDecoder[QuoteDetail], stringCIEnumEncoder[QuoteDetail])
+  given Codec[QuoteDetail] = enumCaseCICodec()
 
 enum PortfolioView:
   case PERFORMANCE, FUNDAMENTAL, OPTIONSWATCH, QUICK, COMPLETE
 
 object PortfolioView:
-  given Codec[PortfolioView] = Codec.from(
-    stringCIEnumDecoder[PortfolioView],
-    stringCIEnumEncoder[PortfolioView]
-  )
+  given Codec[PortfolioView] = enumCaseCICodec()
 enum QuoteStatus:
   case REALTIME, DELAYED, CLOSING, EH_REALTIME, EH_BEFORE_OPEN, EH_CLOSED
 
 object QuoteStatus:
-  given Codec[QuoteStatus] = Codec.from(
-    stringCIEnumDecoder[QuoteStatus],
-    stringCIEnumEncoder[QuoteStatus]
-  )
+  given Codec[QuoteStatus] = enumCaseCICodec()
 
 enum MarketSession:
   case REGULAR, EXTENDED
 
 object MarketSession:
-  given Codec[MarketSession] = Codec.from(
-    stringCIEnumDecoder[MarketSession],
-    stringCIEnumEncoder[MarketSession]
-  )
+  given Codec[MarketSession] = enumCaseCICodec()
 
 enum OptionsChainType:
   case CALL, PUT, CALLPUT
 
 object OptionsChainType:
-  given Codec[OptionsChainType] = Codec.from(
-    stringCIEnumDecoder[OptionsChainType],
-    stringCIEnumEncoder[OptionsChainType]
-  )
+  given Codec[OptionsChainType] = enumCaseCICodec()
 
 enum OptionsPriceType:
   case ATNM, ALL
 
 object OptionsPriceType:
-  given Codec[OptionsPriceType] = Codec.from(stringCIEnumDecoder[OptionsPriceType], stringCIEnumEncoder[OptionsPriceType])
+  given Codec[OptionsPriceType] = enumCaseCICodec()
 
 enum OptionCategory:
   case STANDARD, ALL, MINI
 
 object OptionCategory:
-  given Codec[OptionCategory] = Codec.from(
-    stringCIEnumDecoder[OptionCategory],
-    stringCIEnumEncoder[OptionCategory]
-  )
+  given Codec[OptionCategory] = enumCaseCICodec()
 
 enum TransactionType:
   case ATNM, BUY, SELL, SELL_SHORT, BUY_TO_COVER, MF_EXCHANGE
 
 object TransactionType:
-  given Codec[TransactionType] = Codec.from(stringCIEnumDecoder[TransactionType], stringCIEnumEncoder[TransactionType])
-
+  given Codec[TransactionType] = enumCaseCICodec()
 enum AlertStatus:
   case READ, UNREAD, DELETED, UNDELETED
 
 object AlertStatus:
-  given Codec[AlertStatus] = Codec.from(
-    stringCIEnumDecoder[AlertStatus],
-    stringCIEnumEncoder[AlertStatus]
-  )
+  given Codec[AlertStatus] = enumCaseCICodec()
 
 enum AlertCategory:
   case READ, UNREAD, DELETED
 
 object AlertCategory:
-  given Codec[AlertCategory] = Codec.from(stringCIEnumDecoder[AlertCategory], stringCIEnumEncoder[AlertCategory])
+  given Codec[AlertCategory] = enumCaseCICodec()
 
 enum CashMargin:
   case CASH, MARGIN
 
 object CashMargin:
-  given Codec[CashMargin] = Codec.from(stringCIEnumDecoder[CashMargin], stringCIEnumEncoder[CashMargin])
+  given Codec[CashMargin] = enumCaseCICodec()
 
 enum OrderStatus:
   case OPEN, EXECUTED, CANCELLED, INDIVIDUAL_FILLS, CANCEL_REQUESTED, EXPIRED, REJECTED
 
 object OrderStatus:
-  given Codec[OrderStatus] = Codec.from(stringCIEnumDecoder[OrderStatus], stringCIEnumEncoder[OrderStatus])
+  given Codec[OrderStatus] = enumCaseCICodec()
 
 enum OrderType:
   case EQ, OPTN, SPREADS, BUY_WRITES, BUTTERFLY, IRON_BUTTERFLY, CONDOR, IRON_CONDOR, MF, MMF, ONE_CANCELS_ALL
 
 object OrderType:
-  given Codec[OrderType] = Codec.from(stringCIEnumDecoder[OrderType], stringCIEnumEncoder[OrderType])
+  given Codec[OrderType] = enumCaseCICodec()
 
 /** How long the order stays in effect */
 enum OrderTerm:
   case GOOD_UNTIL_CANCEL, GOOD_FOR_DAY, GOOD_TILL_DATE, IMMEDIATE_OR_CANCEL, FILL_OR_KILL
 
 object OrderTerm:
-  given Codec[OrderTerm] = Codec.from(stringCIEnumDecoder[OrderTerm], stringCIEnumEncoder[OrderTerm])
+  given Codec[OrderTerm] = enumCaseCICodec()
 
 enum OrderPricingType:
   case MARKET, LIMIT, STOP, STOP_LIMIT, TRAILING_STOP_CNST_BY_LOWER_TRIGGER, UPPER_TRIGGER_BY_TRAILING_STOP_CNST,
@@ -133,37 +113,37 @@ enum OrderPricingType:
     LIMIT_ON_OPEN, LIMIT_ON_CLOSE
 
 object OrderPricingType:
-  given Codec[OrderPricingType] = Codec.from(stringCIEnumDecoder[OrderPricingType], stringCIEnumEncoder[OrderPricingType])
+  given Codec[OrderPricingType] = enumCaseCICodec()
 
 enum OrderOffsetType:
   case TRAILING_STOP_CNST, TRAILING_STOP_PRCT
 
 object OrderOffsetType:
-  given Codec[OrderOffsetType] = Codec.from(stringCIEnumDecoder[OrderOffsetType], stringCIEnumEncoder[OrderOffsetType])
+  given Codec[OrderOffsetType] = enumCaseCICodec()
 
 enum OrderRouting:
   case AUTO, AMEX, BOX, CBOE, ISE, NOM, NYSE, PHX
 
 object OrderRouting:
-  given Codec[OrderRouting] = Codec.from(stringCIEnumDecoder[OrderRouting], stringCIEnumEncoder[OrderRouting])
+  given Codec[OrderRouting] = enumCaseCICodec()
 
 enum OrderConditionType:
   case CONTINGENT_GTE, CONTINGENT_LTE
 
 object OrderConditionType:
-  given Codec[OrderConditionType] = Codec.from(stringCIEnumDecoder[OrderConditionType], stringCIEnumEncoder[OrderConditionType])
+  given Codec[OrderConditionType] = enumCaseCICodec()
 
 enum OrderFollowPriceType:
   case ASK, BID, LAST
 
 object OrderFollowPriceType:
-  given Codec[OrderFollowPriceType] = Codec.from(stringCIEnumDecoder[OrderFollowPriceType], stringCIEnumEncoder[OrderFollowPriceType])
+  given Codec[OrderFollowPriceType] = enumCaseCICodec()
 
 enum PositionType:
   case ENTIRE_POSITION, CASH, MARGIN
 
 object PositionType:
-  given Codec[PositionType] = Codec.from(stringCIEnumDecoder[PositionType], stringCIEnumEncoder[PositionType])
+  given Codec[PositionType] = enumCaseCICodec()
 
 enum ExecutionGuarantee:
   case EG_QUAL_UNSPECIFIED, EG_QUAL_QUALIFIED, EG_QUAL_NOT_IN_FORCE, EG_QUAL_NOT_A_MARKET_ORDER, EG_QUAL_NOT_AN_ELIGIBLE_SECURITY,
@@ -171,13 +151,13 @@ enum ExecutionGuarantee:
     EG_QUAL_INELIGIBLE_DUE_TO_IPO, EG_QUAL_INELIGIBLE_DUE_TO_SELF_DIRECTED, EG_QUAL_INELIGIBLE_DUE_TO_CHANGEORDER
 
 object ExecutionGuarantee:
-  given Codec[ExecutionGuarantee] = Codec.from(stringCIEnumDecoder[ExecutionGuarantee], stringCIEnumEncoder[ExecutionGuarantee])
+  given Codec[ExecutionGuarantee] = enumCaseCICodec()
 
 enum ReinvestOption:
   case REINVEST, DEPOSIT, CURRENT_HOLDING
 
 object ReinvestOption:
-  given Codec[ReinvestOption] = Codec.from(stringCIEnumDecoder[ReinvestOption], stringCIEnumEncoder[ReinvestOption])
+  given Codec[ReinvestOption] = enumCaseCICodec()
 
 enum OrderEventType:
   case UNSPECIFIED, ORDER_PLACED, SENT_TO_CMS, SENT_TO_MARKET, MARKET_SENT_ACKNOWLEDGED, CANCEL_REQUESTED, ORDER_MODIFIED,
@@ -186,35 +166,34 @@ enum OrderEventType:
     CA_BOOKED, IPO_ALLOCATED, DONE_TRADE_EXECUTED, REJECTION_REVERSAL
 
 object OrderEventType:
-  given Codec[OrderEventType] = Codec.from(stringCIEnumDecoder[OrderEventType], stringCIEnumEncoder[OrderEventType])
+  given Codec[OrderEventType] = enumCaseCICodec()
 
 enum OrderAction:
   case BUY, SELL, BUY_TO_COVER, SELL_SHORT, BUY_OPEN, BUY_CLOSE, SELL_OPEN, SELL_CLOSE, EXCHANGE
 
 object OrderAction:
-  given Codec[OrderAction] = Codec.from(stringCIEnumDecoder[OrderAction], stringCIEnumEncoder[OrderAction])
-
+  given Codec[OrderAction] = enumCaseCICodec()
 enum OrderQuantityType:
   case QUANTITY, DOLLAR, ALL_I_OWN
 
 object OrderQuantityType:
-  given Codec[OrderQuantityType] = Codec.from(stringCIEnumDecoder[OrderQuantityType], stringCIEnumEncoder[OrderQuantityType])
+  given Codec[OrderQuantityType] = enumCaseCICodec()
 
 enum MFTransaction:
   case BUY, SELL
 
 object MFTransaction:
-  given Codec[MFTransaction] = Codec.from(stringCIEnumDecoder[MFTransaction], stringCIEnumEncoder[MFTransaction])
+  given Codec[MFTransaction] = enumCaseCICodec()
 
 enum OptionExpireType: // TODO: Accition ExpireTypes
   case EQUITY
 
 object OptionExpireType:
-  given Codec[OptionExpireType] = Codec.from(stringCIEnumDecoder[OptionExpireType], stringCIEnumEncoder[OptionExpireType])
+  given Codec[OptionExpireType] = enumCaseCICodec()
 
 enum MarginLevel:
   case UNSPECIFIED, MARGIN_TRADING_NOT_ALLOWED,
     MARGIN_TRADING_ALLOWED, MARGIN_TRADING_ALLOWED_ON_OPTIONS, MARGIN_TRADING_ALLOWED_ON_PM
 
 object MarginLevel:
-  given Codec[MarginLevel] = Codec.from(stringCIEnumDecoder[MarginLevel], stringCIEnumEncoder[MarginLevel])
+  given Codec[MarginLevel] = enumCaseCICodec()

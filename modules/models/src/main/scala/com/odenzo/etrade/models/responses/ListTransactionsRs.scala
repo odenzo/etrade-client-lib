@@ -4,10 +4,11 @@ import cats.*
 import cats.data.*
 import com.odenzo.etrade.models.*
 import com.odenzo.etrade.models.opaques.NEString
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 import monocle.syntax.all.*
+
 import javax.lang.model.element.NestingKind
 
 case class ListTransactionsRs(transactionListResponse: TransactionListResponse) {
@@ -34,5 +35,4 @@ case class TransactionListResponse(
 object TransactionListResponse:
   import com.odenzo.etrade.models.codecs.given
 
-  given codec: Codec.AsObject[TransactionListResponse] = CirceUtils
-    .renamingCodec(deriveCodec[TransactionListResponse], Map("transaction" -> "Transaction"))
+  given codec: Codec.AsObject[TransactionListResponse] = CirceCodecs.renamingCodec(Map("transaction" -> "Transaction"))

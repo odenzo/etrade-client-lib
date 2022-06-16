@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.responses
 
 import com.odenzo.etrade.models.*
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.*
 
 import java.time.Instant
@@ -24,9 +24,8 @@ case class TransactionDetailsResponse(
 )
 
 object TransactionDetailsResponse:
-  private val codec: Codec.AsObject[TransactionDetailsResponse] = generic.semiauto.deriveCodec[TransactionDetailsResponse]
-  given Codec.AsObject[TransactionDetailsResponse]              = CirceUtils.renamingCodec(
-    codec,
+
+  given Codec.AsObject[TransactionDetailsResponse] = CirceCodecs.renamingCodec(
     Map(
       "category"  -> "Category",
       "brokerage" -> "Brokerage"

@@ -1,7 +1,7 @@
 package com.odenzo.etrade.models.orderwriting
 
 import com.odenzo.etrade.models.*
-import com.odenzo.etrade.models.utils.CirceUtils
+import com.odenzo.etrade.models.utils.{CirceCodecs, CirceUtils}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -22,4 +22,4 @@ case class InstrumentForOrder(
 )
 
 object InstrumentForOrder:
-  given Codec.AsObject[InstrumentForOrder] = CirceUtils.renamingCodec[InstrumentForOrder](deriveCodec, Map("product" -> "Product"))
+  given Codec.AsObject[InstrumentForOrder] = CirceCodecs.renamingCodec(Map("product" -> "Product"))
